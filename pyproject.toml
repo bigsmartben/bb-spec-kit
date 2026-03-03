@@ -45,17 +45,17 @@ python_functions = ["test_*"]
 pythonpath = ["src"]
 addopts = [
     "-v",
-    "--strict-markers",
     "--tb=short",
 ]
 
-[tool.coverage.run]
-source = ["src"]
-omit = ["*/tests/*", "*/__pycache__/*"]
+[tool.ruff]
+line-length = 120
+target-version = "py311"
 
-[tool.coverage.report]
-precision = 2
-show_missing = true
-skip_covered = false
+[tool.ruff.lint]
+select = ["E", "F", "I", "N", "W"]
+ignore = ["E501"]
 
-
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
