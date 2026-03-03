@@ -28,6 +28,11 @@
 [PRINCIPLE_5_DESCRIPTION]
 <!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
 
+## Dependency Matrix
+<!-- Third-Party Dependency Matrix (direct and transitive/intermediary dependencies) -->
+[DEPENDENCY_MATRIX]
+<!-- Example: Component | Type (Direct/Transitive) | Version | License | Source | Owner | Usage | Change Risk | Upgrade Path -->
+
 ## [SECTION_2_NAME]
 <!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
 
@@ -39,6 +44,15 @@
 
 [SECTION_3_CONTENT]
 <!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+
+## Evidence-Based Reasoning
+<!-- Applies to plan and implementation phases -->
+All reasoning in plan and implementation phases must be grounded in a codebase evidence chain.
+Evidence chains should trace from entry points through call paths to concrete dependencies and usage sites.
+
+## Dependency Change Risk
+<!-- Applies to downstream plan.research -->
+Any change that introduces a new third-party or intermediary dependency in the Dependency Matrix must be treated as a High-Risk item in plan.research.
 
 ## Governance
 <!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
