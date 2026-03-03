@@ -29,9 +29,12 @@
 <!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
 
 ## Dependency Matrix
-<!-- Third-Party Dependency Matrix (direct and transitive/intermediary dependencies) -->
+<!-- Third-Party Dependency Matrix (direct and transitive/intermediary dependencies). -->
+<!-- Fill as a Markdown table. Include libraries AND intermediary services (SaaS/APIs/queues/caches/etc.). -->
+| Component | Type (Direct/Transitive/Intermediary) | Version | License | Source | Owner | Usage | Change Risk | Upgrade Path |
+|----------|----------------------------------------|---------|---------|--------|-------|-------|------------|-------------|
 [DEPENDENCY_MATRIX]
-<!-- Example: Component | Type (Direct/Transitive) | Version | License | Source | Owner | Usage | Change Risk | Upgrade Path -->
+<!-- Example row: | requests | Direct | 2.32.3 | Apache-2.0 | PyPI | Platform | HTTP client | Medium | Review minors quarterly | -->
 
 ## [SECTION_2_NAME]
 <!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->

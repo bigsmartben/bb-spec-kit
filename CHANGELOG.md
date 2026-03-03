@@ -7,6 +7,26 @@ Recent changes to the Specify CLI and templates are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.89] - 2026-03-04
+
+### Fixed
+
+- **Bundled templates for git-based installs**: When `specify-cli` is installed
+  directly from a git repository (e.g.,
+  `uv tool install specify-cli --from git+https://github.com/…`), the CLI now
+  builds the project scaffold from the `templates/` and `scripts/` directories
+  that are bundled inside the installed package wheel. This ensures that template
+  content always matches the branch/commit that was installed, instead of always
+  downloading the latest release from the upstream `github/spec-kit` repository.
+  - Added `_rewrite_paths()`, `_strip_frontmatter_build_sections()`,
+    `_generate_commands_for_agent()`, and `_build_local_template_zip()` helpers
+    that replicate the logic of `create-release-packages.sh` in pure Python.
+  - `download_and_extract_template()` now tries the local build first; it only
+    falls back to the GitHub release download when bundled templates are absent
+    (e.g., package installed from PyPI without the extra data files).
+  - `pyproject.toml` updated with `[tool.hatch.build.targets.wheel.force-include]`
+    to include `templates/` and `scripts/` in the built wheel.
+
 ## [0.1.6] - 2026-02-23
 
 ### Fixed
