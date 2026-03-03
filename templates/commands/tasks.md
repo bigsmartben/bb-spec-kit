@@ -50,7 +50,6 @@ You **MUST** consider the user input before proceeding (if not empty).
      - Every interface MUST have:
        - at least one implementation task: `[Type:Interface] [IFxx]`
        - at least one test/verification task: `[Type:Test] [IFxx]`
-       - at least one worktree enablement task: `[Type:Infra] [IFxx]`
    - Generate a DAG (both Mermaid and adjacency list):
      - Interface-level dependencies (IFxx -> IFyy)
      - Task-level dependencies (T### -> T###)
@@ -61,7 +60,6 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Correct feature name from plan.md
    - Task Types section (required)
    - Interface Inventory section (required)
-   - Worktree Workflow section (required)
    - Phase 0 (Optional): Research spikes (only if there are explicit unknowns/decisions to investigate)
    - Phase 1: Setup tasks (project initialization)
    - Phase 2: Foundations (blocking prerequisites for all interfaces)
@@ -71,10 +69,10 @@ You **MUST** consider the user input before proceeding (if not empty).
        - contract path (if any)
        - served user stories (traceability)
        - definition of done
-       - tasks: worktree (`Type:Infra`), tests/verification (`Type:Test`), implementation (`Type:Interface`)
+       - tasks: tests/verification (`Type:Test`) and implementation (`Type:Interface`)
    - Final Phase: Polish & cross-cutting concerns
    - All tasks MUST follow the strict checklist format (see Task Generation Rules below)
-   - Every task MUST include concrete file paths (or explicit N/A for pure git/worktree operations)
+   - Every task MUST include concrete file paths (or explicit N/A only for tasks that do not modify repository files)
    - DAG section including:
      - Interface DAG (Mermaid)
      - Task DAG (Mermaid)
@@ -114,7 +112,7 @@ Every task MUST strictly follow this format:
 2. **Task ID**: Sequential number (T001, T002, T003...) in execution order
 3. **[P] marker**: Include ONLY if task is parallelizable:
    - No dependencies on incomplete tasks (per DAG)
-   - No shared-file conflict (different worktrees count as no conflict by default)
+   - No shared-file conflict (tasks should target different files/areas)
 4. **[Type:...] label**: REQUIRED for every task
    - Allowed values: Research, Interface, Test, Infra, Docs
 5. **[IFxx] label**:
@@ -123,7 +121,7 @@ Every task MUST strictly follow this format:
 6. **[USx] label (optional)**:
    - OPTIONAL only
    - Primary user-story traceability MUST be captured in a mapping table, not enforced per task line
-7. **Description**: Clear action with exact file path (or explicit N/A for pure git/worktree tasks)
+7. **Description**: Clear action with exact file path (or explicit N/A only for tasks that do not modify repository files)
 
 **Examples**:
 
@@ -131,7 +129,6 @@ Every task MUST strictly follow this format:
 - ✅ CORRECT: `- [ ] T010 [P] [Type:Test] [IF01] Add contract test in tests/contract/test_login.py`
 - ✅ CORRECT: `- [ ] T012 [P] [Type:Interface] [IF01] Implement login handler in src/api/login.py`
 - ✅ CORRECT: `- [ ] T014 [Type:Interface] [IF01] Wire route in src/api/routes.py (depends on T012)`
-- ✅ CORRECT: `- [ ] T020 [Type:Infra] [IF01] Create worktree branch 123-login-if01 (N/A)`
 - ❌ WRONG: `- [ ] Create User model` (missing ID and required labels)
 - ❌ WRONG: `T001 [US1] Create model` (missing checkbox)
 - ❌ WRONG: `- [ ] [Type:Interface] [IF01] Implement login` (missing Task ID)
@@ -143,7 +140,6 @@ Every task MUST strictly follow this format:
 1. **From Contracts (contracts/)** - PRIMARY ORGANIZATION:
    - Each contract doc becomes an interface delivery unit (IF01, IF02, ...)
    - For each interface (IFxx), include:
-     - Worktree tasks (`Type:Infra` [IFxx]) to enable parallel iteration
      - Tests/verification tasks (`Type:Test` [IFxx]) before or alongside implementation
      - Implementation tasks (`Type:Interface` [IFxx]) with concrete file paths
    - Map each interface → served user stories from spec.md (traceability table)
@@ -168,7 +164,7 @@ Every task MUST strictly follow this format:
 - **Phase 1**: Setup (project initialization)
 - **Phase 2**: Foundations (blocking prerequisites - MUST complete before interfaces)
 - **Phase 3+**: Interfaces (delivery units) in delivery order
-  - Within each interface: Worktree -> Tests/Verification -> Implementation -> Integration
+  - Within each interface: Tests/Verification -> Implementation -> Integration
   - Each interface should be independently deliverable and verifiable
 - **Final Phase**: Polish & Cross-Cutting Concerns
 
