@@ -59,7 +59,7 @@ These rules ensure the plan has a clear, auditable dependency on the Spec.
 5. **OpenAPI extension fields** (required when OpenAPI is applicable):
    - Each operation MUST include `x-fr-ids: [FR-...]` (non-empty).
    - If UC exists, operations SHOULD include `x-uc-ids: [UC-...]`.
-6. **Diagram syntax**: Use PlantUML blocks in Markdown fences (e.g., ```plantuml ... ```).
+6. **Diagram syntax**: Use PlantUML blocks in Markdown fences (e.g., `plantuml` code blocks).
 
 ## Evidence Chain Requirement *(mandatory)*
 
