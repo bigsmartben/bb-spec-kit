@@ -48,15 +48,20 @@ You **MUST** consider the user input before proceeding (if not empty).
      - Display the table showing all checklists passed
      - Automatically proceed to step 3
 
-3. Load and analyze the implementation context:
-   - **REQUIRED**: Read tasks.md for the complete task list and execution plan
-   - **REQUIRED**: Read plan.md for tech stack, architecture, and file structure
-   - **IF EXISTS**: Read data-model.md for entities and relationships
-   - **IF EXISTS**: Read contracts/ for API specifications and test requirements
-   - **IF EXISTS**: Read research.md for technical decisions and constraints
-   - **IF EXISTS**: Read quickstart.md for integration scenarios
+3. Load and validate the implementation context (fail fast):
+   - **REQUIRED**: Read `tasks.md` for the complete task list, Interface Inventory, and Task DAG
+   - **REQUIRED**: Read `plan.md` for tech stack, architecture, and file structure
+   - **REQUIRED**: Read `data-model.md` for entities, relationships, and state machines
+     - If `data-model.md` is missing: **ERROR** and STOP (design is incomplete)
+   - **REQUIRED**: Ensure `contracts/` exists and is non-empty
+     - If `contracts/` is missing or empty: **ERROR** and STOP (design is incomplete)
+   - **OPTIONAL**: `research.md`
+     - If it exists, read it ONLY when needed for a specific task (e.g., a task references a decision/rationale)
+     - Do NOT create new design artifacts during `speckit.implement` unless explicitly required by `tasks.md`
+   - **OPTIONAL**: `quickstart.md`
+     - Use it only for verification tasks (or when `tasks.md` explicitly references it)
 
-4. **Project Setup Verification**:
+4. **Project Setup Verification** (global / shared-worktree only):
    - **REQUIRED**: Create/verify ignore files based on actual project setup:
 
    **Detection & Creation Logic**:
@@ -100,25 +105,48 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Terraform**: `.terraform/`, `*.tfstate*`, `*.tfvars`, `.terraform.lock.hcl`
    - **Kubernetes/k8s**: `*.secret.yaml`, `secrets/`, `.kube/`, `kubeconfig*`, `*.key`, `*.crt`
 
-5. Parse tasks.md structure and extract:
-   - **Task phases**: Setup, Tests, Core, Integration, Polish
-   - **Task dependencies**: Sequential vs parallel execution rules
-   - **Task details**: ID, description, file paths, parallel markers [P]
-   - **Execution flow**: Order and dependency requirements
+5. Parse `tasks.md` into an execution model (Interface-scoped + DAG-driven):
+   - **REQUIRED**: Extract **Interface Inventory** and build a map: `IFxx -> {contracts, interface_details, verification_refs}`
+     - Prefer explicit contract paths listed per interface section
+     - For HTTP API features: map `operationId` to `contracts/interface-details/<operationId>.md` (load only those relevant to the current IF)
+   - **REQUIRED**: Extract the full task list with fields:
+     - Task ID (T###), `[P]` marker, `Type:*`, optional `[IFxx]`, and all file paths (or `N/A`)
+   - **REQUIRED**: Extract **Task DAG (Adjacency List)** and build a dependency graph
+     - If the adjacency list is missing/unparseable: **ERROR** and STOP (rerun `/speckit.tasks`)
+   - Compute a **ready-queue**:
+     - A task is `READY` iff all its dependency tasks are completed (`[X]`)
 
-6. Execute implementation following the task plan:
-   - **Phase-by-phase execution**: Complete each phase before moving to the next
-   - **Respect dependencies**: Run sequential tasks in order, parallel tasks [P] can run together  
-   - **Follow TDD approach**: Execute test tasks before their corresponding implementation tasks
-   - **File-based coordination**: Tasks affecting the same files must run sequentially
-   - **Validation checkpoints**: Verify each phase completion before proceeding
+6. Worktree model and Interface-parallel execution (default):
+   - **Parallel unit = Interface (`IFxx`)**
+     - Each interface SHOULD be developed in its own worktree/branch (independent iteration)
+     - Within a single interface, follow DAG ordering; only tasks marked `[P]` may run in parallel (subject to file conflicts)
+   - **Worktree tasks are REQUIRED**
+     - Each `IFxx` MUST have an explicit worktree/branch enablement task (typically `Type:Infra [IFxx]`)
+     - If an interface has no worktree task: **ERROR** and STOP (rerun `/speckit.tasks`)
+   - **Naming rule**
+     - Follow `tasks.md` worktree naming exactly when specified
+     - If `tasks.md` does not specify names, use: `<feature-spec-branch>-<ifxx>` (e.g., `123-my-feature-if03`)
+       - `feature-spec-branch` = the feature branch name referenced by the spec/worktree workflow
+       - `<ifxx>` is lowercase (`if01`, `if02`, ...)
+   - **Global/shared tasks**
+     - Tasks with no `[IFxx]` label, or tasks that modify shared repo-wide files, MUST run in the shared/base worktree before starting interface-parallel batches
 
-7. Implementation execution rules:
-   - **Setup first**: Initialize project structure, dependencies, configuration
-   - **Tests before code**: If you need to write tests for contracts, entities, and integration scenarios
-   - **Core development**: Implement models, services, CLI commands, endpoints
-   - **Integration work**: Database connections, middleware, logging, external services
-   - **Polish and validation**: Unit tests, performance optimization, documentation
+7. Scheduling algorithm (strict ready-queue from Task DAG adjacency list):
+   - Repeat until all tasks are completed:
+     1) Recompute `READY` tasks from the DAG adjacency list (all deps completed)
+     2) Form a **parallel batch** from `READY` tasks using these constraints:
+        - Prefer maximizing parallelism across different `IFxx` (different worktrees)
+        - Within the same `IFxx`, only include multiple tasks in the same batch if they are marked `[P]`
+        - Never batch tasks that touch the same file paths (treat any overlap as a conflict)
+        - Treat repo-wide/shared paths as conflicts across all interfaces (serialize), e.g.:
+          - `.github/`, CI configs, top-level configs, shared libraries/modules, `tasks.md`, `plan.md`
+        - If conflict detection is uncertain, serialize (correctness > speed)
+     3) Print the planned batch BEFORE execution as a concise table:
+        - columns: `Task`, `IF`, `Worktree`, `DependsOn`, `Paths`
+     4) Execute the batch:
+        - For each interface in the batch, ensure the worktree/branch is active
+        - Apply **Interface-scoped context** (below) before executing that interface’s tasks
+     5) After each task completes, immediately mark it `[X]` in `tasks.md`
 
 8. Progress tracking and error handling:
    - Report progress after each completed task
@@ -134,5 +162,25 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Validate that tests pass and coverage meets requirements
    - Confirm the implementation follows the technical plan
    - Report final status with summary of completed work
+
+## Interface-scoped context (MANDATORY for `[IFxx]` tasks)
+
+Before executing any task tagged with a specific interface `[IFxx]`, you MUST build and use an "Interface Context Packet" for that interface:
+
+- Always include:
+  - The `IFxx` section from `tasks.md` (goal, served stories, definition of done, interface-local task list)
+  - The global `plan.md`
+  - The global `data-model.md`
+- Include ONLY the interface’s relevant contract material:
+  - Contract doc(s) referenced by the `IFxx` section / Interface Inventory (do not load other interfaces’ contracts)
+  - If `contracts/openapi.yaml` exists:
+    - Load ONLY the `paths`/operations whose `operationId` belong to this `IFxx` (do not load unrelated endpoints)
+  - If `contracts/interface-details/` exists:
+    - Load ONLY `contracts/interface-details/<operationId>.md` files relevant to this `IFxx`
+- For verification tasks (`Type:Test`):
+  - Load ONLY the relevant portion(s) of `quickstart.md` referenced by the interface or task
+  - If a test-case matrix exists, load only the rows relevant to this interface’s `operationId` / contract
+
+You MUST NOT load unrelated interface documents "just in case". Keep the context minimal and interface-scoped.
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
