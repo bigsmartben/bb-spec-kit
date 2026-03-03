@@ -35,7 +35,13 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Fill Constitution Check section from constitution
    - Evaluate gates (ERROR if violations unjustified)
    - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
-   - Phase 1: Generate data-model.md, contracts/, quickstart.md
+   - Phase 1: Generate design artifacts in strict dependency order:
+     - `contracts/openapi.yaml` (OpenAPI 3.0; frontend ↔ backend HTTP API features only; MUST achieve full FR coverage)
+     - `data-model.md` (incl. detailed state machines + class diagrams)
+     - `contracts/test-case-matrix.md` (derived from OpenAPI + data model + Spec; frontend ↔ backend HTTP API features only)
+     - `contracts/interface-details/*.md` (one per `operationId`; frontend ↔ backend HTTP API features only)
+     - `contracts/` (other contract formats as appropriate for non-HTTP projects)
+     - `quickstart.md`
    - Phase 1: Update agent context by running the agent script
    - Re-evaluate Constitution Check post-design
 
@@ -49,6 +55,10 @@ You **MUST** consider the user input before proceeding (if not empty).
    - For each NEEDS CLARIFICATION → research task
    - For each dependency → best practices task
    - For each integration → patterns task
+   - Enumerate all in-scope Functional Requirements (FR-###) from FEATURE_SPEC (and UC IDs if present)
+   - Determine whether this feature includes a frontend ↔ backend HTTP API surface (i.e., the frontend makes network calls to a backend owned by this repository)
+   - Identify stateful entities and all Spec-described states/transitions
+   - Discover existing routing/handler/service boundaries in the repo (evidence gathering)
 
 2. **Generate and dispatch research agents**:
 
@@ -70,27 +80,74 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 **Prerequisites:** `research.md` complete
 
-1. **Extract entities from feature spec** → `data-model.md`:
-   - Entity name, fields, relationships
-   - Validation rules from requirements
-   - State transitions if applicable
+0. **Applicability decision** (MANDATORY):
+   - If the feature includes a **frontend ↔ backend HTTP API surface**, you MUST generate the API-centric artifacts below (Steps 1→4).
+   - If the feature does **not** include a frontend ↔ backend HTTP API surface, you MUST NOT force OpenAPI/Test Matrix/Interface Detail documents.
+     In that case, keep `/contracts/` for whatever contract format is appropriate for the project type (CLI schema, public library API, internal module contracts, etc.).
 
-2. **Define interface contracts** (if project has external interfaces) → `/contracts/`:
-   - Identify what interfaces the project exposes to users or other systems
-   - Document the contract format appropriate for the project type
-   - Examples: public APIs for libraries, command schemas for CLI tools, endpoints for web services, grammars for parsers, UI contracts for applications
-   - Skip if project is purely internal (build scripts, one-off tools, etc.)
+1. **Step 1 — Interface Definition (OpenAPI 3.0)** *(frontend ↔ backend HTTP API features only)*:
+   - Create `specs/<feature>/contracts/openapi.yaml` using the OpenAPI 3.0 specification.
+   - Use `operationId` as the stable interface ID (unique across the API surface).
+   - Each operation MUST include:
+     - `operationId`
+     - `summary` and/or `description`
+     - `x-fr-ids: [FR-...]` (non-empty; use `FR-###` exactly as in the Spec)
+     - `x-uc-ids: [UC-...]` when the Spec is UC-structured (recommended)
+     - Request/response schemas; include fields explicitly indicated by Spec UI elements and acceptance scenarios
+   - **FR coverage gate (ERROR if violated)**:
+     - Enumerate all in-scope `FR-###` from FEATURE_SPEC (include `UC ID` column if applicable).
+     - Verify every FR appears in at least one operation’s `x-fr-ids`.
+     - If any FR is unmapped, treat the plan as **ERROR** and revise the API surface until coverage is complete.
 
-3. **Agent context update**:
+2. **Step 2 — Data Model (incl. detailed state machines + class diagrams)**:
+   - Create `specs/<feature>/data-model.md` based on FEATURE_SPEC + repo evidence.
+   - Include:
+     - Entities/classes in scope, with relationships (only fields required by Spec UI/API; do not model every database column)
+     - Validation rules derived from requirements
+     - For each stateful entity: detailed state machine design
+       - Exhaustive state enumeration (must cover Spec states)
+       - Transition table
+       - Transition pseudocode
+       - PlantUML state diagram and/or class diagram (use Markdown fences: ```plantuml)
+     - A feature-scope class diagram (PlantUML) showing relationships and key fields
+     - Evidence mapping table: Entity/Class ↔ repo types (file paths + symbols) or mark as `Planned/New code`
+
+3. **Step 3 — Test Case Matrix** *(frontend ↔ backend HTTP API features only)*:
+   - Create `specs/<feature>/contracts/test-case-matrix.md`.
+   - Generate it from:
+     - `contracts/openapi.yaml` (`operationId` + `x-fr-ids` + schemas)
+     - Spec FR descriptions + acceptance scenarios
+     - State machine design from `data-model.md`
+   - It MUST include:
+     - Traceability matrix: FR → operationId(s) → scenario(s) → state transition(s)
+     - Test cases that cover all FRs and all state transitions, including key negative/edge cases from the Spec
+     - Recommended test level per case (unit/integration/e2e) and required fixtures/mocks
+
+4. **Step 4 — Interface Detail Docs (per operation)** *(frontend ↔ backend HTTP API features only)*:
+   - For each OpenAPI `operationId`, generate:
+     - `specs/<feature>/contracts/interface-details/<operationId>.md`
+   - Each document MUST include the following sections:
+     1) Interface Reference Table (method/path/operationId/x-fr-ids/request/response schema refs)
+     2) Evidence & Call Chain (call-chain drilldown; file paths + symbols; each step marked `Existing` vs `Planned/New code`)
+     3) Sequence Diagram (PlantUML; MUST include all remote calls: 2nd-party, 3rd-party, middleware, queues, caches, etc.)
+     4) Relevant Code Class Diagram (PlantUML; only code relevant to this interface/feature)
+     5) Core Algorithm Pseudocode (business-critical logic only)
+     6) Change List (resources: DB/config/infra; source code modules/files; API/schema deltas)
+     7) Performance Analysis (latency budget, critical path, external call timeouts/retries, caching, concurrency, failure modes, observability)
+
+5. **Agent context update**:
    - Run `{AGENT_SCRIPT}`
    - These scripts detect which AI agent is in use
    - Update the appropriate agent-specific context file
    - Add only new technology from current plan
    - Preserve manual additions between markers
 
-**Output**: data-model.md, /contracts/*, quickstart.md, agent-specific file
+**Output**: `data-model.md`, `contracts/` (and OpenAPI/Test Matrix/Interface Details when applicable), `quickstart.md`, agent-specific file
 
 ## Key rules
 
 - Use absolute paths
+- Use PlantUML for diagrams in Markdown fences: ```plantuml
+- All code-related design MUST include an evidence chain (file paths + symbols) and MUST NOT invent “existing” code paths
+- ERROR on OpenAPI FR coverage violations when OpenAPI is applicable
 - ERROR on gate failures or unresolved clarifications
