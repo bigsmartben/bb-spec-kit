@@ -48,6 +48,11 @@ sdd-*/
 docs/dev
 specify-agent-skill/
 
+# Extension system
+.specify/extensions/.cache/
+.specify/extensions/.backup/
+.specify/extensions/*/local-config.yml
+
 # Local workspace artifacts
 .dist/
 .github/agents/
