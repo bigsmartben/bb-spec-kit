@@ -1,5 +1,5 @@
 #!/bin/bash
-# validate-requirement.sh - 验证需求文档的完整性和格式正确性
+# validate-requirement.sh - 验证“需求管理”文档的完整性与格式
 
 set -e
 
@@ -55,74 +55,52 @@ else
     ((ERRORS++))
 fi
 
-# 2. 检查 design.md (如果状态是设计中或之后)
-echo -n "🏗️  检查 design.md... "
-if grep -q "状态.*设计中\|开发中\|测试中\|已完成" ".spec-workspace/requirements/REQUIREMENTS.md" 2>/dev/null; then
-    if [ -f "$REQ_DIR/design.md" ]; then
-        echo -e "${GREEN}✓${NC}"
-    else
-        echo -e "${YELLOW}⚠ 建议创建设计文档${NC}"
-        ((WARNINGS++))
-    fi
+# 2. 检查 REQUIREMENTS.md 中的条目（仅针对当前 REQ_ID）
+echo -n "📋 检查 REQUIREMENTS.md 条目... "
+REQ_TABLE=".spec-workspace/requirements/REQUIREMENTS.md"
+if [ ! -f "$REQ_TABLE" ]; then
+    echo -e "${RED}✗ 文件不存在: $REQ_TABLE${NC}"
+    ((ERRORS++))
 else
-    echo -e "⊘ 跳过 (需求未进入设计阶段)"
-fi
-
-# 3. 检查 implementation.md (如果状态是开发中或之后)
-echo -n "💻 检查 implementation.md... "
-if grep -q "状态.*开发中\|测试中\|已完成" ".spec-workspace/requirements/REQUIREMENTS.md" 2>/dev/null; then
-    if [ -f "$REQ_DIR/implementation.md" ]; then
-        echo -e "${GREEN}✓${NC}"
+    if ! grep -q "^### $REQ_ID:" "$REQ_TABLE"; then
+        echo -e "${RED}✗ 未在 REQUIREMENTS.md 中找到${NC}"
+        ((ERRORS++))
     else
-        echo -e "${YELLOW}⚠ 建议创建实现记录${NC}"
-        ((WARNINGS++))
-    fi
-else
-    echo -e "⊘ 跳过 (需求未进入开发阶段)"
-fi
+        echo -e "${GREEN}✓${NC}"
 
-# 4. 检查 tests.md (如果状态是测试中或之后)
-echo -n "🧪 检查 tests.md... "
-if grep -q "状态.*测试中\|已完成" ".spec-workspace/requirements/REQUIREMENTS.md" 2>/dev/null; then
-    if [ -f "$REQ_DIR/tests.md" ]; then
-        # 检查测试用例数量
-        TEST_COUNT=$(grep -c "^### TC-" "$REQ_DIR/tests.md" || echo "0")
-        if [ "$TEST_COUNT" -gt 0 ]; then
-            echo -e "${GREEN}✓ (包含 $TEST_COUNT 个测试用例)${NC}"
+        ENTRY_BLOCK="$(
+            awk -v id="$REQ_ID" '
+              $0 ~ "^### "id":" {in_block=1; print; next}
+              in_block {
+                if ($0 ~ "^### EXT-[0-9]{3}:" && $0 !~ "^### "id":") exit
+                print
+              }
+            ' "$REQ_TABLE"
+        )"
+
+        # 检查必填字段（在该需求条目块内）
+        echo "   检查必填字段:"
+        FIELDS=("需求ID" "需求标题" "扩展类型" "优先级" "状态" "验收标准")
+        for field in "${FIELDS[@]}"; do
+            if echo "$ENTRY_BLOCK" | grep -q "$field"; then
+                echo -e "   ${GREEN}✓${NC} $field"
+            else
+                echo -e "   ${RED}✗${NC} $field 缺失"
+                ((ERRORS++))
+            fi
+        done
+
+        # 校验条目中的需求ID值与参数一致（尽力而为）
+        if echo "$ENTRY_BLOCK" | grep -Eq "^\\|[[:space:]]*\\*\\*需求ID\\*\\*[[:space:]]*\\|[[:space:]]*$REQ_ID[[:space:]]*\\|"; then
+            :
         else
-            echo -e "${YELLOW}⚠ 没有找到测试用例${NC}"
+            echo -e "   ${YELLOW}⚠${NC} 需求条目中的 需求ID 字段未明确包含 $REQ_ID"
             ((WARNINGS++))
         fi
-    else
-        echo -e "${RED}✗ 文件不存在（测试阶段必需）${NC}"
-        ((ERRORS++))
     fi
-else
-    echo -e "⊘ 跳过 (需求未进入测试阶段)"
 fi
 
-# 5. 检查 REQUIREMENTS.md 中的条目
-echo -n "📋 检查 REQUIREMENTS.md 条目... "
-if grep -q "^### $REQ_ID:" ".spec-workspace/requirements/REQUIREMENTS.md"; then
-    echo -e "${GREEN}✓${NC}"
-    
-    # 检查必填字段
-    echo "   检查必填字段:"
-    FIELDS=("需求ID" "需求标题" "扩展类型" "优先级" "状态" "验收标准")
-    for field in "${FIELDS[@]}"; do
-        if grep -A 20 "^### $REQ_ID:" ".spec-workspace/requirements/REQUIREMENTS.md" | grep -q "$field"; then
-            echo -e "   ${GREEN}✓${NC} $field"
-        else
-            echo -e "   ${RED}✗${NC} $field 缺失"
-            ((ERRORS++))
-        fi
-    done
-else
-    echo -e "${RED}✗ 未在 REQUIREMENTS.md 中找到${NC}"
-    ((ERRORS++))
-fi
-
-# 6. 检查文件格式
+# 3. 检查文件格式
 echo "📝 检查文件格式:"
 for file in "$REQ_DIR"/*.md; do
     if [ -f "$file" ]; then
@@ -141,7 +119,7 @@ for file in "$REQ_DIR"/*.md; do
     fi
 done
 
-# 7. 汇总
+# 4. 汇总
 echo ""
 echo "=================="
 echo "验证总结:"

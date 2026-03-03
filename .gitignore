@@ -57,8 +57,6 @@ specify-agent-skill/
 .dist/
 .github/agents/
 .roo/
-.spec-workspace/requirements/EXT-001/
-.spec-workspace/requirements/EXT-006/
 .spec-workspace/sandbox/
 .spec-workspace/user_template/prd-doc/
 pytest-of-ben/
