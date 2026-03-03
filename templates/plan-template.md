@@ -33,6 +33,44 @@
 
 [Gates determined based on constitution file]
 
+## Design Artifacts & Dependency Order *(mandatory)*
+
+The plan workflow produces multiple artifacts. If this feature includes a **frontend ↔ backend HTTP API surface** (i.e., the frontend makes network calls to a backend owned by this repository), you **MUST** generate the API-centric artifacts below and follow the dependency order strictly.
+
+If the feature does **not** include a frontend ↔ backend HTTP API surface, you **MUST NOT** force OpenAPI/Test Matrix/Interface Detail documents. In that case, keep `/contracts/` for whatever contract format is appropriate for the project type (CLI schema, public library API, internal module contracts, etc.).
+
+| Order | Artifact | Path (under `specs/[###-feature]/`) | Depends on |
+|------:|----------|-------------------------------------|------------|
+| 1 | Interface Definition (OpenAPI 3.0) | `contracts/openapi.yaml` | Feature Spec (FRs/UI) + repo evidence |
+| 2 | Data Model (incl. state machines + class diagrams) | `data-model.md` | Feature Spec + repo evidence |
+| 3 | Test Case Matrix | `contracts/test-case-matrix.md` | `contracts/openapi.yaml` + `data-model.md` + Feature Spec |
+| 4 | Interface Detail Docs (per operation) | `contracts/interface-details/<operationId>.md` | `contracts/openapi.yaml` + repo evidence + `contracts/test-case-matrix.md` |
+
+## Traceability Rules *(mandatory)*
+
+These rules ensure the plan has a clear, auditable dependency on the Spec.
+
+1. **FRID format**: Use `FR-###` exactly as written in the Spec.
+2. **UC collision prevention**: If the Spec is UC-structured, every traceability table MUST include a `UC ID` column in addition to `FRID`.
+3. **OpenAPI operation identity**: Use `operationId` as the stable interface ID (unique across the API surface).
+4. **FR coverage gate (frontend ↔ backend HTTP API features only)**:
+   - Every in-scope `FR-###` MUST map to at least one OpenAPI `operationId`.
+   - If any FR is unmapped, the plan MUST be treated as **ERROR** and the API surface MUST be revised until coverage is complete.
+5. **OpenAPI extension fields** (required when OpenAPI is applicable):
+   - Each operation MUST include `x-fr-ids: [FR-...]` (non-empty).
+   - If UC exists, operations SHOULD include `x-uc-ids: [UC-...]`.
+6. **Diagram syntax**: Use PlantUML blocks in Markdown fences (e.g., ```plantuml ... ```).
+
+## Evidence Chain Requirement *(mandatory)*
+
+All code-related design MUST be grounded in repository facts via an evidence chain (call-chain drilldown). For each key design claim (routing, handlers, services, persistence, remote calls), provide evidence as:
+
+- **File path** (absolute path preferred in the plan narrative)
+- **Symbol** (function/class/module name)
+- **Status**: `Existing` (verified in repo) or `Planned/New code` (explicitly not present yet)
+
+You MUST NOT invent “existing” code paths. If evidence does not exist yet, mark it as `Planned/New code` and state what will be added.
+
 ## Project Structure
 
 ### Documentation (this feature)
@@ -44,6 +82,10 @@ specs/[###-feature]/
 ├── data-model.md        # Phase 1 output (/speckit.plan command)
 ├── quickstart.md        # Phase 1 output (/speckit.plan command)
 ├── contracts/           # Phase 1 output (/speckit.plan command)
+│   ├── openapi.yaml     # Phase 1 output (frontend ↔ backend HTTP API features only)
+│   ├── test-case-matrix.md  # Phase 1 output (frontend ↔ backend HTTP API features only)
+│   └── interface-details/  # Phase 1 output (frontend ↔ backend HTTP API features only)
+│       └── [operationId].md
 └── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
