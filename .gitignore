@@ -20,6 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 
+
 # Virtual environments
 venv/
 ENV/
@@ -45,8 +46,15 @@ env/
 *.zip
 sdd-*/
 docs/dev
+specify-agent-skill/
 
-# Extension system
-.specify/extensions/.cache/
-.specify/extensions/.backup/
-.specify/extensions/*/local-config.yml
+# Local workspace artifacts
+.dist/
+.github/agents/
+.roo/
+.spec-workspace/requirements/EXT-001/
+.spec-workspace/requirements/EXT-006/
+.spec-workspace/sandbox/
+.spec-workspace/user_template/prd-doc/
+pytest-of-ben/
+tmp-env/
