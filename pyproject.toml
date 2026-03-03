@@ -1,6 +1,6 @@
 [project]
 name = "specify-cli"
-version = "0.88"
+version = "0.89"
 description = "Specify CLI, part of GitHub Spec Kit. A tool to bootstrap your projects for Spec-Driven Development (SDD)."
 requires-python = ">=3.11"
 dependencies = [
@@ -24,6 +24,12 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/specify_cli"]
+
+[tool.hatch.build.targets.wheel.force-include]
+# Bundle templates and scripts so installs from a git fork get the correct
+# files without requiring a published GitHub release.
+"templates" = "specify_cli/templates"
+"scripts" = "specify_cli/scripts"
 
 [project.optional-dependencies]
 test = [

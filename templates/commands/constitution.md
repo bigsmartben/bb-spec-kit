@@ -35,6 +35,12 @@ Follow this execution flow:
      - MINOR: New principle/section added or materially expanded guidance.
      - PATCH: Clarifications, wording, typo fixes, non-semantic refinements.
    - If version bump type ambiguous, propose reasoning before finalizing.
+   - For `DEPENDENCY_MATRIX`:
+     - Replace with **Markdown table rows** matching the template header.
+     - Populate from repo evidence (dependency manifests/lockfiles, build configs, and runtime integrations referenced in code/docs).
+     - Include third-party libraries AND intermediary services (SaaS/APIs/queues/caches/etc.).
+     - Include transitive dependencies when they are risk-relevant (e.g., license/copyright constraints, security posture, critical intermediaries).
+     - If any value is unknown (license/owner/upgrade path), use `TODO(<FIELD>): ...` and list it in the Sync Impact Report.
 
 3. Draft the updated constitution content:
    - Replace every placeholder with concrete text (no bracketed tokens left except intentionally retained template slots that the project has chosen not to define yet—explicitly justify any left).
@@ -62,6 +68,7 @@ Follow this execution flow:
    - Version line matches report.
    - Dates ISO format YYYY-MM-DD.
    - Principles are declarative, testable, and free of vague language ("should" → replace with MUST/SHOULD rationale where appropriate).
+   - Dependency Matrix is a valid Markdown table (header + separator + 0..N rows).
 
 7. Write the completed constitution back to `.specify/memory/constitution.md` (overwrite).
 
