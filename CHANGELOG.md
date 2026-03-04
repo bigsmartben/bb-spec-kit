@@ -7,6 +7,23 @@ Recent changes to the Specify CLI and templates are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.88.7] - 2026-03-04
+
+### Added
+
+- **UI Data Dictionary (UDD) support**: Added UDD section to spec templates for documenting user-visible data objects
+  - New `UI Data Dictionary (UDD)` section in spec-template.md with Entity.field format
+  - UDD classification rules in prd2spec.md: System-backed vs UI-local types
+  - Key Path marking (P1/P2/P3) for priority data fields
+- **Constitution loading in specify command**: Added step to load project constitution for terminology consistency
+  - Preferred: `.specify/memory/constitution.md`
+  - Fallback: `memory/constitution.md`
+- **Improved feature numbering logic**: Enhanced prd2spec to check remote branches, local branches, and specs directories for consistent numbering
+
+### Fixed
+
+- **Ruff configuration**: Corrected `target-version` from project version (`0.88.5`) to Python version (`py311`)
+
 ## [0.89] - 2026-03-04
 
 ### Fixed
