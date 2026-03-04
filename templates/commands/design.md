@@ -36,6 +36,7 @@ This command is optimized for **communication + implementation readiness**, not 
 
 3. Load context:
    - Read `FEATURE_SPEC`
+   - Read `templates/design-template.md` and use it as the structure baseline for generated artifacts.
    - If `IMPL_PLAN` exists, read it and extract any UI constraints (platforms, libraries, routes, a11y requirements, design system notes).
 
 ## Outputs (write files)
@@ -118,4 +119,3 @@ After writing files, print a short completion summary:
 - `FEATURE_SPEC` path
 - Paths to created artifacts (UX, UI spec, prototype)
 - Any `[NEEDS CLARIFICATION]` items (if present)
-
