@@ -52,7 +52,9 @@ You **MUST** consider the user input before proceeding (if not empty).
        - Assign sequential Interface IDs: IF01, IF02, ...
        - Generate (or update) per-operation interface detail docs under:
          - `contracts/interface-details/<operationId>.md`
-       - Use `templates/interface-detail-template.md` as the structure baseline (preserve headings; fill/replace placeholders; keep it operation-scoped).
+       - Use the interface detail template as the structure baseline (preserve headings; fill/replace placeholders; keep it operation-scoped):
+           - Preferred: `.specify/templates/interface-detail-template.md`
+           - Fallback: `templates/interface-detail-template.md`
        - Each interface detail doc MUST include:
          1) Interface Reference Table (method/path/operationId/x-fr-ids/request/response schema refs)
          2) UDD Coverage (Key Path):
@@ -91,7 +93,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Identify parallel execution opportunities and mark them with `[P]` consistently with the DAG
    - Validate completeness: each interface is independently deliverable and verifiable
 
-4. **Generate tasks.md**: Use `templates/tasks-template.md` as structure, fill with:
+4. **Generate tasks.md**: Use the tasks template as structure (preferred: `.specify/templates/tasks-template.md`; fallback: `templates/tasks-template.md`), fill with:
    - Correct feature name from plan.md
    - Task Types section (required)
    - Interface Inventory section (required)

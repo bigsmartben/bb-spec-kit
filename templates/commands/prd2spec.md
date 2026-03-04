@@ -120,7 +120,9 @@ If the PRD is unstructured, infer the buckets via section headers and keyword cu
 
 ### Step 3: Mapping rules (PRD → Spec)
 
-Generate `spec.md` using `templates/spec-template.md` as the structure baseline.
+Generate `spec.md` using the spec template as the structure baseline:
+  - Preferred: `.specify/templates/spec-template.md`
+  - Fallback: `templates/spec-template.md`
 
 Mapping guidelines:
 

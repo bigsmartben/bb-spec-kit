@@ -8,6 +8,8 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user story traceability), data-model.md (required), contracts/ (required, non-empty), research.md, quickstart.md
 
+**Outputs**: tasks.md (this document), `checklists/udd-vo-coverage.md` (soft gate for `/speckit.implement`)
+
 **Tests**: Automated tests are OPTIONAL. Every interface MUST include at least one verification task (`[Type:Test] [IFxx]`), which may be automated or scripted.
 
 **Organization**: Tasks are grouped by interface (delivery units). User stories are captured via an interface ↔ user story mapping table for traceability.

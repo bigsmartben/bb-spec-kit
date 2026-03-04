@@ -7,7 +7,8 @@ handoffs:
     send: true
   - label: Create Checklist
     agent: speckit.checklist
-    prompt: Create a checklist for the following domain...
+    prompt: Create a requirements quality checklist for this feature
+    send: true
 scripts:
   sh: scripts/bash/setup-plan.sh --json
   ps: scripts/powershell/setup-plan.ps1 -Json

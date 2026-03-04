@@ -61,12 +61,13 @@ Follow this execution flow:
    - Ensure each Principle section: succinct name line, paragraph (or bullet list) capturing non‑negotiable rules, explicit rationale if not obvious.
    - Ensure Governance section lists amendment procedure, versioning policy, and compliance review expectations.
 
-4. Consistency propagation checklist (convert prior checklist into active validations):
-   - Read `.specify/templates/plan-template.md` and ensure any "Constitution Check" or rules align with updated principles.
-   - Read `.specify/templates/spec-template.md` for scope/requirements alignment—update if constitution adds/removes mandatory sections or constraints.
-   - Read `.specify/templates/tasks-template.md` and ensure task categorization reflects new or removed principle-driven task types (e.g., observability, versioning, testing discipline).
-   - Read each command file in `.specify/templates/commands/*.md` (including this one) to verify no outdated references (agent-specific names like CLAUDE only) remain when generic guidance is required.
-   - Read any runtime guidance docs (e.g., `README.md`, `docs/quickstart.md`, or agent-specific guidance files if present). Update references to principles changed.
+4. Consistency propagation checklist (**read-only audit** — write only when a concrete conflict is confirmed; any writes constitute a Type D amendment and MUST be listed in the Sync Impact Report):
+   - Read `.specify/templates/plan-template.md` to verify any "Constitution Check" references still align with updated principles (read-only; do not rewrite unless a direct conflict is confirmed).
+   - Read `.specify/templates/spec-template.md` to verify scope/requirements alignment with updated principles (read-only; do not rewrite unless a direct conflict is confirmed).
+   - Read `.specify/templates/tasks-template.md` to verify task categorization still reflects principle-driven task types (e.g., observability, versioning, testing discipline) (read-only; do not rewrite unless a direct conflict is confirmed).
+   - Read each command file in `.specify/templates/commands/*.md` (including this one) to verify no outdated references (agent-specific names like CLAUDE only) remain when generic guidance is required (read-only; do not rewrite unless a direct conflict is confirmed).
+   - Read any runtime guidance docs (e.g., `README.md`, `docs/quickstart.md`, or agent-specific guidance files if present) and note any references to changed principles (read-only; flag in Sync Impact Report for manual follow-up rather than editing inline).
+   - **IMPORTANT**: Steps above are read-only audits. Do NOT modify template or command files during this step unless a specific, direct conflict with the updated constitution principles is identified. Any writes to non-constitution files must be listed in the Sync Impact Report as intentional Type D amendments.
 
 5. Produce a Sync Impact Report (prepend as an HTML comment at top of the constitution file after update):
    - Version change: old → new

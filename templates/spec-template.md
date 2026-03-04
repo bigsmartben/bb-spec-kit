@@ -63,9 +63,9 @@ This section is navigation only. The Spec remains the **single source of truth (
 **Description**: [What this entity represents to the user; no implementation details] *(optional)*  
 **Notes**: [Any global display rules or invariants] *(optional)*
 
-| UDD Item (Entity.field) | User-visible meaning | Calculation / criteria (business) | Boundaries & null/empty rules | Display rules | Source Type (System-backed/UI-local) | Key Path (P1/P2/P3/N/A) |
-|---|---|---|---|---|---|---|
-| [Entity.field] | [Meaning] | [How computed] | [Null/empty/boundaries] | [Formatting/labels/colors] | System-backed / UI-local | P1 / P2 / P3 / N/A |
+| UDD Item (Entity.field) | User-visible meaning | Calculation / criteria (business) | Boundaries & null/empty rules | Display rules | Source Type (System-backed/UI-local) | Key Path (P1/P2/P3/N/A) | origin *(optional)* |
+|---|---|---|---|---|---|---|---|
+| [Entity.field] | [Meaning] | [How computed] | [Null/empty/boundaries] | [Formatting/labels/colors] | System-backed / UI-local | P1 / P2 / P3 / N/A | [e.g., prd.md:L12-L20] |
 
 <!-- Repeat UDD Entity blocks as needed. If an entity has a lifecycle, reference § 2.2. -->
 
@@ -87,8 +87,12 @@ This section is navigation only. The Spec remains the **single source of truth (
 
 <!-- Index only. Detail lives in each UC’s § 3.3. -->
 
-| UC ID | FR ID | Capability Statement (short) | Level | ref: Scenario(s) | Details |
-|------|------|------------------------------|------|--------------|---------|
+| UC ID | FR ID | Capability Statement (short) | Level | ref: Scenario(s) | Details | origin *(optional)* |
+|------|------|------------------------------|------|--------------|---------|---|
+| UC-001 | FR-001 | [One-line system capability] | MUST / SHOULD / MAY | S1 | [→ § UC-001 (see 3.3)](#-uc-001-use-case-name) | |
+| UC-001 | FR-002 | [One-line system capability] | MUST | S1, S2 | [→ § UC-001 (see 3.3)](#-uc-001-use-case-name) | |
+| UC-002 | FR-001 | [One-line system capability] | MUST | S1 | [→ § UC-002 (see 3.3)](#-uc-002-use-case-name) | |
+| UC-003 | FR-001 | [One-line system capability] | SHOULD | S2 | [→ § UC-003 (see 3.3)](#-uc-003-use-case-name) | |
 | UC-001 | FR-001 | [One-line system capability] | MUST / SHOULD / MAY | S1 | [→ § UC-001 (see 3.3)](#-uc-001-use-case-name) |
 | UC-001 | FR-002 | [One-line system capability] | MUST | S1, S2 | [→ § UC-001 (see 3.3)](#-uc-001-use-case-name) |
 | UC-002 | FR-001 | [One-line system capability] | MUST | S1 | [→ § UC-002 (see 3.3)](#-uc-002-use-case-name) |
@@ -358,3 +362,16 @@ graph TD
 - **EC-001**: [e.g., "Downstream coupon service timeout (> 3s) returns friendly message and logs, no inventory deduction"]
 - **EC-002**: [e.g., "Optimistic lock conflict due to concurrent claims triggers one retry; beyond that returns failure"]
 - **EC-003**: [e.g., "User token expired; redirect to login and preserve claim intent (redirect back)"]
+
+---
+
+## Change Log *(optional — populate when spec is incrementally updated via `/speckit.prd2spec --base`)*
+
+<!--
+  Record spec-level changes here for traceability. Each row corresponds to a modification of an existing item.
+  Managed by /speckit.prd2spec incremental mode (--base flag). Leave this section absent when using /speckit.specify.
+-->
+
+| ID | Type | Change Summary | Old Value (summary) | New Value (summary) | origin |
+|---|---|---|---|---|---|
+| [FR-001] | Modified | [Short description of change] | [Previous capability] | [New capability] | [prd-v2.md:L45-L50] |
