@@ -1,6 +1,6 @@
 [project]
 name = "specify-cli"
-version = "0.88.10"
+version = "0.88.11"
 description = "Specify CLI, part of GitHub Spec Kit. A tool to bootstrap your projects for Spec-Driven Development (SDD)."
 requires-python = ">=3.11"
 dependencies = [
@@ -50,7 +50,7 @@ addopts = [
 
 [tool.ruff]
 line-length = 120
-target-version = "0.88.10"
+target-version = "0.88.11"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "N", "W"]
