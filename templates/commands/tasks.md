@@ -52,6 +52,7 @@ You **MUST** consider the user input before proceeding (if not empty).
        - Assign sequential Interface IDs: IF01, IF02, ...
        - Generate (or update) per-operation interface detail docs under:
          - `contracts/interface-details/<operationId>.md`
+       - Use `templates/interface-detail-template.md` as the structure baseline (preserve headings; fill/replace placeholders; keep it operation-scoped).
        - Each interface detail doc MUST include:
          1) Interface Reference Table (method/path/operationId/x-fr-ids/request/response schema refs)
          2) UDD Coverage (Key Path):

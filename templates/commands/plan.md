@@ -64,6 +64,10 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
    - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
    - Fill Constitution Check section from constitution
    - Evaluate gates (ERROR if violations unjustified)
+   - Fill `## Artifacts Overview & Navigation`:
+     - Add/verify working relative links to the artifacts under `specs/<feature>/`
+     - Keep the inventory as navigation + status only (do NOT redefine artifact dependency order here)
+     - As each artifact is generated, update its `Status` to `Generated` (or `N/A` when truly inapplicable)
    - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
    - Phase 1: Generate design artifacts in strict dependency order:
      - `contracts/openapi.yaml` (OpenAPI 3.0; frontend ↔ backend HTTP API features only; MUST achieve full FR coverage)
@@ -123,6 +127,7 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
 
 1. **Step 1 — Interface Definition (OpenAPI 3.0)** *(frontend ↔ backend HTTP API features only)*:
    - Create `specs/<feature>/contracts/openapi.yaml` using the OpenAPI 3.0 specification.
+   - Use `templates/openapi-template.yaml` as the starting structure baseline (do not remove required fields; expand/replace placeholders).
    - Use `operationId` as the stable interface ID (unique across the API surface).
    - Each operation MUST include:
      - `operationId`

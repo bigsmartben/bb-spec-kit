@@ -1,0 +1,114 @@
+# OpenAPI 3.0 Template (frontend ↔ backend HTTP API features only)
+# -----------------------------------------------------------------------------
+# Purpose:
+# - Provide a stable starting structure for `specs/<feature>/contracts/openapi.yaml`
+# - Enforce required fields: `operationId`, `x-fr-ids`, optional `x-uc-ids`
+# - Keep schemas minimal and driven by Spec UI elements + acceptance scenarios
+# -----------------------------------------------------------------------------
+openapi: 3.0.3
+info:
+  title: "[REPLACE] Feature API"
+  version: "0.1.0"
+  description: |
+    [REPLACE] OpenAPI contract for this feature.
+
+# Optional (keep only what your project uses)
+servers:
+  - url: "http://localhost:3000"
+    description: "Local development"
+
+tags:
+  - name: feature
+    description: "[REPLACE] Feature-scoped endpoints"
+
+paths:
+  # Delete this example operation once real operations are added.
+  /example:
+    post:
+      tags: [feature]
+      operationId: exampleOperation
+      summary: "[REPLACE] Short summary"
+      description: "[REPLACE] What this operation does"
+      # REQUIRED when OpenAPI is applicable:
+      # - Every operation MUST include non-empty x-fr-ids.
+      # - If the Spec is UC-structured, x-uc-ids is RECOMMENDED.
+      x-fr-ids: [FR-001]
+      x-uc-ids: [UC-001]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ExampleRequest"
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExampleResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+
+components:
+  securitySchemes:
+    # Replace/remove based on your auth model.
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  responses:
+    BadRequest:
+      description: "Invalid request"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Unauthorized:
+      description: "Authentication required"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+
+  schemas:
+    # Keep VO/request/response schemas minimal and driven by the feature Spec.
+    ExampleRequest:
+      type: object
+      additionalProperties: false
+      required: [example]
+      properties:
+        example:
+          type: string
+          description: "[REPLACE] Example input"
+
+    ExampleResponse:
+      type: object
+      additionalProperties: false
+      required: [result]
+      properties:
+        result:
+          type: string
+          description: "[REPLACE] Example output"
+
+    Error:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: "Stable error code"
+        message:
+          type: string
+          description: "Human-readable error message"
+        details:
+          type: object
+          additionalProperties: true
+          description: "Optional structured error details"
+

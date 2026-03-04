@@ -90,6 +90,12 @@ This section defines non-negotiable terminology and layering rules to prevent se
 All reasoning in plan and implementation phases must be grounded in a codebase evidence chain.
 Evidence chains should trace from entry points through call paths to concrete dependencies and usage sites.
 
+When an **Architecture Evidence Index** is present:
+
+- The index is the **single source of truth (SSOT)** for repository-level entry points and major boundaries.
+- Any downstream artifact (plan, data model, tasks, interface detail docs) that references an `Existing` entry point or boundary MUST cite the corresponding `AEI-###` IndexID instead of restating the boundary definition.
+- Do NOT create or maintain a second, duplicated "repo boundary index" outside the constitution.
+
 ## Dependency Change Risk
 <!-- Applies to downstream plan.research -->
 Any change that introduces a new third-party or intermediary dependency in the Dependency Matrix must be treated as a High-Risk item in plan.research.
