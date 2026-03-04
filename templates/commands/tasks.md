@@ -36,7 +36,22 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)
    - If data-model.md exists: Extract entities and map to interfaces and user stories
    - Build an **Interface Inventory** (primary delivery units):
-     - If contracts/ exists and has files:
+     - If `contracts/openapi.yaml` exists:
+       - Treat each OpenAPI operation (`operationId`) as an interface delivery unit
+       - Sort operations lexicographically by `operationId`
+       - Assign sequential Interface IDs: IF01, IF02, ...
+       - Generate (or update) per-operation interface detail docs under:
+         - `contracts/interface-details/<operationId>.md`
+       - Each interface detail doc MUST include:
+         1) Interface Reference Table (method/path/operationId/x-fr-ids/request/response schema refs)
+         2) Evidence & Call Chain (call-chain drilldown; file paths + symbols; each step marked `Existing` vs `Planned/New code`)
+         3) Sequence Diagram (PlantUML; MUST include all remote calls: 2nd-party, 3rd-party, middleware, queues, caches, etc.)
+         4) Relevant Code Class Diagram (PlantUML; only code relevant to this interface/feature)
+         5) Core Algorithm Pseudocode (business-critical logic only)
+         6) Change List (resources: DB/config/infra; source code modules/files; API/schema deltas)
+         7) Performance Analysis (latency budget, critical path, external call timeouts/retries, caching, concurrency, failure modes, observability)
+       - Map each interface to the user stories it serves (from spec.md)
+     - Else if contracts/ exists and contains one or more `*.md` contract docs:
        - Sort contract doc paths lexicographically
        - Assign sequential Interface IDs: IF01, IF02, ...
        - Map each interface to the user stories it serves (from spec.md)
@@ -46,7 +61,8 @@ You **MUST** consider the user input before proceeding (if not empty).
    - If research.md exists: Extract decisions for setup tasks
    - Generate tasks organized by **interfaces** (see Task Generation Rules below)
    - Enforce coverage gates:
-     - Every contract doc MUST appear in Interface Inventory
+     - If `contracts/openapi.yaml` exists: Every OpenAPI `operationId` MUST appear in Interface Inventory
+     - Else if using `contracts/*.md`: Every contract doc MUST appear in Interface Inventory
      - Every interface MUST have:
        - at least one implementation task: `[Type:Interface] [IFxx]`
        - at least one test/verification task: `[Type:Test] [IFxx]`
@@ -66,7 +82,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Phase 3+: One interface section per InterfaceID (in delivery order)
      - Each interface section MUST include:
        - goal
-       - contract path (if any)
+       - contract reference (OpenAPI `operationId` + file path, or contract doc path; if any)
        - served user stories (traceability)
        - definition of done
        - tasks: tests/verification (`Type:Test`) and implementation (`Type:Interface`)
@@ -137,24 +153,31 @@ Every task MUST strictly follow this format:
 
 ### Task Organization
 
-1. **From Contracts (contracts/)** - PRIMARY ORGANIZATION:
+1. **From OpenAPI (contracts/openapi.yaml)** - PRIMARY ORGANIZATION WHEN PRESENT:
+   - Each OpenAPI operation (`operationId`) becomes an interface delivery unit (IF01, IF02, ...)
+   - For each operationId:
+     - Generate (or update) `contracts/interface-details/<operationId>.md` before generating tasks
+     - Include at least one verification task (`Type:Test` [IFxx]) and at least one implementation task (`Type:Interface` [IFxx])
+   - Map each interface → served user stories from spec.md (traceability table)
+
+2. **From Contracts (contracts/*.md)** - PRIMARY ORGANIZATION WHEN OPENAPI IS ABSENT:
    - Each contract doc becomes an interface delivery unit (IF01, IF02, ...)
    - For each interface (IFxx), include:
      - Tests/verification tasks (`Type:Test` [IFxx]) before or alongside implementation
      - Implementation tasks (`Type:Interface` [IFxx]) with concrete file paths
    - Map each interface → served user stories from spec.md (traceability table)
 
-2. **Fallback (no contracts/)**:
+3. **Fallback (no contracts/)**:
    - Derive interface delivery units from:
      - spec.md user stories (observable behaviors)
      - quickstart.md entrypoints (commands/endpoints/screens) if present
    - Assign sequential IF IDs and treat them as interfaces for delivery and verification purposes
 
-3. **From Data Model (data-model.md)**:
+4. **From Data Model (data-model.md)**:
    - Map each entity to the interface(s) that require it
    - If an entity is shared by multiple interfaces: put it in Foundations or the earliest dependent interface
 
-4. **From Setup/Infrastructure**:
+5. **From Setup/Infrastructure**:
    - Shared infrastructure -> Setup (Phase 1) or Foundations (Phase 2)
    - Interface-specific infrastructure -> within that interface section (Phase 3+)
 
