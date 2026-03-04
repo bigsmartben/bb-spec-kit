@@ -179,7 +179,11 @@ Before executing any task tagged with a specific interface `[IFxx]`, you MUST bu
     - Load ONLY `contracts/interface-details/<operationId>.md` files relevant to this `IFxx`
 - For verification tasks (`Type:Test`):
   - Load ONLY the relevant portion(s) of `quickstart.md` referenced by the interface or task
-  - If a test-case matrix exists, load only the rows relevant to this interface’s `operationId` / contract
+  - If `contracts/test-case-matrix.md` exists:
+    - Preferred: Load ONLY the rows for the concrete `CaseID`s referenced by the test task
+    - Otherwise: Load ONLY the rows relevant to this interface’s `operationId` / contract
+    - Treat the loaded rows as the acceptance criteria for implementing the test (inputs/expected outputs/mocks/fixtures)
+    - If the task references `CaseID`s that cannot be found in the matrix: **ERROR** and STOP (regenerate via `/speckit.plan` or `/speckit.tasks`)
 
 You MUST NOT load unrelated interface documents "just in case". Keep the context minimal and interface-scoped.
 

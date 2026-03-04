@@ -63,3 +63,6 @@ specify-agent-skill/
 .spec-workspace/user_template/prd-doc/
 pytest-of-ben/
 tmp-env/
+.history/
+.pytest_cache/
+.ruff_cache/

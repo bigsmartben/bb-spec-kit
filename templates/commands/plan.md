@@ -119,9 +119,23 @@ You **MUST** consider the user input before proceeding (if not empty).
      - Spec FR descriptions + acceptance scenarios
      - State machine design from `data-model.md`
    - It MUST include:
+     - A stable **CaseID** for every test case row:
+       - Format: `TC-<operationId>-###` (e.g., `TC-createUser-001`)
+       - Numbering: per `operationId`, ascending by `###` within that `operationId`
+       - CaseIDs MUST remain stable unless the underlying behavior meaningfully changes
+     - Each test case row MUST include the following fields (as Markdown table columns, or as structured fields within the row text):
+       - `CaseID`
+       - `operationId`
+       - `FR-###` references (and `UC-...` references when applicable)
+       - Scenario summary (Given/When/Then or equivalent)
+       - Preconditions and required state transition(s)
+       - Inputs and expected outputs
+       - Test level: `unit|integration|e2e|manual-script`
+       - Required mocks/fixtures (explicit list)
      - Traceability matrix: FR → operationId(s) → scenario(s) → state transition(s)
      - Test cases that cover all FRs and all state transitions, including key negative/edge cases from the Spec
      - Recommended test level per case (unit/integration/e2e) and required fixtures/mocks
+   - IMPORTANT: The test-case matrix is **not executable code**. It is a test design + traceability artifact that MUST be directly implementable into test scripts (or manual-script verification) without further discovery.
 
 4. **Interface Detail Docs (per operation)** *(frontend ↔ backend HTTP API features only)*:
    - Do NOT generate per-operation interface detail docs during `/speckit.plan`.
