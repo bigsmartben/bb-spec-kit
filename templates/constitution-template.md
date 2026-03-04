@@ -63,6 +63,16 @@ This section defines non-negotiable terminology and layering rules to prevent se
 [DEPENDENCY_MATRIX]
 <!-- Example row: | requests | Direct | 2.32.3 | Apache-2.0 | PyPI | Platform | HTTP client | Medium | Review minors quarterly | -->
 
+## Architecture Evidence Index
+<!-- Repo-derived architectural index to support evidence-based planning and design. -->
+<!-- Fill as Markdown table rows matching the header below. -->
+<!-- Requirements: use concrete file paths + symbols; do NOT invent “Existing” code. -->
+<!-- IndexID MUST be stable (do not renumber unless meaning changes). Downstream artifacts reference IndexID as SSOT. -->
+| IndexID | Area | Responsibility | Entry Point (file:symbol) | Interfaces (HTTP/CLI/Event/etc.) | Persistence Touchpoints | Status (Existing/Planned/New code) | Notes |
+|---------|------|----------------|---------------------------|----------------------------------|-------------------------|------------------------------------|-------|
+[ARCHITECTURE_EVIDENCE_INDEX]
+<!-- Example row: | AEI-001 | API | HTTP routing + auth | backend/src/api/router.ts:registerRoutes | HTTP (OpenAPI) | db/users (planned) | Existing | TODO(OPENAPI): confirm operationId naming | -->
+
 ## [SECTION_2_NAME]
 <!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
 

@@ -59,6 +59,9 @@ You **MUST** consider the user input before proceeding (if not empty).
             - For each UDD Item, provide the corresponding `VO field path` (schema path) as evidence
             - If an interface has no Key Path scope, explicitly note: `Key Path coverage: N/A`
          3) Evidence & Call Chain (call-chain drilldown; file paths + symbols; each step marked `Existing` vs `Planned/New code`)
+            - If the project constitution includes an Architecture Evidence Index (SSOT) with stable `AEI-###` IDs:
+              - Any step marked `Existing` MUST cite the corresponding `AEI-###` for the boundary/entrypoint it references.
+              - Do NOT restate the repo boundary index here; reference `AEI-###` and keep details operation-scoped.
          4) Related Applications & Dependency Inventory (for this operation only): for each dependency record app/system name, ownership (internal/2nd-party/3rd-party), call direction (inbound/outbound), protocol/interface, timeout & retry policy, and failure/degradation mode
          5) Sequence Diagram (PlantUML; MUST include every dependency from the inventory and all remote calls: 2nd-party, 3rd-party, middleware, queues, caches, etc.)
          6) Relevant Code Class Diagram (PlantUML; only code relevant to this interface/feature)
