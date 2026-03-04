@@ -108,11 +108,18 @@ Your job is to produce a Spec that is easy to read for Chinese stakeholders **wi
          - No reasonable default exists
        - **LIMIT: Maximum 3 [NEEDS CLARIFICATION] markers total**
        - Prioritize clarifications by impact: scope > security/privacy > user experience > technical details
-    4. Fill User Scenarios & Testing section
+    4. Fill User Scenarios & Testing / Acceptance Scenarios section
        If no clear user flow: ERROR "Cannot determine user scenarios"
     5. Generate Functional Requirements
-       Each requirement must be testable
+       Each requirement must be testable and concrete (no vague wording)
        Use reasonable defaults for unspecified details (document assumptions in Assumptions section)
+       For each `FR-###` entry in **3.3 Functional Requirements**, include at minimum:
+       - `Capability`: one sentence starting with `System MUST/SHOULD/MAY ...`
+       - `Given/When/Then (minimum)`: a minimal, testable behavioral assertion
+       - `UDD (user-visible data) refs`: list relevant `Entity.field` items
+         - `Reads/Displays`: what the user sees/relies on in this FR
+         - `Writes/Updates`: what becomes user-visible or changes (ensure § 1.3 UDD is updated accordingly)
+       - `Failure / edge behavior`: at least one failure condition and expected outcome (ref `EC-###` if defined globally)
     6. Define Success Criteria
        Create measurable, technology-agnostic outcomes
        Include both quantitative metrics (time, performance, volume) and qualitative measures (user satisfaction, task completion)
@@ -126,6 +133,9 @@ Your job is to produce a Spec that is easy to read for Chinese stakeholders **wi
     8. Return: SUCCESS (spec ready for planning)
 
 5. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings.
+
+   - Ensure `## Artifacts Overview & Navigation` is present near the top and uses working relative links (no anchor links).
+   - Do NOT add any status tracking here and do NOT claim downstream artifacts are already generated.
 
 6. **Specification Quality Validation**: After writing the initial spec, validate it against quality criteria:
 

@@ -150,11 +150,11 @@ You **MUST** consider the user input before proceeding (if not empty).
 
    Clarity:
    - "Is 'fast loading' quantified with specific timing thresholds? [Clarity, Spec §NFR-2]"
-   - "Are 'related episodes' selection criteria explicitly defined? [Clarity, Spec §FR-5]"
-   - "Is 'prominent' defined with measurable visual properties? [Ambiguity, Spec §FR-4]"
+   - "Are 'related episodes' selection criteria explicitly defined? [Clarity, Spec §FR-005]"
+   - "Is 'prominent' defined with measurable visual properties? [Ambiguity, Spec §FR-004]"
 
    Consistency:
-   - "Do navigation requirements align across all pages? [Consistency, Spec §FR-10]"
+   - "Do navigation requirements align across all pages? [Consistency, Spec §FR-010]"
    - "Are card component requirements consistent between landing and detail pages? [Consistency]"
 
    Coverage:
@@ -163,8 +163,8 @@ You **MUST** consider the user input before proceeding (if not empty).
    - "Are requirements specified for partial data loading failures? [Coverage, Exception Flow]"
 
    Measurability:
-   - "Are visual hierarchy requirements measurable/testable? [Acceptance Criteria, Spec §FR-1]"
-   - "Can 'balanced visual weight' be objectively verified? [Measurability, Spec §FR-2]"
+   - "Are visual hierarchy requirements measurable/testable? [Acceptance Criteria, Spec §FR-001]"
+   - "Can 'balanced visual weight' be objectively verified? [Measurability, Spec §FR-002]"
 
    **Scenario Classification & Coverage** (Requirements Quality Focus):
    - Check if requirements exist for: Primary, Alternate, Exception/Error, Recovery, Non-Functional scenarios
@@ -228,12 +228,12 @@ To avoid clutter, use descriptive types and clean up obsolete checklists when do
 
 Sample items (testing the requirements, NOT the implementation):
 
-- "Are visual hierarchy requirements defined with measurable criteria? [Clarity, Spec §FR-1]"
-- "Is the number and positioning of UI elements explicitly specified? [Completeness, Spec §FR-1]"
+- "Are visual hierarchy requirements defined with measurable criteria? [Clarity, Spec §FR-001]"
+- "Is the number and positioning of UI elements explicitly specified? [Completeness, Spec §FR-001]"
 - "Are interaction state requirements (hover, focus, active) consistently defined? [Consistency]"
 - "Are accessibility requirements specified for all interactive elements? [Coverage, Gap]"
 - "Is fallback behavior defined when images fail to load? [Edge Case, Gap]"
-- "Can 'prominent display' be objectively measured? [Measurability, Spec §FR-4]"
+- "Can 'prominent display' be objectively measured? [Measurability, Spec §FR-004]"
 
 **API Requirements Quality:** `api.md`
 
