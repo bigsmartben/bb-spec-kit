@@ -7,6 +7,17 @@ Recent changes to the Specify CLI and templates are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.88.18] - 2026-03-04
+
+### Added
+
+- **`/speckit.preview` command**: Generates/overwrites `specs/<feature>/preview.md` as a reviewer-facing read view with index-first navigation and verbatim appendices.
+
+### Changed
+
+- **plan-template audit clauses**: Reduced duplication in `plan-template.md` by removing embedded traceability/evidence rule blocks and replacing them with constitution references (rules remain enforced by commands and constitution).
+- **spec-template guidance trimmed**: Streamlined `spec-template.md` by removing verbose process guidance and redundant examples while preserving headings and SSOT structure.
+
 ## [0.88.7] - 2026-03-04
 
 ### Added

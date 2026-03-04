@@ -71,7 +71,9 @@ Given that feature description, do this:
    - The JSON output will contain BRANCH_NAME and SPEC_FILE paths
    - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot")
 
-3. Load `templates/spec-template.md` to understand required sections.
+3. Load the spec template to understand required sections:
+   - Preferred: `.specify/templates/spec-template.md`
+   - Fallback: `templates/spec-template.md`
 
 4. Load the project constitution (terminology authority):
    - Preferred: `.specify/memory/constitution.md`

@@ -1,5 +1,10 @@
 ---
 description: Generate a custom checklist for the current feature based on user requirements.
+handoffs:
+  - label: Start Implementation
+    agent: speckit.implement
+    prompt: Start the implementation in phases
+    send: true
 scripts:
   sh: scripts/bash/check-prerequisites.sh --json
   ps: scripts/powershell/check-prerequisites.ps1 -Json
@@ -208,7 +213,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - ✅ "Are [edge cases/scenarios] addressed in requirements?"
    - ✅ "Does the spec define [missing aspect]?"
 
-6. **Structure Reference**: Generate the checklist following the canonical template in `templates/checklist-template.md` for title, meta section, category headings, and ID formatting. If template is unavailable, use: H1 title, purpose/created meta lines, `##` category sections containing `- [ ] CHK### <requirement item>` lines with globally incrementing IDs (start at CHK001 for new files; continue from current max when appending).
+6. **Structure Reference**: Generate the checklist following the canonical template (preferred: `.specify/templates/checklist-template.md`; fallback: `templates/checklist-template.md`) for title, meta section, category headings, and ID formatting. If template is unavailable, use: H1 title, purpose/created meta lines, `##` category sections containing `- [ ] CHK### <requirement item>` lines with globally incrementing IDs (start at CHK001 for new files; continue from current max when appending).
 
 7. **Report**: Output the full absolute path to the target checklist file, the number of items added in this run, and operation type (`created` or `appended`). Summarize:
    - Focus areas selected
