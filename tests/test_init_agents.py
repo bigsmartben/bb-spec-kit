@@ -22,7 +22,6 @@ from typer.testing import CliRunner
 
 from specify_cli import AGENT_CONFIG, app
 
-
 # ───────── constants ─────────
 
 # Required agents: (agent_key, expected_folder, expected_commands_subdir)

@@ -139,7 +139,7 @@ Your job is to produce a Spec that is easy to read for Chinese stakeholders **wi
 
 6. **Specification Quality Validation**: After writing the initial spec, validate it against quality criteria:
 
-   a. **Create Spec Quality Checklist**: Generate a checklist file at `FEATURE_DIR/checklists/requirements.md` using the checklist template structure with these validation items:
+   a. **Create Spec Quality Checklist**: Create/overwrite `FEATURE_DIR/checklists/requirements.md` using the checklist template structure with these validation items:
 
       ```markdown
       # Specification Quality Checklist: [FEATURE NAME]
@@ -161,12 +161,12 @@ Your job is to produce a Spec that is easy to read for Chinese stakeholders **wi
       - [ ] Requirements are testable and unambiguous
       - [ ] Success criteria are measurable
       - [ ] Success criteria are technology-agnostic (no implementation details)
-	      - [ ] All acceptance scenarios are defined
-	      - [ ] Edge cases are identified
-	      - [ ] Scope is clearly bounded
-	      - [ ] Dependencies and assumptions identified
-	      - [ ] All `→ ref: Entity.field` references used by UI/components are defined as UDD items (no dangling refs)
-	      - [ ] Key Path (P1) System-backed UDD items are explicitly marked (Source Type + Key Path) for downstream VO coverage checks
+      - [ ] All acceptance scenarios are defined
+      - [ ] Edge cases are identified
+      - [ ] Scope is clearly bounded
+      - [ ] Dependencies and assumptions identified
+      - [ ] All `→ ref: Entity.field` references used by UI/components are defined as UDD items (no dangling refs)
+      - [ ] Key Path (P1) System-backed UDD items are explicitly marked (Source Type + Key Path) for downstream VO coverage checks
       
       ## Feature Readiness
       
@@ -186,7 +186,7 @@ Your job is to produce a Spec that is easy to read for Chinese stakeholders **wi
 
    c. **Handle Validation Results**:
 
-      - **If all items pass**: Mark checklist complete and proceed to step 6
+      - **If all items pass**: Mark every checklist item as `[x]` and proceed to step 8
 
       - **If items fail (excluding [NEEDS CLARIFICATION])**:
         1. List the failing items and specific issues
@@ -229,7 +229,11 @@ Your job is to produce a Spec that is easy to read for Chinese stakeholders **wi
         8. Update the spec by replacing each [NEEDS CLARIFICATION] marker with the user's selected or provided answer
         9. Re-run validation after all clarifications are resolved
 
-   d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
+   d. **Update Checklist**: After each validation iteration, write status back to `FEATURE_DIR/checklists/requirements.md`:
+      - Mark each passing item as `- [x]`
+      - Mark each failing item as `- [ ]`
+      - Preserve the original item order and IDs (do not duplicate or renumber items)
+      - Add concise notes for unresolved failures
 
 8. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
 
@@ -242,7 +246,7 @@ Your job is to produce a Spec that is easy to read for Chinese stakeholders **wi
 - Focus on **WHAT** users need and **WHY**.
 - Avoid HOW to implement (no tech stack, APIs, code structure).
 - Written for business stakeholders, not developers.
-- DO NOT create any checklists that are embedded in the spec. That will be a separate command.
+- DO NOT embed checklists inside `spec.md`; keep them as standalone files under `FEATURE_DIR/checklists/`.
 
 ### Section Requirements
 
