@@ -24,6 +24,26 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Output Language & Stability Contract *(MANDATORY)*
+
+Your job is to produce plan/design artifacts that are easy to read for Chinese stakeholders **without** introducing semantic drift or breaking downstream automation.
+
+- **Default output language**: Write all *narrative content* in **Simplified Chinese (zh-CN)**.
+- **Do NOT translate / do NOT rewrite** any of the following (keep exact tokens/casing/punctuation):
+  - Constitution and template **Terminology / Terms** definitions (authority text)
+  - Normative keywords: `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`
+  - Markers and gates: `NEEDS CLARIFICATION`, `ERROR`, and any other literal gate tokens in the templates
+  - Stable IDs and traceability tokens: `UC-###`, `FR-###`, CaseIDs, `Entity.field`
+  - OpenAPI fixed field names and identifiers: `operationId`, `x-fr-ids`, `x-uc-ids`, schema property names
+  - Status tokens used for evidence labeling: `Existing`, `Planned/New code`
+  - File paths, code identifiers, CLI commands, and anything in code fences/backticks
+- **Structure stability**: Preserve section order and headings from the copied `IMPL_PLAN` template (do not rename headings; only fill content).
+- **Script-parsed labels (keep in English)**: In `plan.md` keep these exact field labels so agent context scripts can parse them:
+  - `**Language/Version**:`
+  - `**Primary Dependencies**:`
+  - `**Storage**:`
+  - `**Project Type**:`
+
 ## Outline
 
 1. **Setup**: Run `{SCRIPT}` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").

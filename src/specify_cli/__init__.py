@@ -892,8 +892,8 @@ def download_template_from_github(
     debug: bool = False,
     github_token: str = None,
 ) -> Tuple[Path, dict]:
-    repo_owner = "github"
-    repo_name = "spec-kit"
+    repo_owner = "bigsmartben"
+    repo_name = "bb-spec-kit"
     if client is None:
         client = httpx.Client(verify=ssl_context)
 
@@ -1012,67 +1012,42 @@ def download_and_extract_template(
     debug: bool = False,
     github_token: str = None,
 ) -> Path:
-    """Download (or locally build) the template zip and extract it to create a new project.
+    """Download template zip from official upstream and extract it.
 
-    When templates/ and scripts/ are bundled inside the installed package
-    (i.e. installed from a git fork via ``uv tool install --from git+...``),
-    the zip is built locally from those bundled files so it always matches the
-    installed source.  Otherwise the latest release is fetched from GitHub.
+    Always downloads from bigsmartben/bb-spec-kit release assets to ensure a
+    single trusted source for template artifacts.
 
     Returns project_path. Uses tracker if provided (with keys: fetch, download, extract, cleanup)
     """
     current_dir = Path.cwd()
 
-    # ------------------------------------------------------------------
-    # Prefer bundled templates (available when installed from a git repo)
-    # ------------------------------------------------------------------
     zip_path: Path | None = None
     meta: dict = {}
 
-    bundled_zip = _build_local_template_zip(ai_assistant, script_type)
-    if bundled_zip is not None:
-        zip_path = bundled_zip
-        meta = {
-            "filename": bundled_zip.name,
-            "size": bundled_zip.stat().st_size,
-            "release": "local",
-            "asset_url": "",
-        }
+    if tracker:
+        tracker.start("fetch", "contacting GitHub API")
+    try:
+        zip_path, meta = download_template_from_github(
+            ai_assistant,
+            current_dir,
+            script_type=script_type,
+            verbose=verbose and tracker is None,
+            show_progress=(tracker is None),
+            client=client,
+            debug=debug,
+            github_token=github_token,
+        )
         if tracker:
-            tracker.start("fetch", "building from bundled templates")
-            tracker.complete("fetch", f"local bundle ({meta['size']:,} bytes)")
+            tracker.complete("fetch", f"release {meta['release']} ({meta['size']:,} bytes)")
             tracker.add("download", "Download template")
-            tracker.complete("download", "local bundle")
-        elif verbose:
-            console.print("[cyan]Using bundled templates (local build)[/cyan]")
-    else:
-        # ------------------------------------------------------------------
-        # Fall back: download the latest release from GitHub
-        # ------------------------------------------------------------------
+            tracker.complete("download", meta["filename"])
+    except Exception as e:
         if tracker:
-            tracker.start("fetch", "contacting GitHub API")
-        try:
-            zip_path, meta = download_template_from_github(
-                ai_assistant,
-                current_dir,
-                script_type=script_type,
-                verbose=verbose and tracker is None,
-                show_progress=(tracker is None),
-                client=client,
-                debug=debug,
-                github_token=github_token,
-            )
-            if tracker:
-                tracker.complete("fetch", f"release {meta['release']} ({meta['size']:,} bytes)")
-                tracker.add("download", "Download template")
-                tracker.complete("download", meta["filename"])
-        except Exception as e:
-            if tracker:
-                tracker.error("fetch", str(e))
-            else:
-                if verbose:
-                    console.print(f"[red]Error downloading template:[/red] {e}")
-            raise
+            tracker.error("fetch", str(e))
+        else:
+            if verbose:
+                console.print(f"[red]Error downloading template:[/red] {e}")
+        raise
 
     if tracker:
         tracker.add("extract", "Extract template")
@@ -1969,8 +1944,8 @@ def version():
             pass
 
     # Fetch latest template release version
-    repo_owner = "github"
-    repo_name = "spec-kit"
+    repo_owner = "bigsmartben"
+    repo_name = "bb-spec-kit"
     api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
 
     template_version = "unknown"
