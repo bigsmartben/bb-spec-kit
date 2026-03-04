@@ -79,6 +79,21 @@ Given that feature description, do this:
    - If neither exists: WARN and proceed using the default terminology defined in `templates/spec-template.md`,
      but recommend running `/speckit.constitution` first for consistent downstream behavior.
 
+## Output Language & Stability Contract *(MANDATORY)*
+
+Your job is to produce a Spec that is easy to read for Chinese stakeholders **without** introducing semantic drift.
+
+- **Default output language**: Write all *narrative content* in **Simplified Chinese (zh-CN)**.
+- **Do NOT translate / do NOT rewrite** any of the following (keep exact tokens/casing/punctuation):
+  - Any **Terminology / Terms** definitions from the constitution or the template (keep as the authority; you may add a Chinese gloss after it, but do not change the English term)
+  - Requirement identifiers and traceability IDs: `UC-###`, `FR-###`, scenario IDs like `S1`, and any stable IDs you create
+  - UDD references: `Entity.field` (treat as stable IDs)
+  - Normative keywords: `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`
+  - Markers that downstream workflows depend on: `[NEEDS CLARIFICATION: ...]` (keep the marker text in English exactly)
+  - File paths, code identifiers, CLI commands, and anything in code fences/backticks
+- **Structure stability**: Preserve section order and headings from `templates/spec-template.md` (do not rename headings; only fill content).
+- **No leftover placeholders**: Replace all bracket placeholders like `[Actor Name]`, `[Description]`, etc. If something is unknown, make a reasonable assumption or use `[NEEDS CLARIFICATION: ...]` (max 3).
+
 5. Follow this execution flow:
 
     1. Parse user description from Input

@@ -92,11 +92,48 @@ function Get-FeatureDir {
     Join-Path $RepoRoot "specs/$Branch"
 }
 
+function Find-FeatureDirByPrefix {
+    param([string]$RepoRoot, [string]$Branch)
+
+    $specsDir = Join-Path $RepoRoot "specs"
+
+    # If branch doesn't have numeric prefix, fall back to exact match
+    if ($Branch -notmatch '^(\d{3})-') {
+        return (Join-Path $specsDir $Branch)
+    }
+
+    $prefix = $matches[1]
+
+    # Search for directories in specs/ that start with this prefix
+    $dirs = @()
+    if (Test-Path $specsDir) {
+        $dirs = Get-ChildItem -Path $specsDir -Directory -Filter "$prefix-*" -ErrorAction SilentlyContinue |
+            Select-Object -ExpandProperty Name
+    }
+
+    # Handle results
+    if (-not $dirs -or $dirs.Count -eq 0) {
+        # No match found - return the branch name path (will fail later with clear error)
+        return (Join-Path $specsDir $Branch)
+    }
+
+    if ($dirs.Count -eq 1) {
+        # Exactly one match - perfect!
+        return (Join-Path $specsDir $dirs[0])
+    }
+
+    # Multiple matches - this shouldn't happen with proper naming convention
+    Write-Warning "ERROR: Multiple spec directories found with prefix '$prefix': $($dirs -join ', ')"
+    Write-Warning "Please ensure only one spec directory exists per numeric prefix."
+    return (Join-Path $specsDir $Branch)
+}
+
 function Get-FeaturePathsEnv {
     $repoRoot = Get-RepoRoot
     $currentBranch = Get-CurrentBranch
     $hasGit = Test-HasGit
-    $featureDir = Get-FeatureDir -RepoRoot $repoRoot -Branch $currentBranch
+    # Use prefix-based lookup to support multiple branches per spec
+    $featureDir = Find-FeatureDirByPrefix -RepoRoot $repoRoot -Branch $currentBranch
     
     [PSCustomObject]@{
         REPO_ROOT     = $repoRoot
@@ -134,4 +171,3 @@ function Test-DirHasFiles {
         return $false
     }
 }
-
