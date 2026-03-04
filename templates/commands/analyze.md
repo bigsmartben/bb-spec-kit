@@ -36,6 +36,9 @@ Run `{SCRIPT}` once from repo root and parse JSON for FEATURE_DIR and AVAILABLE_
 - SPEC = FEATURE_DIR/spec.md
 - PLAN = FEATURE_DIR/plan.md
 - TASKS = FEATURE_DIR/tasks.md
+- CONTRACTS_DIR = FEATURE_DIR/contracts/
+- OPENAPI = FEATURE_DIR/contracts/openapi.yaml (if present)
+- TEST_CASE_MATRIX = FEATURE_DIR/contracts/test-case-matrix.md (if present)
 
 Abort with an error message if any required file is missing (instruct the user to run missing prerequisite command).
 For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
@@ -66,6 +69,8 @@ Load only the minimal necessary context from each artifact:
 - Phase grouping
 - Parallel markers [P]
 - Referenced file paths
+- Interface Inventory (InterfaceID ↔ `operationId`/contract reference)
+- Any explicit `CaseID` references in `Type:Test` tasks (if present)
 
 **From constitution:**
 
@@ -77,15 +82,19 @@ Load only the minimal necessary context from each artifact:
 
 - `data-model.md`: UDD items, Key Path coverage tables, VO→Persistence mapping (if the plan produces them)
 - `contracts/`: OpenAPI/contract schemas (Interface VO) to validate UDD→VO coverage claims
+- `contracts/test-case-matrix.md` (if present): verification design + traceability; treat as read-only source-of-truth for CaseIDs
 
 ### 3. Build Semantic Models
 
 Create internal representations (do not include raw artifacts in output):
 
 - **Requirements inventory**: Each functional + non-functional requirement with a stable key (derive slug based on imperative phrase; e.g., "User can upload file" → `user-can-upload-file`)
+- **FR/UC inventories** (when IDs exist): Extract `FR-###` and `UC-###` identifiers and their short titles/phrases
 - **User story/action inventory**: Discrete user actions with acceptance criteria
 - **Task coverage mapping**: Map each task to one or more requirements or stories (inference by keyword / explicit reference patterns like IDs or key phrases)
 - **Constitution rule set**: Extract principle names and MUST/SHOULD normative statements
+- **Interface inventory**: Parse Interface Inventory from tasks.md (InterfaceID → `operationId` or contract doc path)
+- **Test matrix model** (if present): Parse `CaseID` rows (CaseID → operationId → FR/UC refs → tags/priority/test level → fixtures/mocks → expected status/error)
 
 ### 4. Detection Passes (Token-Efficient Analysis)
 
@@ -128,6 +137,45 @@ Focus on high-signal findings. Limit to 50 findings total; aggregate remainder i
 - Task ordering contradictions (e.g., integration tasks before foundational setup tasks without dependency note)
 - Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
 
+#### G. Test Case Matrix Alignment *(if `contracts/test-case-matrix.md` exists)*
+
+Treat the matrix as a design + traceability artifact. This section is a **consistency check** only (no file writes).
+
+Perform these checks and emit findings with precise locations:
+
+1. **CaseID integrity**
+   - Uniqueness: no duplicate `CaseID`
+   - Format: `TC-<operationId>-###`
+   - `operationId` referenced by CaseID matches the row’s `operationId` field (if both exist)
+
+2. **OpenAPI alignment (when `contracts/openapi.yaml` exists)**
+   - Every `operationId` present in matrix MUST exist in OpenAPI
+   - Every in-scope OpenAPI `operationId` SHOULD have ≥1 CaseID row
+   - If matrix is present, flag any OpenAPI `operationId` with **zero** cases as **HIGH** (verification gap)
+
+3. **FR/UC traceability**
+   - Every in-scope `FR-###` from spec SHOULD appear in ≥1 CaseID row
+   - Any `FR-###` referenced in matrix MUST exist in spec (no dangling FRs)
+   - If UC-structured: UC → FR → CaseIDs should be non-empty for Key Path/P1 UCs
+
+4. **Happy path + negative-path sanity (quality heuristic; do not over-police)**
+   - For each in-scope `operationId`, matrix SHOULD include:
+     - ≥1 `happy-path` case (or equivalent explicit marker; if tags are absent, infer by scenario wording)
+     - ≥1 negative case (validation/authz/not-found/conflict/etc.)
+   - If an operation lacks both, report **MEDIUM** with a concrete recommendation
+
+5. **Status-code coverage (best-effort)**
+   - If OpenAPI response codes are easy to extract for an operation:
+     - Ensure cases cover at least 1 representative 2xx and key 4xx/5xx that are meaningful for the feature
+   - If unable to infer, report as **LOW** with "needs clearer matrix/OpenAPI structure" note (do not hallucinate)
+
+6. **Tasks ↔ Matrix consistency (post-/speckit.tasks validation)**
+   - Extract all `CaseID` tokens mentioned in `tasks.md` `Type:Test` tasks
+   - Every referenced `CaseID` MUST exist in `contracts/test-case-matrix.md`
+   - For interface-tagged tasks `[IFxx]`:
+     - If Interface Inventory maps `IFxx` to an `operationId`, verify referenced CaseIDs are for that same `operationId`
+   - If any referenced CaseID is missing/mismatched: report **CRITICAL** (implementation will ERROR later)
+
 ### 5. Severity Assignment
 
 Use this heuristic to prioritize findings:
@@ -166,6 +214,10 @@ Output a Markdown report (no file writes) with the following structure:
 - Ambiguity Count
 - Duplication Count
 - Critical Issues Count
+- If `contracts/test-case-matrix.md` exists:
+  - Total CaseIDs
+  - CaseIDs per `operationId` (top 5 by count; and list any 0-count OpenAPI ops when applicable)
+  - `% operationId with happy-path coverage` (best-effort; explicit tag preferred)
 
 ### 7. Provide Next Actions
 

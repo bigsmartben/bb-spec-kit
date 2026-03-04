@@ -155,6 +155,15 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
      - `contracts/openapi.yaml` (`operationId` + `x-fr-ids` + schemas)
      - Spec FR descriptions + acceptance scenarios
      - State machine design from `data-model.md`
+   - Primary goal: make verification **implementable without further discovery** while maximizing coverage of:
+     - Spec intent (FR/UC + acceptance scenarios)
+     - Interface contract (request/response schema + status codes)
+     - State machine transitions (valid + key invalid transitions)
+   - Recommended document structure (keep it compact and skimmable):
+     1) **Scope & Assumptions** (what is in/out; environment; auth model; test data constraints)
+     2) **Case Table** (one row per CaseID; grouped by `operationId`)
+     3) **Traceability Tables** (FR/UC ↔ cases; transitions ↔ cases)
+     4) **Coverage Gates** (explicit pass/fail checklist; mark `N/A` only when truly inapplicable)
    - It MUST include:
      - A stable **CaseID** for every test case row:
        - Format: `TC-<operationId>-###` (e.g., `TC-createUser-001`)
@@ -164,14 +173,33 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
        - `CaseID`
        - `operationId`
        - `FR-###` references (and `UC-...` references when applicable)
+       - Priority: `P0|P1|P2|P3` (derive from Spec; default to `P1` only when clearly Key Path)
+       - Tags (multi): e.g. `happy-path`, `validation`, `authn`, `authz`, `not-found`, `conflict`, `state-transition`, `pagination`, `idempotency`, `concurrency`, `rate-limit` (use only relevant tags)
        - Scenario summary (Given/When/Then or equivalent)
        - Preconditions and required state transition(s)
        - Inputs and expected outputs
+       - Expected HTTP status code(s) and error shape (if applicable; reference OpenAPI error schema or define it explicitly)
        - Test level: `unit|integration|e2e|manual-script`
        - Required mocks/fixtures (explicit list)
-     - Traceability matrix: FR → operationId(s) → scenario(s) → state transition(s)
-     - Test cases that cover all FRs and all state transitions, including key negative/edge cases from the Spec
-     - Recommended test level per case (unit/integration/e2e) and required fixtures/mocks
+       - Notes: determinism constraints (time/UUID/random), data setup/cleanup, and any observability assertions (logs/metrics) if required by Spec/NFRs
+     - Traceability matrix (MUST be explicit, not implied):
+       - FR → operationId(s) → CaseID(s) → (state transition(s) if applicable)
+       - If UC-structured: UC → FR → CaseID(s)
+     - Coverage gates (ERROR if violated for in-scope items):
+       - **FR coverage**: every in-scope `FR-###` appears in ≥1 CaseID row
+       - **Operation coverage**: every in-scope `operationId` has at least:
+         - 1 `happy-path` case (Key Path/P1 when applicable)
+         - 1 negative case derived from Spec acceptance scenarios or contract constraints (typically `validation` or `authz`)
+       - **Status-code coverage**: for each operation, include at least one case for each *meaningful* response class that exists in OpenAPI and is in-scope (2xx + key 4xx/5xx); mark rare/unsupported codes as `N/A` with rationale
+       - **Schema coverage (Key Path)**: for Key Path + System-backed outputs, ensure cases explicitly assert presence/shape of the required response fields (do not rely on “happy path implies it”)
+       - **State-machine coverage (when applicable)**:
+         - Every designed state transition appears in ≥1 case
+         - Include key invalid transitions (attempt action in wrong state) as negative cases
+     - Design heuristics (use judgement; avoid combinatorial explosion):
+       - Prefer boundary-value coverage for numeric limits and string length/patterns
+       - Prefer pairwise coverage for multi-parameter filtering/sorting when relevant (`pagination` tag)
+       - Prefer idempotency cases for create/mutation operations when idempotency keys/dedup semantics exist (`idempotency` tag)
+       - Prefer concurrency cases for state transitions prone to races (e.g., double-submit) (`concurrency` tag)
    - IMPORTANT: The test-case matrix is **not executable code**. It is a test design + traceability artifact that MUST be directly implementable into test scripts (or manual-script verification) without further discovery.
 
 4. **Interface Detail Docs (per operation)** *(frontend ↔ backend HTTP API features only)*:
