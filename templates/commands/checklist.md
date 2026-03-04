@@ -80,7 +80,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 4. **Load feature context**: Read from FEATURE_DIR:
    - spec.md: Feature requirements and scope
-   - plan.md (if exists): Technical details, dependencies
+   - plan.md (required): Technical details, dependencies
    - tasks.md (if exists): Implementation tasks
 
    **Context Loading Strategy**:
@@ -91,12 +91,14 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 5. **Generate checklist** - Create "Unit Tests for Requirements":
    - Create `FEATURE_DIR/checklists/` directory if it doesn't exist
-   - Generate unique checklist filename:
+   - Determine target checklist filename by domain:
      - Use short, descriptive name based on domain (e.g., `ux.md`, `api.md`, `security.md`)
      - Format: `[domain].md`
-     - If file exists, append to existing file
-   - Number items sequentially starting from CHK001
-   - Each `/speckit.checklist` run creates a NEW file (never overwrites existing checklists)
+     - If target file does not exist, create it
+     - If target file already exists, append a new checklist block to the end (never overwrite existing content)
+   - Number items sequentially:
+     - If creating a new file, start from CHK001
+     - If appending, detect the current maximum `CHK###` in that file and continue from `max+1` to keep IDs unique
 
    **CORE PRINCIPLE - Test the Requirements, Not the Implementation**:
    Every checklist item MUST evaluate the REQUIREMENTS THEMSELVES for:
@@ -206,17 +208,18 @@ You **MUST** consider the user input before proceeding (if not empty).
    - ✅ "Are [edge cases/scenarios] addressed in requirements?"
    - ✅ "Does the spec define [missing aspect]?"
 
-6. **Structure Reference**: Generate the checklist following the canonical template in `templates/checklist-template.md` for title, meta section, category headings, and ID formatting. If template is unavailable, use: H1 title, purpose/created meta lines, `##` category sections containing `- [ ] CHK### <requirement item>` lines with globally incrementing IDs starting at CHK001.
+6. **Structure Reference**: Generate the checklist following the canonical template in `templates/checklist-template.md` for title, meta section, category headings, and ID formatting. If template is unavailable, use: H1 title, purpose/created meta lines, `##` category sections containing `- [ ] CHK### <requirement item>` lines with globally incrementing IDs (start at CHK001 for new files; continue from current max when appending).
 
-7. **Report**: Output full path to created checklist, item count, and remind user that each run creates a new file. Summarize:
+7. **Report**: Output the full absolute path to the target checklist file, the number of items added in this run, and operation type (`created` or `appended`). Summarize:
    - Focus areas selected
    - Depth level
    - Actor/timing
    - Any explicit user-specified must-have items incorporated
 
-**Important**: Each `/speckit.checklist` command invocation creates a checklist file using short, descriptive names unless file already exists. This allows:
+**Important**: `/speckit.checklist` uses short, descriptive domain filenames and appends to existing same-domain files (without overwriting), while continuing `CHK###` numbering from the current maximum. This allows:
 
 - Multiple checklists of different types (e.g., `ux.md`, `test.md`, `security.md`)
+- Re-running the same domain checklist to accumulate additional requirement-quality checks in one file
 - Simple, memorable filenames that indicate checklist purpose
 - Easy identification and navigation in the `checklists/` folder
 
