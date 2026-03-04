@@ -43,17 +43,22 @@ You **MUST** consider the user input before proceeding (if not empty).
 
    - **If any hard-gate checklist is incomplete**:
      - Display the table with incomplete item counts
-     - **STOP** and ask: "Some required checklists are incomplete. Do you want to proceed with implementation anyway? (yes/no)"
-     - Wait for user response before continuing
-     - If user says "no" or "wait" or "stop", halt execution
-     - If user says "yes" or "proceed" or "continue", proceed to step 3
+     - **STOP** and ask once before coding starts: "Hard-gate checklists are incomplete. Proceed to coding anyway? (yes/no)"
+     - If user says "yes" or "proceed" or "continue", continue to step 3
+     - If user says "no" or "wait" or "stop", halt before coding stage
+     - Emit gate record:
+       - `GATE_DECISION|phase=pre-coding|gate=hard-checklist|hard=FAIL|soft=<PASS|WARN>|decision=<PROCEED|HALT>`
 
    - **If only soft-gate checklists are incomplete**:
      - Display the table and mark overall status as `WARN`
+     - Emit gate record:
+       - `GATE_DECISION|phase=pre-coding|gate=hard-checklist|hard=PASS|soft=WARN|decision=PROCEED`
      - Continue automatically to step 3
 
    - **If all checklists are complete**:
      - Display the table showing all checklists passed
+     - Emit gate record:
+       - `GATE_DECISION|phase=pre-coding|gate=hard-checklist|hard=PASS|soft=PASS|decision=PROCEED`
      - Automatically proceed to step 3
 
 3. Load and validate the implementation context (fail fast):
@@ -72,13 +77,20 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **CONTEXT MINIMIZATION RULE**:
      - For interface-scoped execution, load only the active interface packet (`IFxx`) and do NOT load unrelated interface docs or full-contract files
      - `contracts/openapi.yaml` MUST NOT be loaded in full for interface-scoped tasks; only operation-scoped fragments are allowed when required information is missing in interface detail docs
+     - For `plan.md` and `data-model.md`, extract and keep only sections relevant to the active task and `IFxx`; discard unrelated sections from active working context
+     - Reuse a cached interface context packet for consecutive tasks under the same `IFxx`; refresh only when task scope or interface changes
    - **OPTIONAL**: `research.md`
      - If it exists, read it ONLY when needed for a specific task (e.g., a task references a decision/rationale)
      - Do NOT create new design artifacts during `speckit.implement` unless explicitly required by `tasks.md`
    - **OPTIONAL**: `quickstart.md`
      - Use it only for verification tasks (or when `tasks.md` explicitly references it)
+   - **TASK FILE-BOUNDARY HARD GATE (`Type:Interface`)**:
+     - Derive an `AllowedPaths` set from the task line in `tasks.md` (explicit file paths/directories only)
+     - If the task path is `N/A`, repository file edits are not allowed
+     - If implementation appears to require edits outside `AllowedPaths`, do not expand scope; mark the task as `SCOPE_BLOCKED` and continue with other executable tasks
+     - Never broaden file scope silently
 
-4. **Project Setup Verification** (global / shared-worktree only):
+4. **Project Setup Verification** (global / shared-workspace only):
    - **REQUIRED**: Create/verify ignore files based on actual project setup:
 
    **Detection & Creation Logic**:
@@ -87,6 +99,7 @@ You **MUST** consider the user input before proceeding (if not empty).
      ```sh
      git rev-parse --git-dir 2>/dev/null
      ```
+   - Store the result as `GIT_REPO=true|false` for later commit behavior.
 
    - Check if Dockerfile* exists or Docker in plan.md → create/verify .dockerignore
    - Check if .eslintrc* exists → create/verify .eslintignore
@@ -128,50 +141,63 @@ You **MUST** consider the user input before proceeding (if not empty).
      - For HTTP API features: map `operationId` to `contracts/interface-details/<operationId>.md` (load only those relevant to the current IF)
    - **REQUIRED**: Extract the full task list with fields:
      - Task ID (T###), `[P]` marker, `Type:*`, optional `[IFxx]`, and all file paths (or `N/A`)
+     - Build `AllowedPaths` per task from those file paths:
+       - File path token => only that file is writable for the task
+       - Directory path token => files under that directory are writable for the task
+       - `N/A` => no repository file writes allowed
    - **REQUIRED**: Extract **Task DAG (Adjacency List)** and build a dependency graph
      - If the adjacency list is missing/unparseable: **ERROR** and STOP (rerun `/speckit.tasks`)
    - Compute a **ready-queue**:
      - A task is `READY` iff all its dependency tasks are completed (`[X]`)
 
-6. Worktree model and Interface-parallel execution (default):
-   - **Parallel unit = Interface (`IFxx`)**
-     - Each interface SHOULD be developed in its own worktree/branch (independent iteration)
-     - Within a single interface, follow DAG ordering; only tasks marked `[P]` may run in parallel (subject to file conflicts)
-   - **Worktree lifecycle is owned by `/speckit.implement`**
-     - Do NOT require explicit worktree/branch enablement tasks in `tasks.md`
-     - Before executing the first task for each `IFxx`, create/switch to that interface's worktree/branch automatically
-     - If the target worktree/branch already exists, reuse it and continue
-   - **Naming rule**
-     - Follow `tasks.md` worktree naming when explicitly specified
-     - If `tasks.md` does not specify names, use: `<feature-spec-branch>-<ifxx>` (e.g., `123-my-feature-if03`)
-       - `feature-spec-branch` = the feature branch name referenced by the spec/worktree workflow
-       - `<ifxx>` is lowercase (`if01`, `if02`, ...)
-   - **Global/shared tasks**
-     - Tasks with no `[IFxx]` label, or tasks that modify shared repo-wide files, MUST run in the shared/base worktree before starting interface-parallel batches
+6. Pre-coding sanity check (lightweight):
+   - Before the first coding task, confirm:
+     - Checklist decision from step 2 allows coding
+     - Required context documents are present and readable
+     - `tasks.md` is parseable with a valid Task DAG adjacency list
+     - `AllowedPaths` can be derived for each `Type:Interface` task (otherwise mark that task `BLOCKED_BY_DEP`)
+   - If any global blocker exists, **STOP before coding stage** and report blockers in one summary
+   - During coding stage, do not request interactive confirmations
 
-7. Scheduling algorithm (strict ready-queue from Task DAG adjacency list):
-   - Repeat until all tasks are completed:
+7. Scheduling algorithm (maximize executable tasks; single workspace; no parallel):
+   - Execution model:
+     - Use a single workspace only; do NOT create/switch worktrees
+     - Execute tasks serially (ignore `[P]` parallelization hints to reduce conflicts)
+   - Repeat until no more executable tasks remain:
      1) Recompute `READY` tasks from the DAG adjacency list (all deps completed)
-     2) Form a **parallel batch** from `READY` tasks using these constraints:
-        - Prefer maximizing parallelism across different `IFxx` (different worktrees)
-        - Within the same `IFxx`, only include multiple tasks in the same batch if they are marked `[P]`
-        - Never batch tasks that touch the same file paths (treat any overlap as a conflict)
-        - Treat repo-wide/shared paths as conflicts across all interfaces (serialize), e.g.:
-          - `.github/`, CI configs, top-level configs, shared libraries/modules, `tasks.md`, `plan.md`
-        - If conflict detection is uncertain, serialize (correctness > speed)
-     3) Print the planned batch BEFORE execution as a concise table:
-        - columns: `Task`, `IF`, `Worktree`, `DependsOn`, `Paths`
-     4) Execute the batch:
-        - For each interface in the batch, ensure the worktree/branch is active
-        - Apply **Interface-scoped context** (below) before executing that interface’s tasks
-     5) After each task completes, immediately mark it `[X]` in `tasks.md`
+     2) Select executable tasks from `READY` in deterministic `TaskID` order (ascending)
+     3) For each selected task:
+        - Apply **Interface-scoped context** (below) when `[IFxx]` is present
+        - For each `Type:Interface` task, execute strictly under **Type:Interface Task Execution Contract** (below)
+        - Print and enforce `AllowedPaths` before edits
+        - Run a bounded retry loop on failure: max 2 retries per task (3 attempts total)
+        - If still failing after retries, mark task as `FAILED` and continue
+        - If blocked by scope boundary, mark task as `SCOPE_BLOCKED` and continue
+        - If successful, immediately mark the task as `[X]` in `tasks.md`
+        - If `GIT_REPO=true` and task status is `COMPLETED`, create a local checkpoint commit:
+          - Stage task-related changes plus `tasks.md` (for example: declared task paths + `tasks.md`)
+          - Commit message format: `imp: <TaskID> <IFxx|NONE> <short summary>`
+          - If there is nothing to commit, continue
+          - Emit commit record:
+            - `COMMIT_RESULT|task=<T###>|result=<COMMITTED|NO_CHANGES|FAILED>|sha=<short_sha|NONE>`
+        - Emit task record:
+          - `TASK_RESULT|task=<T###>|if=<IFxx|NONE>|status=<COMPLETED|FAILED|SCOPE_BLOCKED|BLOCKED_BY_DEP>|attempts=<n>`
+        - If context is approaching model limits, stop after the current task and output a concise resume hint (next `READY` task IDs)
+     4) Stop when a fixed point is reached (no new `READY` tasks can run)
+   - **Maximum executable-tasks principle**:
+     - Never halt the whole stage because one task fails
+     - Continue with every independent executable task
+     - Enforce final control before completion reporting
 
 8. Progress tracking and error handling:
    - Report progress after each completed task
-   - Halt execution if any non-parallel task fails
-   - For parallel tasks [P], continue with successful tasks, report failed ones
+   - Maintain per-task runtime status: `COMPLETED`, `FAILED`, `SCOPE_BLOCKED`, `BLOCKED_BY_DEP`
+   - Do not request manual intervention during coding stage
    - Provide clear error messages with context for debugging
-   - Suggest next steps if implementation cannot proceed
+   - If the run is intentionally paused for context-size safety, print:
+     - `RESUME_NEXT: <TaskID list or NONE>`
+     - `RUN_CHECKPOINT|reason=CONTEXT_LIMIT|resume_next=<TaskID list or NONE>|ready_count=<n>`
+   - Suggest next steps after the stage ends
    - **IMPORTANT** For completed tasks, make sure to mark the task off as [X] in the tasks file.
 
 9. Completion validation:
@@ -179,6 +205,11 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Check that implemented features match the original specification
    - Validate that tests pass and coverage meets requirements
    - Confirm the implementation follows the technical plan
+   - Apply final control gate before declaring success:
+     - If any task is `FAILED`, `SCOPE_BLOCKED`, or `BLOCKED_BY_DEP`, overall status is `INCOMPLETE`
+     - Do not request manual decision; return a consolidated unresolved-task report for next run
+   - Emit run summary record:
+     - `RUN_SUMMARY|overall=<COMPLETE|INCOMPLETE>|completed=<n>|failed=<n>|scope_blocked=<n>|blocked_by_dep=<n>`
    - Report final status with summary of completed work
 
 ## Interface-scoped context (MANDATORY for `[IFxx]` tasks)
@@ -187,8 +218,8 @@ Before executing any task tagged with a specific interface `[IFxx]`, you MUST bu
 
 - Always include:
   - The `IFxx` section from `tasks.md` (goal, served stories, definition of done, interface-local task list)
-  - The global `plan.md`
-  - The global `data-model.md`
+  - The relevant excerpts from `plan.md` (only architecture/constraints/file structure sections required by the active task)
+  - The relevant excerpts from `data-model.md` (only entities/relations/state needed by the active task)
 - Include ONLY the interface’s relevant contract material:
   - `contracts/interface-details/<operationId>.md` for this `IFxx` is the PRIMARY source (do not load other interfaces’ detail docs)
   - Contract doc(s) referenced by the `IFxx` section / Interface Inventory (do not load other interfaces’ contracts)
@@ -204,5 +235,61 @@ Before executing any task tagged with a specific interface `[IFxx]`, you MUST bu
     - If the task references `CaseID`s that cannot be found in the matrix: **ERROR** and STOP (regenerate via `/speckit.plan` or `/speckit.tasks`)
 
 You MUST NOT load unrelated interface documents "just in case". Keep the context minimal and interface-scoped.
+
+For implementation tasks (`Type:Interface`), you MUST follow "build-to-spec" execution:
+- Treat the task line, interface contract, and interface detail doc as the implementation blueprint (source of truth)
+- Do not add opportunistic refactors or unrelated cleanup
+- Keep edits inside task `AllowedPaths`; if out-of-scope edits are required, mark `SCOPE_BLOCKED` and continue
+
+## Type:Interface Task Execution Contract (MANDATORY)
+
+When executing a single coding task (`Type:Interface`), the execution input and behavior MUST be deterministic and explicit.
+
+### Input Packet (must be assembled before coding)
+
+- `TaskSpec` from `tasks.md`:
+  - `TaskID`, `Type`, optional `IFxx`, task description text, declared file paths, `[P]` marker
+- `DependencyState` from Task DAG:
+  - direct predecessor list from adjacency edges
+  - `READY` status proof: all predecessors are `[X]`
+- `AllowedPaths`:
+  - derived from declared task file paths (file-only, directory subtree, or `N/A`)
+- `InterfaceBlueprint`:
+  - active `IFxx` section from `tasks.md` (goal/DoD/local tasks)
+  - interface contract source(s) for this `IFxx`
+  - `contracts/interface-details/<operationId>.md` (when applicable)
+  - relevant excerpts from `plan.md` and `data-model.md`
+
+### Deterministic Execution Rules
+
+1. **No Input Packet, no coding**: if any required input item is missing, malformed, or contradictory, mark the task as `BLOCKED_BY_DEP` and continue with other executable tasks.
+2. **Blueprint-first implementation**: implement only what is required by `TaskSpec` + `InterfaceBlueprint`; do not infer additional scope.
+3. **Hard file boundary**: edits MUST stay within `AllowedPaths`. If out-of-scope edits are required, mark `SCOPE_BLOCKED` and continue with other executable tasks.
+4. **No opportunistic changes**: forbid unrelated refactor/cleanup/renaming/style-only edits unless explicitly required by the active task.
+5. **Deterministic ordering**: execute only when `READY`; preserve DAG order and deterministic `TaskID` ordering for ready tasks.
+6. **Context minimization**: do not load unrelated IF docs/contracts; do not load full `openapi.yaml` when operation fragments are sufficient.
+7. **Context safety**: keep only current task context in memory; if context becomes too large, stop cleanly and resume from next `READY` task.
+
+### Completion Record (required after coding)
+
+- Update task checkbox to `[X]` in `tasks.md` immediately.
+- Record changed paths and verify each is inside `AllowedPaths`.
+- Record final runtime status for every attempted task: `COMPLETED`, `FAILED`, `SCOPE_BLOCKED`, or `BLOCKED_BY_DEP`.
+- Provide concise validation result (tests/lint/build run, or explicit reason if skipped).
+
+## Record Protocol (MANDATORY, lightweight)
+
+- `GATE_DECISION`: one line for pre-coding checklist decision.
+- `COMMIT_RESULT`: one line for each completed task's local commit attempt (git repos only).
+- `TASK_RESULT`: one line per attempted task.
+- `RUN_CHECKPOINT`: one line when run pauses due to context-size safety.
+- `RUN_SUMMARY`: one line at run end.
+- Keep protocol lines single-line, stable-key format, and human-readable.
+- Use fixed key order (mandatory):
+  - `GATE_DECISION|phase|gate|hard|soft|decision`
+  - `COMMIT_RESULT|task|result|sha`
+  - `TASK_RESULT|task|if|status|attempts`
+  - `RUN_CHECKPOINT|reason|resume_next|ready_count`
+  - `RUN_SUMMARY|overall|completed|failed|scope_blocked|blocked_by_dep`
 
 Note: This command assumes a complete task breakdown exists in tasks.md. If tasks are incomplete or missing, suggest running `/speckit.tasks` first to regenerate the task list.
