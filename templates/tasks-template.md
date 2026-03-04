@@ -19,6 +19,7 @@ description: "Task list template for feature implementation"
 - **[IFxx]**: REQUIRED for `Type:Interface` and `Type:Test` tasks
 - **[USx]**: OPTIONAL only (primary traceability is via mapping tables)
 - Include exact file paths in descriptions (or explicit N/A only for tasks that do not modify repository files)
+- **Evidence SSOT**: If the project constitution includes an Architecture Evidence Index with `AEI-###` IDs, then any task that references an **Existing** entry point or boundary MUST include the corresponding `AEI-###` in the description or in the interface detail doc it produces. Do NOT duplicate the repo boundary index in tasks.md.
 
 ## Task Types
 

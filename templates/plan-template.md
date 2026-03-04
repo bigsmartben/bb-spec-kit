@@ -71,6 +71,16 @@ All code-related design MUST be grounded in repository facts via an evidence cha
 
 You MUST NOT invent “existing” code paths. If evidence does not exist yet, mark it as `Planned/New code` and state what will be added.
 
+### Architecture Evidence Index (SSOT)
+
+The project constitution MAY include an **Architecture Evidence Index**. When present, it is the **single source of truth** (SSOT) for repository-level entry points and major boundaries.
+
+- If the constitution contains an Architecture Evidence Index table with stable `IndexID`s (e.g., `AEI-001`), then:
+  - Any time this plan references an **Existing** entry point or boundary, it MUST cite the corresponding `AEI-###`.
+  - The plan MUST NOT create or maintain a second “repo boundary index” that duplicates the constitution.
+  - Feature-scoped call chains and evidence tables MAY be included, but MUST reference `AEI-###` at boundary steps instead of restating boundary definitions.
+- If the constitution does not contain the index, proceed with normal evidence chains (file path + symbol + status).
+
 ## Project Structure
 
 ### Documentation (this feature)

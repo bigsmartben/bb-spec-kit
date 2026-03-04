@@ -41,6 +41,19 @@ Follow this execution flow:
      - Include third-party libraries AND intermediary services (SaaS/APIs/queues/caches/etc.).
      - Include transitive dependencies when they are risk-relevant (e.g., license/copyright constraints, security posture, critical intermediaries).
      - If any value is unknown (license/owner/upgrade path), use `TODO(<FIELD>): ...` and list it in the Sync Impact Report.
+   - For `ARCHITECTURE_EVIDENCE_INDEX`:
+     - Replace with **Markdown table rows** matching the template header.
+     - Purpose: provide a repo-derived, evidence-based architectural index that downstream plan/tasks can reference as **single source of truth** (SSOT) for entrypoints and boundaries.
+     - Populate from repo evidence (routing/handlers/CLI entrypoints/jobs/events, service boundaries, persistence adapters, external call sites).
+     - Each row MUST include:
+       - A stable `IndexID` (e.g., `AEI-001`) that downstream artifacts can reference (do not renumber unless meaning changes)
+       - Concrete `Entry Point (file:symbol)` when `Status` is `Existing`
+       - `Interfaces` (HTTP/CLI/Event/etc.) at the boundary level (high-level only; do not embed full contracts here)
+       - `Persistence Touchpoints` (DB tables/collections/queues/caches/etc.) when applicable (may be `Planned/New code`)
+       - `Status`: `Existing` or `Planned/New code`
+     - You MUST NOT invent “Existing” code paths. If evidence does not exist yet, mark as `Planned/New code`.
+     - If any field is unknown, use `TODO(<FIELD>): ...` and list it in the Sync Impact Report.
+     - Avoid duplicating detailed call chains here; keep it an index. Detailed, feature-scoped call chains belong in plan/tasks artifacts, but MUST reference `IndexID`s from this index.
 
 3. Draft the updated constitution content:
    - Replace every placeholder with concrete text (no bracketed tokens left except intentionally retained template slots that the project has chosen not to define yet—explicitly justify any left).

@@ -54,6 +54,10 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
      - Preferred: `.specify/memory/constitution.md`
      - Fallback: `memory/constitution.md`
    - Apply constitution Terminology & Layering rules (UDD → Interface VO → Persistence; Domain optional; Key Path coverage gate)
+   - If the constitution includes an **Architecture Evidence Index** with stable `AEI-###` IDs:
+     - Treat it as the **single source of truth** (SSOT) for repository-level entry points and major boundaries.
+     - Any time you mention an **Existing** entry point/boundary in plan/design artifacts, you MUST cite the corresponding `AEI-###`.
+     - Do NOT duplicate the repo boundary index elsewhere (plan/tasks may include feature-scoped call chains, but they MUST reference `AEI-###` at boundary steps).
    - Load IMPL_PLAN template (already copied).
 
 3. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
@@ -88,7 +92,9 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
      - Build the Key Path + System-backed UDD Item set for downstream VO coverage gates
    - Determine whether this feature includes a frontend ↔ backend HTTP API surface (i.e., the frontend makes network calls to a backend owned by this repository)
    - Identify stateful entities and all Spec-described states/transitions
-   - Discover existing routing/handler/service boundaries in the repo (evidence gathering)
+   - Discover existing routing/handler/service boundaries in the repo (evidence gathering):
+     - Prefer starting from the constitution’s Architecture Evidence Index when present.
+     - When recording evidence as `Existing`, cite `AEI-###` for the boundary/entrypoint being referenced.
 
 2. **Generate and dispatch research agents**:
 
