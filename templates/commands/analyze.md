@@ -15,7 +15,11 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Goal
 
-Identify inconsistencies, duplications, ambiguities, and underspecified items across the three core artifacts (`spec.md`, `plan.md`, `tasks.md`) before implementation. This command MUST run only after `/speckit.tasks` has successfully produced a complete `tasks.md`.
+Identify inconsistencies, duplications, ambiguities, and underspecified items across the feature’s generated artifacts before implementation.
+
+This command is the **single post-hoc audit / verification entry point** for cross-artifact reasoning quality and constraint compliance.
+
+Important: This audit does **not** replace the minimal generation-time hard gates in `/speckit.plan`, `/speckit.tasks`, or `/speckit.implement`. Those gates exist to fail fast; this command exists to catch drift, gaps, and mismatches before code is written.
 
 ## Operating Constraints
 
@@ -37,6 +41,7 @@ Run `{SCRIPT}` once from repo root and parse JSON for FEATURE_DIR and AVAILABLE_
 - PLAN = FEATURE_DIR/plan.md
 - TASKS = FEATURE_DIR/tasks.md
 - CONTRACTS_DIR = FEATURE_DIR/contracts/
+- INTERFACE_DETAILS_DIR = FEATURE_DIR/contracts/interface-details/ (if present)
 - OPENAPI = FEATURE_DIR/contracts/openapi.yaml (if present)
 - TEST_CASE_MATRIX = FEATURE_DIR/contracts/test-case-matrix.md (if present)
 
@@ -83,6 +88,7 @@ Load only the minimal necessary context from each artifact:
 - `data-model.md`: UDD items, Key Path coverage tables, VO→Persistence mapping (if the plan produces them)
 - `contracts/`: OpenAPI/contract schemas (Interface VO) to validate UDD→VO coverage claims
 - `contracts/test-case-matrix.md` (if present): verification design + traceability; treat as read-only source-of-truth for CaseIDs
+- `contracts/interface-details/*.md` (if present): per-interface detailed design packets; treat as read-only source-of-truth for operation-scoped evidence chains and dependency inventory
 
 ### 3. Build Semantic Models
 
@@ -94,6 +100,10 @@ Create internal representations (do not include raw artifacts in output):
 - **Task coverage mapping**: Map each task to one or more requirements or stories (inference by keyword / explicit reference patterns like IDs or key phrases)
 - **Constitution rule set**: Extract principle names and MUST/SHOULD normative statements
 - **Interface inventory**: Parse Interface Inventory from tasks.md (InterfaceID → `operationId` or contract doc path)
+- **Interface detail model** (if present): Parse each relevant `contracts/interface-details/<operationId>.md` into:
+  - UDD Coverage list: `UDD Item (Entity.field)` → `VO field path`
+  - Evidence & Call Chain steps: `file:symbol` + `Existing|Planned/New code` (+ any cited `AEI-###`)
+  - Dependency inventory (names + ownership + direction + protocol + timeout/retry + failure mode)
 - **Test matrix model** (if present): Parse `CaseID` rows (CaseID → operationId → FR/UC refs → tags/priority/test level → fixtures/mocks → expected status/error)
 
 ### 4. Detection Passes (Token-Efficient Analysis)
@@ -176,6 +186,36 @@ Perform these checks and emit findings with precise locations:
      - If Interface Inventory maps `IFxx` to an `operationId`, verify referenced CaseIDs are for that same `operationId`
    - If any referenced CaseID is missing/mismatched: report **CRITICAL** (implementation will ERROR later)
 
+#### H. Interface Detail Docs Alignment *(if `contracts/interface-details/` exists or is expected)*
+
+Treat interface detail docs as operation-scoped design packets (not implementation). This section verifies that `data-model.md` and `interface-details/<operationId>.md` are aligned and that evidence chains are relevant and properly cited.
+
+Perform these checks and emit findings with precise locations:
+
+1. **Presence / completeness (when OpenAPI is present)**
+   - If `contracts/openapi.yaml` exists, then `contracts/interface-details/<operationId>.md` MUST exist for each in-scope `operationId`.
+   - If any are missing: report **CRITICAL** (implementation will later ERROR and stop).
+
+2. **UDD Coverage ↔ data-model consistency**
+   - Extract the Key Path UDD→VO coverage table from `data-model.md` (Key Path + System-backed scope).
+   - For each `operationId`:
+     - Every Key Path + System-backed `UDD Item (Entity.field)` mapped to this `operationId` in `data-model.md` MUST appear in the interface detail doc’s UDD Coverage section (with the same `VO field path`).
+     - Any UDD Item listed in interface detail docs MUST exist in the Spec UDD (no dangling `Entity.field` references).
+   - Missing Key Path coverage: **HIGH** (or **CRITICAL** if it blocks a P1 UC’s observable output/input).
+   - VO path mismatch (same UDD Item, different `VO field path`): **HIGH** (semantic drift risk).
+
+3. **VO→Persistence mapping relevance**
+   - For each `VO field path` referenced by an interface detail doc’s UDD Coverage:
+     - It SHOULD have a corresponding row in `data-model.md` VO→Persistence mapping.
+     - If missing for Key Path + System-backed scope: **HIGH** (design not implementation-ready).
+
+4. **Evidence chain relevance and SSOT citations**
+   - Evidence in interface detail docs MUST be operation-scoped:
+     - If a call chain step is not relevant to the operation’s request/response behavior or persistence mapping, flag as **MEDIUM** (noise / weak relevance).
+   - If the constitution includes an Architecture Evidence Index with `AEI-###` IDs:
+     - Any evidence-chain step labeled `Existing` in interface detail docs SHOULD cite the corresponding `AEI-###` boundary/entrypoint it relies on.
+     - Missing `AEI-###` citations for `Existing` boundary/entrypoint steps: **HIGH** (SSOT drift risk).
+
 ### 5. Severity Assignment
 
 Use this heuristic to prioritize findings:
@@ -206,6 +246,8 @@ Output a Markdown report (no file writes) with the following structure:
 
 **Unmapped Tasks:** (if any)
 
+**Interface Detail Docs Alignment Issues:** (if any; when `contracts/interface-details/` is present or expected)
+
 **Metrics:**
 
 - Total Requirements
@@ -214,6 +256,11 @@ Output a Markdown report (no file writes) with the following structure:
 - Ambiguity Count
 - Duplication Count
 - Critical Issues Count
+- If `contracts/interface-details/` exists or is expected:
+  - Total interface detail docs checked
+  - Missing interface detail docs (count; list operationIds)
+  - UDD Coverage mismatches (count)
+  - Missing VO→Persistence rows for referenced `VO field path` (count)
 - If `contracts/test-case-matrix.md` exists:
   - Total CaseIDs
   - CaseIDs per `operationId` (top 5 by count; and list any 0-count OpenAPI ops when applicable)
