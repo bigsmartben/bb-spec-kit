@@ -27,14 +27,21 @@ You **MUST** consider the user input before proceeding (if not empty).
 1. **Setup**: Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Load design documents**: Read from FEATURE_DIR:
-   - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)
-   - **Optional**: data-model.md (entities), contracts/ (interface contracts), research.md (decisions), quickstart.md (test scenarios)
-   - Note: Not all projects have all documents. Generate tasks based on what's available.
+   - **Required**:
+     - plan.md (tech stack, libraries, structure)
+     - spec.md (user stories with priorities + UDD items via `Entity.field`)
+     - data-model.md (incl. Key Path UDD→VO coverage table + VO→Persistence mapping)
+     - contracts/ (interface contracts; MUST exist and be non-empty)
+   - **Optional**: research.md (decisions), quickstart.md (test scenarios)
+   - If any required document is missing: **ERROR** and STOP. Instruct the user to run `/speckit.plan` first.
 
 3. **Execute task generation workflow**:
    - Load plan.md and extract tech stack, libraries, project structure
    - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)
-   - If data-model.md exists: Extract entities and map to interfaces and user stories
+   - Load data-model.md:
+     - Extract entities (if present) and map to interfaces and user stories
+     - Extract Key Path UDD→VO coverage table (Key Path + System-backed UDD Items)
+     - Extract VO→Persistence mapping (minimum viable)
    - If `contracts/test-case-matrix.md` exists:
      - Treat it as the source of truth for interface-level verification coverage (it is design, not executable code)
      - Use its `CaseID` rows to generate concrete `Type:Test` tasks (see rules below)
@@ -47,12 +54,17 @@ You **MUST** consider the user input before proceeding (if not empty).
          - `contracts/interface-details/<operationId>.md`
        - Each interface detail doc MUST include:
          1) Interface Reference Table (method/path/operationId/x-fr-ids/request/response schema refs)
-         2) Evidence & Call Chain (call-chain drilldown; file paths + symbols; each step marked `Existing` vs `Planned/New code`)
-         3) Sequence Diagram (PlantUML; MUST include all remote calls: 2nd-party, 3rd-party, middleware, queues, caches, etc.)
-         4) Relevant Code Class Diagram (PlantUML; only code relevant to this interface/feature)
-         5) Core Algorithm Pseudocode (business-critical logic only)
-         6) Change List (resources: DB/config/infra; source code modules/files; API/schema deltas)
-         7) Performance Analysis (latency budget, critical path, external call timeouts/retries, caching, concurrency, failure modes, observability)
+         2) UDD Coverage (Key Path):
+            - List the **Key Path + System-backed** UDD Items this interface covers
+            - For each UDD Item, provide the corresponding `VO field path` (schema path) as evidence
+            - If an interface has no Key Path scope, explicitly note: `Key Path coverage: N/A`
+         3) Evidence & Call Chain (call-chain drilldown; file paths + symbols; each step marked `Existing` vs `Planned/New code`)
+         4) Related Applications & Dependency Inventory (for this operation only): for each dependency record app/system name, ownership (internal/2nd-party/3rd-party), call direction (inbound/outbound), protocol/interface, timeout & retry policy, and failure/degradation mode
+         5) Sequence Diagram (PlantUML; MUST include every dependency from the inventory and all remote calls: 2nd-party, 3rd-party, middleware, queues, caches, etc.)
+         6) Relevant Code Class Diagram (PlantUML; only code relevant to this interface/feature)
+         7) Core Algorithm Pseudocode (business-critical logic only)
+         8) Change List (resources: DB/config/infra; source code modules/files; API/schema deltas)
+         9) Performance Analysis (latency budget, critical path, external call timeouts/retries, caching, concurrency, failure modes, observability)
        - Map each interface to the user stories it serves (from spec.md)
      - Else if contracts/ exists and contains one or more `*.md` contract docs:
        - Sort contract doc paths lexicographically
@@ -99,6 +111,13 @@ You **MUST** consider the user input before proceeding (if not empty).
      - Interface DAG (Mermaid)
      - Task DAG (Mermaid)
      - Task DAG (Adjacency List)
+
+   - Also generate a coverage checklist (soft gate for implementation):
+     - Create/overwrite `FEATURE_DIR/checklists/udd-vo-coverage.md`
+     - Checklist items MUST validate the *design/traceability artifacts*, not code execution:
+       - Key Path (P1) UCs: all referenced `→ ref: Entity.field` are defined as UDD Items (no dangling refs)
+       - Key Path + System-backed UDD Items: each has at least one VO mapping (from the plan’s UDD→VO coverage table)
+       - UI-local UDD Items: derivation rules are explicitly defined and not mis-modeled as interface-returned data
 
 5. **Report**: Output path to generated tasks.md and summary:
    - Total task count
@@ -166,6 +185,7 @@ Every task MUST strictly follow this format:
    - Each OpenAPI operation (`operationId`) becomes an interface delivery unit (IF01, IF02, ...)
    - For each operationId:
      - Generate (or update) `contracts/interface-details/<operationId>.md` before generating tasks
+     - Ensure each generated interface detail doc is operation-scoped and contains a complete Related Applications & Dependency Inventory for that operation only
      - If `contracts/test-case-matrix.md` exists:
        - Select the test cases whose `operationId` matches this interface’s `operationId`
        - Emit at least one `Type:Test` task for this interface that:

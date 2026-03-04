@@ -21,7 +21,11 @@ Identify inconsistencies, duplications, ambiguities, and underspecified items ac
 
 **STRICTLY READ-ONLY**: Do **not** modify any files. Output a structured analysis report. Offer an optional remediation plan (user must explicitly approve before any follow-up editing commands would be invoked manually).
 
-**Constitution Authority**: The project constitution (`/memory/constitution.md`) is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `/speckit.analyze`.
+**Constitution Authority**: The project constitution is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `/speckit.analyze`.
+
+Constitution path (terminology authority):
+- Preferred: `.specify/memory/constitution.md`
+- Fallback: `memory/constitution.md`
 
 ## Execution Steps
 
@@ -65,7 +69,14 @@ Load only the minimal necessary context from each artifact:
 
 **From constitution:**
 
-- Load `/memory/constitution.md` for principle validation
+- Load the constitution for principle validation and terminology checks:
+  - Preferred: `.specify/memory/constitution.md`
+  - Fallback: `memory/constitution.md`
+
+**From design artifacts (if present):**
+
+- `data-model.md`: UDD items, Key Path coverage tables, VO→Persistence mapping (if the plan produces them)
+- `contracts/`: OpenAPI/contract schemas (Interface VO) to validate UDD→VO coverage claims
 
 ### 3. Build Semantic Models
 
@@ -111,6 +122,9 @@ Focus on high-signal findings. Limit to 50 findings total; aggregate remainder i
 
 - Terminology drift (same concept named differently across files)
 - Data entities referenced in plan but absent in spec (or vice versa)
+- UDD/VO layering drift:
+  - Spec references `Entity.field` (UDD Items) that have no downstream VO mapping evidence for Key Path + System-backed scope
+  - Plan/contracts define user-visible fields without corresponding UDD item definitions (missing UDD single source of truth)
 - Task ordering contradictions (e.g., integration tasks before foundational setup tasks without dependency note)
 - Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
 

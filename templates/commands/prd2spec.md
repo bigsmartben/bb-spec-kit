@@ -64,18 +64,29 @@ scripts:
 
 ### Step 0: Output path resolution (must align with `/speckit.specify`)
 
-Before content conversion, resolve the final output path using the same directory semantics as `/speckit.specify`:
+Before content conversion, resolve the final output path using the same directory semantics and numbering rule as `/speckit.specify`:
 
 1. Generate a concise `short-name` (2–4 words, kebab-case) from PRD title/theme.
-2. Run feature bootstrap script exactly once to obtain canonical output context:
-   - Bash: `scripts/bash/create-new-feature.sh --json --short-name "<short-name>" "<feature description from PRD>"`
-   - PowerShell: `scripts/powershell/create-new-feature.ps1 -Json -ShortName "<short-name>" "<feature description from PRD>"`
-3. Parse script JSON output and treat `SPEC_FILE` as canonical default target.
-4. Handle `--output` strictly as filename override:
+2. Fetch all remote branches first:
+   - `git fetch --all --prune`
+3. Find the highest feature number across all sources for the **exact same** `short-name`:
+   - Remote branches: `git ls-remote --heads origin | grep -E 'refs/heads/[0-9]+-<short-name>$'`
+   - Local branches: `git branch | grep -E '^[* ]*[0-9]+-<short-name>$'`
+   - Specs directories: directories matching `specs/[0-9]+-<short-name>`
+4. Determine the next available number:
+   - Extract numeric prefixes from all three sources
+   - Let highest be `N`
+   - Use `N+1` as the new feature number
+   - If no match exists for this `short-name`, start from `1`
+5. Run feature bootstrap script exactly once with both `--number` and `--short-name` to obtain canonical output context:
+   - Bash: `scripts/bash/create-new-feature.sh --json --number <N+1> --short-name "<short-name>" "<feature description from PRD>"`
+   - PowerShell: `scripts/powershell/create-new-feature.ps1 -Json -Number <N+1> -ShortName "<short-name>" "<feature description from PRD>"`
+6. Parse script JSON output and treat `SPEC_FILE` as canonical default target.
+7. Handle `--output` strictly as filename override:
    - If `--output` is omitted: write to `SPEC_FILE`.
    - If `--output` is a filename (e.g. `spec-v1.1.md`): write to `<dirname(SPEC_FILE)>/<output filename>`.
    - If `--output` includes a directory component: ignore directory parts and keep only basename under `<dirname(SPEC_FILE)>`.
-5. Never write final output to current working directory by default.
+8. Never write final output to current working directory by default.
 
 ### Step 1: Input detection and loading
 
@@ -100,7 +111,7 @@ Normalize PRD content into canonical buckets (best-effort):
 - Functional requirements
 - Non-functional requirements
 - Constraints / assumptions
-- Data and key entities (if present)
+- UI data dictionary / user-visible data objects (if present)
 - Edge cases / failure modes
 - Success criteria / acceptance criteria
 - Glossary / terminology
@@ -118,8 +129,17 @@ Mapping guidelines:
 - PRD functional requirements → Spec `Functional Requirements` (FR-XXX)
 - PRD non-functional requirements → Spec `Non-Functional Requirements` (NFR-XXX) if the template supports it; otherwise place them under `Constraints` or `Success Criteria` in a measurable form
 - PRD acceptance/success criteria → Spec `Success Criteria` (SC-XXX)
-- PRD data objects → Spec `Key Entities` (define names, fields, constraints at a business level)
+- PRD user-visible data objects → Spec `UI Data Dictionary (UDD)` (define `Entity.field` items: meaning, calculation/criteria, boundaries, display rules)
 - PRD constraints/assumptions → Spec `Assumptions` and `Out of Scope`
+
+**UDD classification rules (required)**:
+
+- Every UDD item MUST include a `Source Type` classification:
+  - `System-backed`: the system/interface must provide or confirm the value (should be mappable to at least one contract/VO field downstream)
+  - `UI-local`: purely UI-local/derived/display-only (must specify derivation rules; no VO source required)
+- Prefer explicit `Key Path` marking:
+  - If the PRD indicates priority/critical flows, map them to P1/P2/P3 and mark relevant UDD items accordingly
+  - If priority is not provided, leave `Key Path` as `N/A` and avoid inventing priorities
 
 **Do not prematurely implement**:
 
@@ -186,4 +206,3 @@ If `--base` is provided:
 - Each generated item has an `origin:` pointer
 - No more than 3 `[NEEDS CLARIFICATION]` markers remain
 - No unintended implementation details were introduced
-
