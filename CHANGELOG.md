@@ -26,6 +26,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.89] - 2026-03-04
 
+### Added
+
+- **`skills2speckit` skill and command**: New `/speckit.skills2speckit` command that converts any agent skill (local directory path or GitHub URL) into standard Spec-Kit format
+  - Ingests skills from local paths or GitHub tree/raw URLs; supports private repos via `GH_TOKEN`/`GITHUB_TOKEN` env var (no interactive prompts)
+  - Standardizes to `SKILL.md + references/ + sample_codes/` structure with required frontmatter (`name`, `description`, `compatibility`)
+  - Converts non-Python scripts (bash, PowerShell, Node.js, etc.) to Python `>=3.11` wrappers placed in `sample_codes/getting-started/wrapper.py`; originals preserved in `references/`
+  - Automatically appends new Python dependencies to `pyproject.toml [project.dependencies]`; `uv sync` handles installation silently with no user confirmation
+  - Registers the standardized skill as a distributable speckit command under `templates/commands/<name>.md`, auto-distributed to all agents via the existing packaging pipeline
+  - Output written to `.agents/skills/<name>/` in the user's current project
+
 ### Fixed
 
 - **Bundled templates for git-based installs**: When `specify-cli` is installed
