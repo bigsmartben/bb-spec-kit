@@ -30,12 +30,12 @@ description: "Task list template for feature implementation"
 
 ## Interface Inventory
 
-> The /speckit.tasks command assigns Interface IDs from `contracts/` (sorted paths) as IF01, IF02, ...  
-> If `contracts/` is missing/empty, it derives interfaces from spec.md and quickstart.md entrypoints.
+> If `contracts/openapi.yaml` exists, the /speckit.tasks command assigns Interface IDs from OpenAPI operations (sorted by `operationId`) as IF01, IF02, ...  
+> Otherwise, if `contracts/*.md` exists, it assigns Interface IDs from contract docs (sorted paths). If `contracts/` is missing/empty, it derives interfaces from spec.md and quickstart.md entrypoints.
 
-| InterfaceID | Contract Doc | Served User Stories |
-| --- | --- | --- |
-| IF01 | specs/[###-feature-name]/contracts/[interface].md | US1, US2 |
+| InterfaceID | Interface | Detail Doc | Served User Stories |
+| --- | --- | --- | --- |
+| IF01 | `operationId`: createUser (or contract doc path) | specs/[###-feature-name]/contracts/interface-details/createUser.md (or N/A) | US1, US2 |
 
 ## Path Conventions
 
@@ -109,7 +109,9 @@ Examples of foundational tasks (adjust based on your project):
 
 **Goal**: [Brief description of what this interface delivers]
 
-**Contract**: specs/[###-feature-name]/contracts/[interface].md (or N/A)
+**Contract**: specs/[###-feature-name]/contracts/openapi.yaml (`operationId`: [operationId]) or specs/[###-feature-name]/contracts/[interface].md (or N/A)
+
+**Interface Detail**: specs/[###-feature-name]/contracts/interface-details/[operationId].md (OpenAPI only; or N/A)
 
 **Served User Stories**: US1, US2
 

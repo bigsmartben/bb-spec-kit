@@ -47,7 +47,7 @@ scripts:
   - Editor references (`@file.md`)
   - Or pasted PRD content (when no files are provided)
 - Optional:
-  - `--output <file>`: target spec filename
+  - `--output <file>`: target spec filename (filename override only; directory resolution stays aligned with `/speckit.specify`)
   - `--base <spec.md>`: use existing Spec as baseline for incremental updates
   - `--strict`: enforce coverage threshold (see Coverage & Strict Mode)
   - `--lang <en|zh>`: output language preference
@@ -61,6 +61,21 @@ scripts:
   - Conflicts (if any) and their resolutions
 
 ## Core workflow
+
+### Step 0: Output path resolution (must align with `/speckit.specify`)
+
+Before content conversion, resolve the final output path using the same directory semantics as `/speckit.specify`:
+
+1. Generate a concise `short-name` (2–4 words, kebab-case) from PRD title/theme.
+2. Run feature bootstrap script exactly once to obtain canonical output context:
+   - Bash: `scripts/bash/create-new-feature.sh --json --short-name "<short-name>" "<feature description from PRD>"`
+   - PowerShell: `scripts/powershell/create-new-feature.ps1 -Json -ShortName "<short-name>" "<feature description from PRD>"`
+3. Parse script JSON output and treat `SPEC_FILE` as canonical default target.
+4. Handle `--output` strictly as filename override:
+   - If `--output` is omitted: write to `SPEC_FILE`.
+   - If `--output` is a filename (e.g. `spec-v1.1.md`): write to `<dirname(SPEC_FILE)>/<output filename>`.
+   - If `--output` includes a directory component: ignore directory parts and keep only basename under `<dirname(SPEC_FILE)>`.
+5. Never write final output to current working directory by default.
 
 ### Step 1: Input detection and loading
 
