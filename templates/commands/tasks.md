@@ -35,6 +35,9 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Load plan.md and extract tech stack, libraries, project structure
    - Load spec.md and extract user stories with their priorities (P1, P2, P3, etc.)
    - If data-model.md exists: Extract entities and map to interfaces and user stories
+   - If `contracts/test-case-matrix.md` exists:
+     - Treat it as the source of truth for interface-level verification coverage (it is design, not executable code)
+     - Use its `CaseID` rows to generate concrete `Type:Test` tasks (see rules below)
    - Build an **Interface Inventory** (primary delivery units):
      - If `contracts/openapi.yaml` exists:
        - Treat each OpenAPI operation (`operationId`) as an interface delivery unit
@@ -66,6 +69,9 @@ You **MUST** consider the user input before proceeding (if not empty).
      - Every interface MUST have:
        - at least one implementation task: `[Type:Interface] [IFxx]`
        - at least one test/verification task: `[Type:Test] [IFxx]`
+     - If `contracts/test-case-matrix.md` exists:
+       - Every interface MUST have at least one `Type:Test` task that explicitly references the concrete `CaseID` set it covers
+       - Each such test task MUST list required mocks/fixtures extracted from those `CaseID` rows
    - Generate a DAG (both Mermaid and adjacency list):
      - Interface-level dependencies (IFxx -> IFyy)
      - Task-level dependencies (T### -> T###)
@@ -101,6 +107,9 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Verification criteria for each interface
    - Suggested MVP scope (typically Interface IF01 only)
    - Format validation: Confirm ALL tasks follow the checklist format (checkbox, ID, type label, optional interface label, file paths)
+   - Matrix status:
+     - If `contracts/test-case-matrix.md` exists: confirm `CaseID`-referenced test-task generation
+     - If missing: explicitly flag fallback mode (quickstart/spec-derived verification tasks) and note that matrix-driven CaseID coverage is unavailable
 
 Context for task generation: {ARGS}
 
@@ -157,7 +166,15 @@ Every task MUST strictly follow this format:
    - Each OpenAPI operation (`operationId`) becomes an interface delivery unit (IF01, IF02, ...)
    - For each operationId:
      - Generate (or update) `contracts/interface-details/<operationId>.md` before generating tasks
-     - Include at least one verification task (`Type:Test` [IFxx]) and at least one implementation task (`Type:Interface` [IFxx])
+     - If `contracts/test-case-matrix.md` exists:
+       - Select the test cases whose `operationId` matches this interface’s `operationId`
+       - Emit at least one `Type:Test` task for this interface that:
+         - Lists the covered `CaseID`s explicitly in the task description
+         - Names the intended test artifact path(s) (stack-appropriate). If unknown, write `NEEDS CLARIFICATION` and add a `Type:Research` task to determine the test framework + path conventions.
+         - Lists required mocks/fixtures extracted from those `CaseID` rows (optionally cross-check with `contracts/interface-details/<operationId>.md` sequence diagram / call chain)
+       - If no test framework is established or automated tests are not appropriate, generate a `manual-script` verification task that updates `specs/<feature>/quickstart.md` with runnable commands and references the `CaseID`s it covers.
+     - Else (no test-case matrix):
+       - Include at least one verification task (`Type:Test` [IFxx]) and at least one implementation task (`Type:Interface` [IFxx])
    - Map each interface → served user stories from spec.md (traceability table)
 
 2. **From Contracts (contracts/*.md)** - PRIMARY ORGANIZATION WHEN OPENAPI IS ABSENT:
