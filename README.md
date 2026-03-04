@@ -276,7 +276,7 @@ Additional commands for enhanced quality and validation:
 
 | Command              | Description                                                                                                                          |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `/speckit.clarify`   | Clarify underspecified areas (recommended before `/speckit.plan`; formerly `/quizme`)                                                |
+| `/speckit.clarify`   | Clarify underspecified areas through structured Q&A; writes accepted answers back to `spec.md` (recommended before `/speckit.plan`; formerly `/quizme`) |
 | `/speckit.analyze`   | Cross-artifact consistency & coverage analysis (run after `/speckit.tasks`, before `/speckit.implement`)                             |
 | `/speckit.checklist` | Generate custom quality checklists that validate requirements completeness, clarity, and consistency (like "unit tests for English") |
 
@@ -470,11 +470,17 @@ At this stage, your project folder contents should resemble the following:
         └── tasks-template.md
 ```
 
-### **STEP 3:** Functional specification clarification (required before planning)
+### **STEP 3:** Functional specification clarification (recommended before planning)
 
-With the baseline specification created, you can go ahead and clarify any of the requirements that were not captured properly within the first shot attempt.
+With the baseline specification created, you can clarify any requirements that were missed or underspecified in the first draft.
 
-You should run the structured clarification workflow **before** creating a technical plan to reduce rework downstream.
+You should run the structured clarification workflow **before** creating a technical plan to reduce downstream rework.
+
+What `/speckit.clarify` does in practice:
+
+- Asks one targeted question at a time (up to 20 total), prioritizing high-impact ambiguities
+- Appends accepted answers under a `## Clarifications` section in `spec.md` (grouped by session date)
+- Immediately updates the most relevant requirement sections in `spec.md` (for example: Functional Requirements, UX flows, data definitions, edge cases, terminology), not just a standalone notes block
 
 Preferred order:
 

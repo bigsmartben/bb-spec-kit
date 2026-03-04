@@ -22,19 +22,20 @@
 
 ## [Category 1]
 
-- [ ] CHK001 First checklist item with clear action
-- [ ] CHK002 Second checklist item
-- [ ] CHK003 Third checklist item
+- [ ] CHK001 Are [requirement area] explicitly defined for [scenario]? [Completeness]
+- [ ] CHK002 Is '[vague term]' quantified with measurable criteria? [Clarity]
+- [ ] CHK003 Are requirements consistent between [section A] and [section B]? [Consistency]
 
 ## [Category 2]
 
-- [ ] CHK004 Another category item
-- [ ] CHK005 Item with specific criteria
-- [ ] CHK006 Final item in this category
+- [ ] CHK004 Are acceptance criteria objectively verifiable? [Measurability]
+- [ ] CHK005 Are edge-case requirements documented for [boundary condition]? [Coverage, Gap]
+- [ ] CHK006 Are dependencies and assumptions explicitly documented? [Dependency]
 
 ## Notes
 
 - Check items off as completed: `[x]`
+- Keep unresolved items as `[ ]` and add short evidence notes inline
 - Add comments or findings inline
 - Link to relevant resources or documentation
 - Items are numbered sequentially for easy reference

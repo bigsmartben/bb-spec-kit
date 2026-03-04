@@ -18,7 +18,6 @@ from pathlib import Path
 import pytest
 import yaml
 
-
 # ───────── constants ─────────
 
 COMMANDS_DIR = Path(__file__).parent.parent / "templates" / "commands"

@@ -11,25 +11,24 @@ Tests cover:
 """
 
 import re
-import pytest
-import tempfile
 import shutil
-import yaml
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
-import specify_cli
+import pytest
+import yaml
 
+import specify_cli
 from specify_cli import (
-    _get_skills_dir,
-    install_ai_skills,
+    AGENT_CONFIG,
     AGENT_SKILLS_DIR_OVERRIDES,
     DEFAULT_SKILLS_DIR,
     SKILL_DESCRIPTIONS,
-    AGENT_CONFIG,
+    _get_skills_dir,
     app,
+    install_ai_skills,
 )
-
 
 # ===== Fixtures =====
 
