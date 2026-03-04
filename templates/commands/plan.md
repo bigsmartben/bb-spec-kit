@@ -28,7 +28,13 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 1. **Setup**: Run `{SCRIPT}` from repo root and parse JSON for FEATURE_SPEC, IMPL_PLAN, SPECS_DIR, BRANCH. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
-2. **Load context**: Read FEATURE_SPEC and `/memory/constitution.md`. Load IMPL_PLAN template (already copied).
+2. **Load context**:
+   - Read FEATURE_SPEC
+   - Read the project constitution (terminology authority):
+     - Preferred: `.specify/memory/constitution.md`
+     - Fallback: `memory/constitution.md`
+   - Apply constitution Terminology & Layering rules (UDD → Interface VO → Persistence; Domain optional; Key Path coverage gate)
+   - Load IMPL_PLAN template (already copied).
 
 3. **Execute plan workflow**: Follow the structure in IMPL_PLAN template to:
    - Fill Technical Context (mark unknowns as "NEEDS CLARIFICATION")
@@ -56,6 +62,10 @@ You **MUST** consider the user input before proceeding (if not empty).
    - For each dependency → best practices task
    - For each integration → patterns task
    - Enumerate all in-scope Functional Requirements (FR-###) from FEATURE_SPEC (and UC IDs if present)
+   - Extract UDD (UI Data Dictionary) items from FEATURE_SPEC:
+     - Identify Key Path scope (Priority = P1)
+     - Classify items as `System-backed` vs `UI-local`
+     - Build the Key Path + System-backed UDD Item set for downstream VO coverage gates
    - Determine whether this feature includes a frontend ↔ backend HTTP API surface (i.e., the frontend makes network calls to a backend owned by this repository)
    - Identify stateful entities and all Spec-described states/transitions
    - Discover existing routing/handler/service boundaries in the repo (evidence gathering)
@@ -104,6 +114,13 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Include:
      - Entities/classes in scope, with relationships (only fields required by Spec UI/API; do not model every database column)
      - Validation rules derived from requirements
+     - **Key Path UDD → VO coverage table (MANDATORY)**:
+       - Add a table proving coverage for **Key Path (P1) + System-backed UDD items**:
+         - `UDD Item (Entity.field)` | `UC/Scenario (P1)` | `operationId` (or contract id) | `VO field path` | `Notes (UI-local/derived/technical)`
+       - ERROR if any Key Path + System-backed UDD item has no VO mapping (UI-local items are excluded from this gate)
+     - **VO → Persistence mapping (minimum viable; Domain optional)**:
+       - Add a table mapping each VO field to its persistence source (or planned source):
+         - `VO field path` | `Persistence source` | `Transform/validation` | `Evidence (file/symbol or Planned/New code)`
      - For each stateful entity: detailed state machine design
        - Exhaustive state enumeration (must cover Spec states)
        - Transition table

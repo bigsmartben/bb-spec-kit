@@ -12,7 +12,7 @@
   │  组织轴：以 Use Case (UC) 为颗粒度，先总览后明细                      │
   │                                                                        │
   │  § 1  全局上下文（mandatory）                                          │
-  │       Actors / 系统边界 / 全局数据实体（Key Entities）                │
+  │       Actors / 系统边界 / 用户可见信息口径（UDD）                     │
   │                                                                        │
   │  § 2  UC 总览（mandatory）         ← 所有 UC 的一览索引               │
   │                                                                        │
@@ -38,7 +38,7 @@
 ## § 1  Global Context *(mandatory)*
 
 <!--
-  此节声明跨所有 UC 共享的全局信息：参与者、系统边界、数据实体。
+  此节声明跨所有 UC 共享的全局信息：参与者、系统边界、用户可见信息口径（UDD）。
   每个 UC 的具体内容在各自的 § UC-xxx 节中展开，此处不重复描述。
 -->
 
@@ -72,31 +72,56 @@
 - [Out-of-scope item → owned by which Spec or future roadmap]
 - [Out-of-scope item → owned by which Spec or future roadmap]
 
-### 1.3  Key Entities
+### 1.3  UI Data Dictionary (UDD)
 
 <!--
-  Key Entities 是【数据层单一真相】。
+  UDD（UI Data Dictionary）是【用户可见信息口径单一真相】。
 
-  在产品设计阶段即可定义到“概念模型”粒度：实体、字段语义、口径（怎么算/取值规则）、边界值。
-  不要求在此阶段写技术实现细节（如 DB 表结构、索引、分区、缓存方案）。
-  接口与存储等实现细节（如 API endpoint、请求/响应字段、重试策略）后移到下游 plan/design 阶段。
+  在 Spec（产品规格）阶段，UDD 关注“用户看到什么信息”，并把每个信息项定义到字段级别：
+  - 语义（meaning）：这是什么、代表什么
+  - 口径（calculation/criteria）：怎么算/取值规则
+  - 边界（boundaries）：空值/异常/边界值规则
+  - 展示（display rules）：格式化、四舍五入、标签/颜色等
 
-  UI 是 Key Entities 的“投影/操作面”：
+  UDD 不是 DB schema，也不是 API contract：此阶段不要求写存储结构、索引、缓存方案、endpoint 等实现细节。
+  接口（VO/contract）与数据落地（persistence mapping）下移到 plan 阶段完成。
+
+  UDD Item 的稳定引用格式沿用：`Entity.field`（把它视为 UDD Item ID）。
+
+  Source Type（必填）：
+  - System-backed：由系统/接口提供或确认的用户可见信息项（Key Path 强制要求能映射到至少一个 VO 字段）
+  - UI-local：纯前端本地信息项（不要求 VO 来源，但必须写清楚本地生成/派生规则）
+
+  Key Path（建议显式标注）：
+  - 对于 `P1`（关键路径）的 UC/场景所引用的 System-backed UDD Items，plan 阶段必须证明：UDD → VO 覆盖成立（VO ⊃ UDD，且 VO 并集覆盖 Key Path 的 System-backed UDD 子集）。
+
+  UI 是 UDD 的“投影/操作面”：
   - UI 负责呈现与操作（用户看见什么、能做什么）；
-  - Key Entities 负责口径与语义（数据代表什么、怎么算）；
-  - UI 的“口径”优先通过 `→ ref: [EntityName].[fieldName]` 引用 Key Entities，避免同一口径多处重复定义；
+  - UDD 负责口径与语义（信息代表什么、怎么算）；
+  - UI 的“口径”优先通过 `→ ref: [EntityName].[fieldName]` 引用 UDD，避免同一口径多处重复定义；
     UI 仅补充展示层差异（格式化、四舍五入、空值文案、颜色/标签规则等）。
 
   ⚠️  各 UC 明细中 UI 元素的"口径"字段通过 "→ ref: [EntityName].[fieldName]"
       引用此处定义，不在 UC 层重复定义相同口径，只补充展示层有差异的部分。
 
-  有生命周期（多状态）的实体，在 § 2.2「全局状态机总览」中统一声明。
+  若某些 UDD Entities 具有业务生命周期（多状态），在 § 2.2「全局状态机总览」中统一声明。
   有状态机的实体在此处用 *(→ 见 § 2.2 状态机)* 标注。
 -->
 
-- **[Entity 1]**：[Business meaning, key attributes; no implementation details]
-- **[Entity 2]**：[Business meaning, relationship to other entities] *(→ see § 2.2 State Machine)*
-- **[Entity 3]**：[Business meaning]
+#### UDD Entity: `[Entity Name]`
+
+**Description**: [What this entity represents to the user; no implementation details] *(optional)*  
+**Notes**: [Any global display rules or invariants] *(optional)*
+
+| UDD Item (Entity.field) | User-visible meaning | Calculation / criteria (business) | Boundaries & null/empty rules | Display rules | Source Type (System-backed/UI-local) | Key Path (P1/P2/P3/N/A) |
+|---|---|---|---|---|---|---|
+| [Entity.field] | [Meaning] | [How computed] | [Null/empty/boundaries] | [Formatting/labels/colors] | System-backed / UI-local | P1 / P2 / P3 / N/A |
+
+#### UDD Entity: `[Entity Name 2]` *(→ see § 2.2 State Machine)*
+
+| UDD Item (Entity.field) | User-visible meaning | Calculation / criteria (business) | Boundaries & null/empty rules | Display rules | Source Type (System-backed/UI-local) | Key Path (P1/P2/P3/N/A) |
+|---|---|---|---|---|---|---|
+| [Entity.field] | [Meaning] | [How computed] | [Null/empty/boundaries] | [Formatting/labels/colors] | System-backed / UI-local | P1 / P2 / P3 / N/A |
 
 ---
 
@@ -201,7 +226,7 @@
   可选小节（3.2 / 3.4 / 3.5）按实际情况决定是否填写，不需要时直接删除。
 
   追溯原则（用于 plan/tasks）：
-  - UI/组件与数据口径尽量通过 `→ ref: Entity.field` 引用 § 1.3 Key Entities
+  - UI/组件与数据口径尽量通过 `→ ref: Entity.field` 引用 § 1.3 UDD
   - 组件-数据依赖（3.5）用于承接到 plan 的实现映射与 tasks 的任务拆解
 -->
 
@@ -324,15 +349,15 @@ graph TD
 <!--
   提供该 UC 对应功能点的前端实现契约，精确到组件级别。
 
-  UI 是 Key Entities 的“投影/操作面”：UI 描述用户可见与可操作的界面契约；
-  数据语义与口径以 § 1.3 Key Entities 为准，UI 通过 `→ ref:` 引用并仅补充展示层差异。
+  UI 是 UDD 的“投影/操作面”：UI 描述用户可见与可操作的界面契约；
+  数据语义与口径以 § 1.3 UDD 为准，UI 通过 `→ ref:` 引用并仅补充展示层差异。
 
   ⚠️  【内涵】与【口径】是必填项，不允许留空：
       内涵（What）：该字段/控件的业务语义，回答"这是什么、代表什么含义"
       口径（How）：  取值规则、数据来源、格式约束、边界值、精度
 
   口径去重规则：
-  - 与 § 1.3 Key Entities 一致 → 使用 "→ ref: [Entity].[field]" 引用，只补充展示层差异
+  - 与 § 1.3 UDD 一致 → 使用 "→ ref: [Entity].[field]" 引用，只补充展示层差异
 
   组件 ID 命名规则：
   - 按钮：btn-[action]-[object]  例：btn-claim-coupon
@@ -373,7 +398,7 @@ graph TD
 
 **Definition**: [**Required**. Value rules, data source, format constraints, boundaries]
 
-> When consistent with § 1.3 Key Entities: `→ ref: [Entity].[field]`, only add display-layer differences here
+> When consistent with § 1.3 UDD: `→ ref: [Entity].[field]`, only add display-layer differences here
 >
 > ✅ Good: "→ ref: Coupon.expireTime; display format `MMM DD HH:mm`, hide year; show red text 'Expired' after expiry"
 
@@ -405,8 +430,11 @@ graph TD
 
   填写规则：
   - 每行必须能追溯到至少一个 FR（3.3）或验收场景（3.1）
-  - 数据项口径优先使用 `→ ref: [Entity].[field]`
+  - 数据项口径优先使用 `→ ref: [Entity].[field]` 引用 § 1.3 UDD
   - 更新触发事件用业务语义描述（例：用户点击领取；系统超时重试完成），不写技术实现
+
+  Key Path 建议：
+  - 对于 Priority = P1 的 UC：此表应覆盖 UC 中涉及的全部 System-backed UDD Items（用于下游 plan 的 UDD→VO 覆盖校验）
 -->
 
 | Component ID | Dependent Data (user-perceived) | Data Source (business) | Update Trigger | ref: Entity.field | ref: FR/Scenario |

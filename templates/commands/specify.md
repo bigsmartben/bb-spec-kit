@@ -73,7 +73,13 @@ Given that feature description, do this:
 
 3. Load `templates/spec-template.md` to understand required sections.
 
-4. Follow this execution flow:
+4. Load the project constitution (terminology authority):
+   - Preferred: `.specify/memory/constitution.md`
+   - Fallback: `memory/constitution.md`
+   - If neither exists: WARN and proceed using the default terminology defined in `templates/spec-template.md`,
+     but recommend running `/speckit.constitution` first for consistent downstream behavior.
+
+5. Follow this execution flow:
 
     1. Parse user description from Input
        If empty: ERROR "No feature description provided"
@@ -96,7 +102,12 @@ Given that feature description, do this:
        Create measurable, technology-agnostic outcomes
        Include both quantitative metrics (time, performance, volume) and qualitative measures (user satisfaction, task completion)
        Each criterion must be verifiable without implementation details
-    7. Identify Key Entities (if data involved)
+    7. Identify the **UI Data Dictionary (UDD)** (if user-visible information is involved):
+       - Use the Spec template's UDD section structure
+       - Define UDD items at the `Entity.field` level (meaning, calculation/criteria, boundaries, display rules)
+       - Classify every UDD item:
+         - `Source Type`: `System-backed` vs `UI-local`
+         - `Key Path`: `P1/P2/P3/N/A` (prefer explicit marking; do not invent priorities if none are provided)
     8. Return: SUCCESS (spec ready for planning)
 
 5. Write the specification to SPEC_FILE using the template structure, replacing placeholders with concrete details derived from the feature description (arguments) while preserving section order and headings.
@@ -125,10 +136,12 @@ Given that feature description, do this:
       - [ ] Requirements are testable and unambiguous
       - [ ] Success criteria are measurable
       - [ ] Success criteria are technology-agnostic (no implementation details)
-      - [ ] All acceptance scenarios are defined
-      - [ ] Edge cases are identified
-      - [ ] Scope is clearly bounded
-      - [ ] Dependencies and assumptions identified
+	      - [ ] All acceptance scenarios are defined
+	      - [ ] Edge cases are identified
+	      - [ ] Scope is clearly bounded
+	      - [ ] Dependencies and assumptions identified
+	      - [ ] All `→ ref: Entity.field` references used by UI/components are defined as UDD items (no dangling refs)
+	      - [ ] Key Path (P1) System-backed UDD items are explicitly marked (Source Type + Key Path) for downstream VO coverage checks
       
       ## Feature Readiness
       
@@ -193,7 +206,7 @@ Given that feature description, do this:
 
    d. **Update Checklist**: After each validation iteration, update the checklist file with current pass/fail status
 
-7. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
+8. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
 
 **NOTE:** The script creates and checks out the new branch and initializes the spec file before writing.
 

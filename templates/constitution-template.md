@@ -28,6 +28,33 @@
 [PRINCIPLE_5_DESCRIPTION]
 <!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
 
+## Terminology & Layering
+
+This section defines non-negotiable terminology and layering rules to prevent semantic drift across phases.
+
+### Terms
+
+- **UDD (UI Data Dictionary)**: The single source of truth for *user-visible information* definitions (meaning, calculation/criteria, boundaries, display rules). UDD is **not** a database schema.
+- **UDD Item**: A UDD field item. Reference format uses `Entity.field` as the stable UDD Item ID.
+- **System-backed UDD Item**: A user-visible information item whose value is provided by, or must be validated/confirmed by, the system via an interface contract (VO). These items MUST be mappable to at least one VO field.
+- **UI-local UDD Item**: A user-visible information item that is purely UI-local (e.g., local state, formatting-only derived fields). These items do NOT require a VO source, but MUST declare their derivation rules in the UDD.
+- **Interface VO (View Object)**: The outward-facing interface contract schemas in `contracts/` (OpenAPI or other contract formats). VO is **not equal** to UDD and is often a superset: `VO ⊃ UDD` (technical/non-user-visible fields may exist).
+- **Persistence Model**: Storage/cache/index structures. Persistence MUST NOT define or override UDD semantics.
+- **Domain Entity (Optional)**: Introduce only when needed for complex business rules, state machines, or cross-interface invariants. Domain is not mandatory for every feature.
+
+### Layering Rules (MUST / MUST NOT)
+
+- **Spec phase (user perspective)** MUST define UDD and use it to describe what the user sees. Spec MUST NOT introduce storage schemas, endpoints, or frameworks unless mandated as a hard constraint.
+- **Plan phase (architecture perspective)** MUST design Interface VO (contracts) first, then map VO fields to Persistence. Domain is optional.
+- **Tasks/Implement phases (development/implementation perspective)** MUST NOT invent new semantics for user-visible fields. If a semantic gap is discovered, it MUST be pushed upstream to Spec/Plan (UDD/VO/mapping), not patched ad-hoc in code.
+
+### Key Path Gate (coverage enforcement)
+
+- **Key Path** is defined by Spec priority (e.g., `P1` Use Cases / scenarios).
+- **Enforcement scope**: Key Path + **System-backed** UDD Items.
+- **Coverage assertion**: Every in-scope UDD Item MUST be mapped to at least one VO field in `contracts/` (global union coverage). UI-local items are excluded from this gate.
+- Non-Key Path items SHOULD be mapped; missing mappings produce warnings, not blockers.
+
 ## Dependency Matrix
 <!-- Third-Party Dependency Matrix (direct and transitive/intermediary dependencies). -->
 <!-- Fill as a Markdown table. Include libraries AND intermediary services (SaaS/APIs/queues/caches/etc.). -->

@@ -55,6 +55,15 @@ You **MUST** consider the user input before proceeding (if not empty).
      - If `data-model.md` is missing: **ERROR** and STOP (design is incomplete)
    - **REQUIRED**: Ensure `contracts/` exists and is non-empty
      - If `contracts/` is missing or empty: **ERROR** and STOP (design is incomplete)
+   - **RECOMMENDED**: Load constitution terminology rules (if present):
+     - Preferred: `.specify/memory/constitution.md`
+     - Fallback: `memory/constitution.md`
+     - Do NOT invent new semantics for user-visible fields; if a semantic gap is discovered, push upstream to Spec/Plan (UDD/VO/mapping)
+   - **REQUIRED (for HTTP API features with `operationId`)**: Prefer loading `contracts/interface-details/<operationId>.md` for each active `IFxx` as the primary interface design source
+     - If an expected interface detail doc is missing: **ERROR** and STOP (rerun `/speckit.tasks`)
+   - **CONTEXT MINIMIZATION RULE**:
+     - For interface-scoped execution, load only the active interface packet (`IFxx`) and do NOT load unrelated interface docs or full-contract files
+     - `contracts/openapi.yaml` MUST NOT be loaded in full for interface-scoped tasks; only operation-scoped fragments are allowed when required information is missing in interface detail docs
    - **OPTIONAL**: `research.md`
      - If it exists, read it ONLY when needed for a specific task (e.g., a task references a decision/rationale)
      - Do NOT create new design artifacts during `speckit.implement` unless explicitly required by `tasks.md`
@@ -172,11 +181,11 @@ Before executing any task tagged with a specific interface `[IFxx]`, you MUST bu
   - The global `plan.md`
   - The global `data-model.md`
 - Include ONLY the interface’s relevant contract material:
+  - `contracts/interface-details/<operationId>.md` for this `IFxx` is the PRIMARY source (do not load other interfaces’ detail docs)
   - Contract doc(s) referenced by the `IFxx` section / Interface Inventory (do not load other interfaces’ contracts)
   - If `contracts/openapi.yaml` exists:
-    - Load ONLY the `paths`/operations whose `operationId` belong to this `IFxx` (do not load unrelated endpoints)
-  - If `contracts/interface-details/` exists:
-    - Load ONLY `contracts/interface-details/<operationId>.md` files relevant to this `IFxx`
+    - Do NOT load the full file
+    - Load ONLY the minimal `paths`/operation fragments for this `IFxx` `operationId` when information is missing from interface detail docs
 - For verification tasks (`Type:Test`):
   - Load ONLY the relevant portion(s) of `quickstart.md` referenced by the interface or task
   - If `contracts/test-case-matrix.md` exists:
