@@ -129,11 +129,12 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Parallel unit = Interface (`IFxx`)**
      - Each interface SHOULD be developed in its own worktree/branch (independent iteration)
      - Within a single interface, follow DAG ordering; only tasks marked `[P]` may run in parallel (subject to file conflicts)
-   - **Worktree tasks are REQUIRED**
-     - Each `IFxx` MUST have an explicit worktree/branch enablement task (typically `Type:Infra [IFxx]`)
-     - If an interface has no worktree task: **ERROR** and STOP (rerun `/speckit.tasks`)
+   - **Worktree lifecycle is owned by `/speckit.implement`**
+     - Do NOT require explicit worktree/branch enablement tasks in `tasks.md`
+     - Before executing the first task for each `IFxx`, create/switch to that interface's worktree/branch automatically
+     - If the target worktree/branch already exists, reuse it and continue
    - **Naming rule**
-     - Follow `tasks.md` worktree naming exactly when specified
+     - Follow `tasks.md` worktree naming when explicitly specified
      - If `tasks.md` does not specify names, use: `<feature-spec-branch>-<ifxx>` (e.g., `123-my-feature-if03`)
        - `feature-spec-branch` = the feature branch name referenced by the spec/worktree workflow
        - `<ifxx>` is lowercase (`if01`, `if02`, ...)
