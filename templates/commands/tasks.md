@@ -74,9 +74,6 @@ You **MUST** consider the user input before proceeding (if not empty).
        - Sort contract doc paths lexicographically
        - Assign sequential Interface IDs: IF01, IF02, ...
        - Map each interface to the user stories it serves (from spec.md)
-     - If contracts/ is missing or empty:
-       - Derive interface units from spec.md user stories and quickstart.md entrypoints (commands/endpoints/screens)
-       - Assign sequential Interface IDs: IF01, IF02, ...
    - If research.md exists: Extract decisions for setup tasks
    - Generate tasks organized by **interfaces** (see Task Generation Rules below)
    - Enforce coverage gates:
@@ -208,17 +205,11 @@ Every task MUST strictly follow this format:
      - Implementation tasks (`Type:Interface` [IFxx]) with concrete file paths
    - Map each interface → served user stories from spec.md (traceability table)
 
-3. **Fallback (no contracts/)**:
-   - Derive interface delivery units from:
-     - spec.md user stories (observable behaviors)
-     - quickstart.md entrypoints (commands/endpoints/screens) if present
-   - Assign sequential IF IDs and treat them as interfaces for delivery and verification purposes
-
-4. **From Data Model (data-model.md)**:
+3. **From Data Model (data-model.md)**:
    - Map each entity to the interface(s) that require it
    - If an entity is shared by multiple interfaces: put it in Foundations or the earliest dependent interface
 
-5. **From Setup/Infrastructure**:
+4. **From Setup/Infrastructure**:
    - Shared infrastructure -> Setup (Phase 1) or Foundations (Phase 2)
    - Interface-specific infrastructure -> within that interface section (Phase 3+)
 
