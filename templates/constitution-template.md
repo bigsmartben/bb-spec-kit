@@ -55,6 +55,20 @@ This section defines non-negotiable terminology and layering rules to prevent se
 - **Coverage assertion**: Every in-scope UDD Item MUST be mapped to at least one VO field in `contracts/` (global union coverage). UI-local items are excluded from this gate.
 - Non-Key Path items SHOULD be mapped; missing mappings produce warnings, not blockers.
 
+## Interface Traceability (OpenAPI)
+
+This section applies only when the feature includes a **frontend ↔ backend HTTP API surface** owned by this repository and documented in `contracts/openapi.yaml`.
+
+- **FRID format**: Use `FR-###` exactly as written in the Spec.
+- **UC collision prevention**: If the Spec is UC-structured, every traceability table MUST include a `UC ID` column in addition to `FRID`.
+- **Stable interface identity**: Use OpenAPI `operationId` as the stable interface identifier (unique across the API surface).
+- **FR coverage gate** *(hard gate)*:
+  - Every in-scope `FR-###` MUST map to at least one OpenAPI `operationId`.
+  - If any in-scope FR is unmapped, the plan MUST be treated as **ERROR** until coverage is complete.
+- **OpenAPI traceability fields** *(when OpenAPI is applicable)*:
+  - Each operation MUST include `x-fr-ids: [FR-...]` (non-empty).
+  - If the Spec is UC-structured, operations SHOULD include `x-uc-ids: [UC-...]`.
+
 ## Dependency Matrix
 <!-- Third-Party Dependency Matrix (direct and transitive/intermediary dependencies). -->
 <!-- Fill as a Markdown table. Include libraries AND intermediary services (SaaS/APIs/queues/caches/etc.). -->
