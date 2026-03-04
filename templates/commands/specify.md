@@ -238,6 +238,7 @@ Your job is to produce a Spec that is easy to read for Chinese stakeholders **wi
       - Add concise notes for unresolved failures
 
 8. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
+   - Also suggest reviewer workflow command: `/speckit.preview` (generates reviewer-facing `preview.html` after artifacts are available).
 
 **NOTE:** The script creates and checks out the new branch and initializes the spec file before writing.
 

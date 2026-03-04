@@ -48,6 +48,16 @@ This section defines non-negotiable terminology and layering rules to prevent se
 - **Plan phase (architecture perspective)** MUST design Interface VO (contracts) first, then map VO fields to Persistence. Domain is optional.
 - **Tasks/Implement phases (development/implementation perspective)** MUST NOT invent new semantics for user-visible fields. If a semantic gap is discovered, it MUST be pushed upstream to Spec/Plan (UDD/VO/mapping), not patched ad-hoc in code.
 
+## Output Language & Stability
+
+This section defines output-language and token-stability requirements for all downstream commands.
+
+- Narrative content for reviewer/stakeholder-facing artifacts SHOULD default to Simplified Chinese (`zh-CN`) unless project governance specifies otherwise.
+- Stable IDs/tokens MUST remain unchanged across phases: `UC-###`, `FR-###`, `Entity.field`, `AEI-###`, `operationId`, `CaseID`.
+- Normative keywords MUST remain in canonical form when quoted or used as policy terms: `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`.
+- Markers used by command workflows MUST NOT be translated or rewritten: `NEEDS CLARIFICATION`, `ERROR`.
+- File paths, code identifiers, and CLI commands MUST be preserved verbatim.
+
 ### Key Path Gate (coverage enforcement)
 
 - **Key Path** is defined by Spec priority (e.g., `P1` Use Cases / scenarios).

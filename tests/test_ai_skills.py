@@ -587,7 +587,7 @@ class TestSkillDescriptions:
         """All standard spec-kit commands should have enhanced descriptions."""
         expected_commands = [
             "specify", "plan", "tasks", "implement", "analyze",
-            "clarify", "constitution", "checklist", "taskstoissues",
+            "preview", "clarify", "constitution", "checklist", "taskstoissues",
         ]
         for cmd in expected_commands:
             assert cmd in SKILL_DESCRIPTIONS, f"Missing description for '{cmd}'"

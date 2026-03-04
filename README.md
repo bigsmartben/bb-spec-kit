@@ -278,6 +278,7 @@ Additional commands for enhanced quality and validation:
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | `/speckit.clarify`   | Clarify underspecified areas through structured Q&A; writes accepted answers back to `spec.md` (recommended before `/speckit.plan`; formerly `/quizme`) |
 | `/speckit.analyze`   | Cross-artifact consistency & coverage analysis (run after `/speckit.tasks`, before `/speckit.implement`)                             |
+| `/speckit.preview`   | Generate/overwrite `specs/<feature>/preview.html` as a reviewer-facing review view（产品/技术/测试） with interactive sections and verbatim appendices |
 | `/speckit.checklist` | Generate custom quality checklists that validate requirements completeness, clarity, and consistency (like "unit tests for English") |
 
 ### Environment Variables

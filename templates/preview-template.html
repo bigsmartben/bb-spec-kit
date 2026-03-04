@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>评审预览 / Review Preview - [FEATURE]</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --muted: #475569;
+      --line: #e2e8f0;
+      --primary: #2563eb;
+      --ok: #16a34a;
+      --warn: #d97706;
+      --err: #dc2626;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+    [data-theme="dark"] {
+      --bg: #0b1220;
+      --card: #111a2d;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --line: #23304a;
+      --primary: #60a5fa;
+      --ok: #22c55e;
+      --warn: #f59e0b;
+      --err: #ef4444;
+      --shadow: 0 10px 28px rgba(2, 6, 23, 0.45);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+      color: var(--text);
+      background: var(--bg);
+      line-height: 1.6;
+    }
+    .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    h1, h2, h3 { margin: 0 0 10px; line-height: 1.35; }
+    h1 { font-size: 28px; }
+    h2 { font-size: 22px; border-left: 4px solid var(--primary); padding-left: 10px; margin-top: 8px; }
+    h3 { font-size: 17px; color: var(--muted); }
+    p, li { margin: 6px 0; }
+    .muted { color: var(--muted); }
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 12px;
+    }
+    .meta-item {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      background: color-mix(in srgb, var(--card) 88%, var(--primary) 12%);
+    }
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+    }
+    .kpi {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      text-align: center;
+    }
+    .kpi strong { display: block; font-size: 20px; }
+    nav.sticky {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: color-mix(in srgb, var(--bg) 90%, transparent);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--line);
+      margin: -24px -24px 16px;
+      padding: 12px 24px;
+    }
+    nav.sticky a { margin-right: 12px; color: var(--primary); text-decoration: none; font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 1px solid var(--line); padding: 8px; text-align: left; vertical-align: top; }
+    th { background: color-mix(in srgb, var(--card) 75%, var(--primary) 25%); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; border: 1px solid var(--line); font-size: 12px; }
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .err { color: var(--err); }
+    details {
+      border: 1px dashed var(--line);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 10px;
+      background: color-mix(in srgb, var(--card) 94%, var(--primary) 6%);
+    }
+    details summary { cursor: pointer; font-weight: 700; }
+    pre {
+      background: color-mix(in srgb, var(--card) 80%, #000 20%);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      overflow: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .toolbar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--card);
+      color: var(--text);
+      padding: 6px 10px;
+      cursor: pointer;
+    }
+    @media print {
+      nav.sticky, .toolbar { display: none; }
+      body { background: #fff; }
+      .card { box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="sticky">
+      <a href="#overview">总览 Overview</a>
+      <a href="#product">产品评审 Product Review</a>
+      <a href="#technical">技术评审 Technical Review</a>
+      <a href="#testing">测试评审 Test Case Review</a>
+      <a href="#appendix">附录 Appendices</a>
+    </nav>
+
+    <div class="toolbar">
+      <button class="btn" id="toggleTheme">切换主题 / Theme</button>
+      <button class="btn" id="expandAll">展开全部 / Expand All</button>
+      <button class="btn" id="collapseAll">折叠全部 / Collapse All</button>
+    </div>
+
+    <section id="overview" class="card">
+      <h1>评审预览 / Review Preview: [FEATURE]</h1>
+      <p class="muted">Feature Dir: <code>specs/[###-feature-name]/</code> · Generated: [DATE] · SSOT: <code>spec.md</code></p>
+      <div class="meta-grid">
+        <div class="meta-item"><strong>Review Status</strong><br/>[Draft / Ready for Review / Approved]</div>
+        <div class="meta-item"><strong>Primary Actors</strong><br/><!-- FILL: actors --></div>
+        <div class="meta-item"><strong>Scope Summary</strong><br/><!-- FILL: scope --></div>
+        <div class="meta-item"><strong>Key Success Criteria</strong><br/><!-- FILL: SC-### --></div>
+      </div>
+      <h3>快速指标 / Quick Metrics</h3>
+      <div class="kpi-grid">
+        <div class="kpi"><span>UC</span><strong><!-- FILL: uc_count --></strong></div>
+        <div class="kpi"><span>FR</span><strong><!-- FILL: fr_count --></strong></div>
+        <div class="kpi"><span>UDD Items</span><strong><!-- FILL: udd_count --></strong></div>
+        <div class="kpi"><span>Tasks</span><strong><!-- FILL: tasks_progress --></strong></div>
+      </div>
+      <h3>产出物可用性 / Artifact Availability</h3>
+      <table>
+        <thead>
+          <tr><th>Artifact</th><th>Path</th><th>Exists</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <!-- FILL: artifact rows, include interface-details directory status -->
+        </tbody>
+      </table>
+    </section>
+
+    <section id="product" class="card">
+      <h2>1. 产品评审区 / Product Review</h2>
+      <h3>1.1 范围与目标 (Scope & Goals)</h3>
+      <p><!-- FILL from spec.md verbatim excerpt --></p>
+
+      <h3>1.2 用例索引 (UC Index)</h3>
+      <table><thead><tr><th>UC ID</th><th>描述</th><th>Priority</th><th>ref</th></tr></thead><tbody><!-- FILL --></tbody></table>
+
+      <h3>1.3 功能需求索引 (FR Index)</h3>
+      <table><thead><tr><th>UC ID</th><th>FR ID</th><th>Capability</th><th>Scenario</th></tr></thead><tbody><!-- FILL --></tbody></table>
+
+      <h3>1.4 UI 数据字典索引 (UDD Index)</h3>
+      <table><thead><tr><th>Entity.field</th><th>Source Type</th><th>Key Path</th><th>Notes</th></tr></thead><tbody><!-- FILL --></tbody></table>
+
+      <h3>1.5 用户交互流程图 (User Flow Diagrams)</h3>
+      <pre class="mermaid"><!-- FILL mermaid from spec if exists --></pre>
+
+      <h3>1.6 产品评审检查项 (Checklist)</h3>
+      <table>
+        <thead><tr><th>Check</th><th>Status</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>需求完整且可测试 (Complete & Testable)</td><td><input type="checkbox" data-check="prd-1"/></td><td></td></tr>
+          <tr><td>范围边界清晰 (Scope Boundaries)</td><td><input type="checkbox" data-check="prd-2"/></td><td></td></tr>
+          <tr><td>UC/FR/UDD 追溯一致 (Traceability)</td><td><input type="checkbox" data-check="prd-3"/></td><td></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="technical" class="card">
+      <h2>2. 技术方案评审区 / Technical Review</h2>
+      <h3>2.1 技术上下文 (Technical Context)</h3>
+      <table><thead><tr><th>Field</th><th>Value</th></tr></thead><tbody><!-- FILL from plan.md Technical Context --></tbody></table>
+
+      <h3>2.2 架构证据链 (Architecture Evidence, AEI-###)</h3>
+      <table><thead><tr><th>AEI</th><th>Boundary</th><th>Status</th><th>Notes</th></tr></thead><tbody><!-- FILL --></tbody></table>
+
+      <h3>2.3 数据模型摘要 (Data Model Overview)</h3>
+      <p><!-- FILL from data-model.md --></p>
+
+      <h3>2.4 接口合约索引 (Interface Contract Index)</h3>
+      <table><thead><tr><th>IF</th><th>operationId / Contract</th><th>x-fr-ids</th><th>Status</th></tr></thead><tbody><!-- FILL from openapi/contracts --></tbody></table>
+
+      <h3>2.5 单接口详细设计摘要 (Per-Interface Detail Docs)</h3>
+      <p class="muted">来源 / Source: <code>contracts/interface-details/&lt;operationId&gt;.md</code>（由 <code>/speckit.tasks</code> 生成）</p>
+      <table>
+        <thead><tr><th>operationId</th><th>Detail Doc</th><th>Call Chain / 依赖链</th><th>Sequence Diagram</th><th>Performance Notes</th></tr></thead>
+        <tbody>
+          <!-- FILL from interface detail docs when present -->
+        </tbody>
+      </table>
+
+      <h3>2.6 UDD→VO→Persistence 追溯</h3>
+      <table><thead><tr><th>UDD</th><th>VO Path</th><th>Persistence</th><th>Gate</th></tr></thead><tbody><!-- FILL from data-model.md --></tbody></table>
+
+      <h3>2.7 技术评审检查项 (Checklist)</h3>
+      <table>
+        <thead><tr><th>Check</th><th>Status</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>合约与 FR 全覆盖 (Contract-FR Coverage)</td><td><input type="checkbox" data-check="tech-1"/></td><td></td></tr>
+          <tr><td>AEI 引用与 Existing 证据一致 (AEI Integrity)</td><td><input type="checkbox" data-check="tech-2"/></td><td></td></tr>
+          <tr><td>接口详细设计可实现且可验证 (Interface Detail Readiness)</td><td><input type="checkbox" data-check="tech-3"/></td><td></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section id="testing" class="card">
+      <h2>3. 测试用例评审区 / Test Case Review</h2>
+      <h3>3.1 测试策略概览 (Strategy)</h3>
+      <p><!-- FILL from test-case-matrix / tasks / quickstart --></p>
+
+      <h3>3.2 测试矩阵摘要 (Case Matrix Summary)</h3>
+      <table><thead><tr><th>operationId</th><th>CaseIDs</th><th>P0/P1/P2/P3</th><th>Tags</th></tr></thead><tbody><!-- FILL --></tbody></table>
+
+      <h3>3.3 覆盖率分析 (Coverage)</h3>
+      <table><thead><tr><th>FR</th><th>operationId</th><th>CaseID</th><th>Transition</th></tr></thead><tbody><!-- FILL --></tbody></table>
+
+      <h3>3.4 异常与边界用例 (Edge/Negative Cases)</h3>
+      <table><thead><tr><th>EC</th><th>Scenario</th><th>Expected</th><th>CaseID</th></tr></thead><tbody><!-- FILL --></tbody></table>
+
+      <h3>3.5 测试评审检查项 (Checklist)</h3>
+      <table>
+        <thead><tr><th>Check</th><th>Status</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>FR 全覆盖 (FR Coverage Gate)</td><td><input type="checkbox" data-check="test-1"/></td><td></td></tr>
+          <tr><td>operationId 覆盖且含负例 (Operation + Negative)</td><td><input type="checkbox" data-check="test-2"/></td><td></td></tr>
+          <tr><td>状态机转换覆盖 (State Transition Coverage)</td><td><input type="checkbox" data-check="test-3"/></td><td></td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="card">
+      <h2>4. 过程信息 / Process Notes</h2>
+      <details>
+        <summary>NEEDS CLARIFICATION 标记</summary>
+        <pre><!-- FILL --></pre>
+      </details>
+      <details>
+        <summary>Assumptions & Decisions 假设与决策</summary>
+        <pre><!-- FILL --></pre>
+      </details>
+      <details>
+        <summary>Risk & Issues 风险与问题</summary>
+        <pre><!-- FILL --></pre>
+      </details>
+    </section>
+
+    <section id="appendix" class="card">
+      <h2>附录 / Appendices (Verbatim)</h2>
+      <details open>
+        <summary>Appendix A — spec.md (mandatory)</summary>
+        <pre><!-- FILL full spec.md verbatim --></pre>
+      </details>
+      <details>
+        <summary>Appendix B — plan.md (optional)</summary>
+        <pre><!-- FILL full plan.md verbatim if present --></pre>
+      </details>
+      <details>
+        <summary>Appendix C — tasks.md (optional)</summary>
+        <pre><!-- FILL full tasks.md verbatim if present --></pre>
+      </details>
+      <details>
+        <summary>Appendix D — data-model.md (optional)</summary>
+        <pre><!-- FILL full data-model.md verbatim if present --></pre>
+      </details>
+      <details>
+        <summary>Appendix E — interface-details/*.md (optional, from tasks phase)</summary>
+        <pre><!-- FILL merged or indexed excerpts from contracts/interface-details/*.md --></pre>
+      </details>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const root = document.documentElement;
+      const savedTheme = localStorage.getItem('preview-theme');
+      if (savedTheme) root.setAttribute('data-theme', savedTheme);
+
+      document.getElementById('toggleTheme')?.addEventListener('click', () => {
+        const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+        root.setAttribute('data-theme', next);
+        localStorage.setItem('preview-theme', next);
+      });
+
+      document.getElementById('expandAll')?.addEventListener('click', () => {
+        document.querySelectorAll('details').forEach(d => d.open = true);
+      });
+      document.getElementById('collapseAll')?.addEventListener('click', () => {
+        document.querySelectorAll('details').forEach(d => d.open = false);
+      });
+
+      document.querySelectorAll('input[type="checkbox"][data-check]').forEach(el => {
+        const key = 'preview-check-' + el.getAttribute('data-check');
+        el.checked = localStorage.getItem(key) === '1';
+        el.addEventListener('change', () => {
+          localStorage.setItem(key, el.checked ? '1' : '0');
+        });
+      });
+    })();
+  </script>
+</body>
+</html>

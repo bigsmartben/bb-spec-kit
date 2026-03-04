@@ -132,6 +132,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Matrix status:
      - If `contracts/test-case-matrix.md` exists: confirm `CaseID`-referenced test-task generation
      - If missing: explicitly flag fallback mode (quickstart/spec-derived verification tasks) and note that matrix-driven CaseID coverage is unavailable
+   - Recommend running `/speckit.preview` to generate/update reviewer-facing `preview.html` including interface detail docs context.
 
 Context for task generation: {ARGS}
 
