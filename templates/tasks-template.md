@@ -6,7 +6,7 @@ description: "Task list template for feature implementation"
 # Tasks: [FEATURE NAME]
 
 **Input**: Design documents from `/specs/[###-feature-name]/`
-**Prerequisites**: plan.md (required), spec.md (required for user story traceability), research.md, data-model.md, contracts/
+**Prerequisites**: plan.md (required), spec.md (required for user story traceability), data-model.md (required), contracts/ (required, non-empty), research.md, quickstart.md
 
 **Tests**: Automated tests are OPTIONAL. Every interface MUST include at least one verification task (`[Type:Test] [IFxx]`), which may be automated or scripted.
 
@@ -32,7 +32,7 @@ description: "Task list template for feature implementation"
 ## Interface Inventory
 
 > If `contracts/openapi.yaml` exists, the /speckit.tasks command assigns Interface IDs from OpenAPI operations (sorted by `operationId`) as IF01, IF02, ...  
-> Otherwise, if `contracts/*.md` exists, it assigns Interface IDs from contract docs (sorted paths). If `contracts/` is missing/empty, it derives interfaces from spec.md and quickstart.md entrypoints.
+> Otherwise, if `contracts/*.md` exists, it assigns Interface IDs from contract docs (sorted paths).
 
 | InterfaceID | Interface | Detail Doc | Served User Stories |
 | --- | --- | --- | --- |

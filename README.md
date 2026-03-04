@@ -595,7 +595,7 @@ With the implementation plan validated, you can now break down the plan into spe
 
 This step creates a `tasks.md` file in your feature specification directory that contains:
 
-- **Task breakdown organized by user story** - Each user story becomes a separate implementation phase with its own set of tasks
+- **Task breakdown organized by interface** - Each interface becomes a separate delivery unit with its own dependency-aware tasks
 - **Dependency management** - Tasks are ordered to respect dependencies between components (e.g., models before services, services before endpoints)
 - **Parallel execution markers** - Tasks that can run in parallel are marked with `[P]` to optimize development workflow
 - **File path specifications** - Each task includes the exact file paths where implementation should occur
