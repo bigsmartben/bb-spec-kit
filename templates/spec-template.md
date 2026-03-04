@@ -93,10 +93,6 @@ This section is navigation only. The Spec remains the **single source of truth (
 | UC-001 | FR-002 | [One-line system capability] | MUST | S1, S2 | [→ § UC-001 (see 3.3)](#-uc-001-use-case-name) | |
 | UC-002 | FR-001 | [One-line system capability] | MUST | S1 | [→ § UC-002 (see 3.3)](#-uc-002-use-case-name) | |
 | UC-003 | FR-001 | [One-line system capability] | SHOULD | S2 | [→ § UC-003 (see 3.3)](#-uc-003-use-case-name) | |
-| UC-001 | FR-001 | [One-line system capability] | MUST / SHOULD / MAY | S1 | [→ § UC-001 (see 3.3)](#-uc-001-use-case-name) |
-| UC-001 | FR-002 | [One-line system capability] | MUST | S1, S2 | [→ § UC-001 (see 3.3)](#-uc-001-use-case-name) |
-| UC-002 | FR-001 | [One-line system capability] | MUST | S1 | [→ § UC-002 (see 3.3)](#-uc-002-use-case-name) |
-| UC-003 | FR-001 | [One-line system capability] | SHOULD | S2 | [→ § UC-003 (see 3.3)](#-uc-003-use-case-name) |
 
 ### 2.2  Global State Machine Overview *(optional — include when entities have lifecycle and/or cross-UC transitions)*
 

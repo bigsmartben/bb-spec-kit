@@ -81,6 +81,7 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
    - Re-evaluate Constitution Check post-design
 
 4. **Stop and report**: Command ends after Phase 2 planning. Report branch, IMPL_PLAN path, and generated artifacts.
+  - Recommend running `/speckit.preview` to generate/update reviewer-facing `preview.html`.
 
 ## Phases
 

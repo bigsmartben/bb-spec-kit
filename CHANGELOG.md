@@ -7,6 +7,25 @@ Recent changes to the Specify CLI and templates are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.89.1] - 2026-03-04
+
+### Added
+
+- **HTML reviewer template**: Replaced `templates/preview-template.md` with `templates/preview-template.html` for richer reviewer experience (Product/Technical/Test review sections, collapsible appendices, and lightweight interaction helpers).
+- **Technical review enrichment**: Preview artifacts now include context from `contracts/interface-details/*.md` (generated in `/speckit.tasks`) when available.
+
+### Changed
+
+- **`/speckit.preview` command**: Output target changed from `specs/<feature>/preview.md` to `specs/<feature>/preview.html`; template resolution updated accordingly.
+- **Workflow prompts**: `specify`, `plan`, and `tasks` report steps now recommend running `/speckit.preview` for reviewer-facing output.
+- **clarify context loading**: `/speckit.clarify` now loads constitution terminology authority before ambiguity scanning.
+- **constitution template governance**: Added `Output Language & Stability` section to make token/language stability a constitution-level SSOT rule.
+- **implement prompt simplification**: Replaced long static ignore-pattern lists with deterministic stack-driven rules.
+
+### Fixed
+
+- **spec template duplication**: Removed duplicate FR Index sample rows from `templates/spec-template.md`.
+
 ## [0.88.18] - 2026-03-04
 
 ### Added
