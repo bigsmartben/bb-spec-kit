@@ -65,6 +65,129 @@ The preview must be:
 - Keep normative keywords unchanged when quoted: `MUST`, `MUST NOT`, `SHOULD`, `SHOULD NOT`, `MAY`.
 - Keep paths/code identifiers/CLI commands exactly as source.
 
+## Structured-to-Human Mapping Contract *(MANDATORY)*
+
+Convert compressed structured language into reviewer-friendly charts/tables/narrative. The preview MUST keep IDs unchanged while adding readable interpretation.
+
+- `UC + FR Index` → Product page: capability tree (`Capability -> FR-### -> Scenario/Edge`) + FR index table.
+- `Given/When/Then` scenarios → Product/Testing pages: actor/system outcome table and scenario checklist rows.
+- `Entity.field` (UDD) → Product/Frontend pages: UI contract table with explicit "entity / field / meaning / display rule" columns.
+- `OpenAPI (operationId, x-fr-ids)` → Backend/Testing pages: interface inventory + FR coverage matrix.
+- `contracts/test-case-matrix.md` (`CaseID`) → Testing page: `FR <-> operationId <-> CaseID <-> transition` coverage table.
+- `tasks.md` DAG adjacency list → Overview/Testing pages: Mermaid DAG source + critical-path notes.
+
+## Compression-Decoding Rules *(MANDATORY)*
+
+- Preserve normative words when quoted, and add human explanation in Chinese:
+   - `MUST` → `必须（MUST）`
+   - `MUST NOT` → `禁止（MUST NOT）`
+   - `SHOULD` → `建议（SHOULD）`
+   - `SHOULD NOT` → `不建议（SHOULD NOT）`
+   - `MAY` → `可选（MAY）`
+- For each referenced ID (`UC-###`, `FR-###`, `CaseID`, `operationId`, `AEI-###`), add a short human-readable label/summary in adjacent column or note (without changing the ID token).
+- For `Entity.field`, always split into:
+   - Entity
+   - Field
+   - User-visible meaning
+   - Validation/display rule
+
+## Human-Readable Narrative Contract *(MANDATORY)*
+
+For each review page (Overview/Product/UX-UI/Backend/Frontend/Testing/Audit/Appendices), include:
+
+- A short **3-sentence narrative summary** (`业务目标 / 当前成熟度 / 主要风险`).
+- A **Review Questions** block with exactly 3 reviewer questions for that page.
+
+For Overview page, additionally include a **Readability Scorecard** with these dimensions (0-100 or High/Medium/Low):
+
+- Completeness
+- Traceability
+- Testability
+- Reviewability
+
+## Diagram Priority & Fallback Contract *(MANDATORY)*
+
+For each diagram-capable section:
+
+1. If valid Mermaid/PlantUML source exists: keep source + render output.
+2. If no diagram source but structured index exists: produce a pseudo-tree/table representation.
+3. If neither exists: mark `N/A (MODE=<mode>)` + explicit missing artifact path and command to generate it.
+
+Appendices must include a navigation index table before verbatim blocks (artifact, anchor, why reviewer should read).
+
+## Fill Recipes (Deterministic Output) *(MANDATORY)*
+
+To reduce variability, generate key blocks using these deterministic recipes:
+
+1. **3-Sentence Summary recipe (per page)**
+    - Sentence 1: `目标（Goal）` — what this page validates.
+    - Sentence 2: `成熟度（Maturity）` — Ready / Partial / Missing + evidence path.
+    - Sentence 3: `风险（Risk）` — top risk + owner/next action.
+
+2. **Review Questions recipe (exactly 3)**
+    - Q1: completeness question.
+    - Q2: traceability/consistency question.
+    - Q3: risk/testability/operability question.
+
+3. **N/A fallback row recipe**
+    - `Status`: `N/A (MODE=<mode>)`
+    - `Evidence`: missing artifact path
+    - `Next`: command to generate (e.g., `/speckit.plan`, `/speckit.tasks`, `/speckit.design`)
+
+4. **ID explanation recipe**
+    - Keep original token in dedicated column (`FR-001`, `operationId`, `CaseID`).
+    - Add adjacent column: `Readable Meaning` (one short sentence, no invented behavior).
+
+## Readability Score Rubric *(MANDATORY)*
+
+Score each Overview dimension using one of these forms:
+
+- Numeric form: 0-100
+- Tier form: `High` / `Medium` / `Low`
+
+Rubric guidance:
+
+- **Completeness**
+   - High / >=80: required artifacts present for current MODE
+   - Medium / 50-79: some optional artifacts missing
+   - Low / <50: required artifacts missing or sections mostly N/A
+- **Traceability**
+   - High / >=80: clear links across UC/FR/operationId/CaseID
+   - Medium / 50-79: partial mapping or unresolved links
+   - Low / <50: broken/missing mapping chain
+- **Testability**
+   - High / >=80: AC + coverage + edge cases present
+   - Medium / 50-79: partial matrix/edge coverage
+   - Low / <50: lacks concrete verifiable cases
+- **Reviewability**
+   - High / >=80: concise summaries + clear risks/questions
+   - Medium / 50-79: readable but fragmented
+   - Low / <50: mostly raw excerpts without guidance
+
+## Mini Examples *(Reference Output Style)*
+
+Use these mini examples as style references (do not copy blindly; adapt to real evidence):
+
+1. **3-Sentence Summary (Overview) example**
+   - 目标：本页用于确认需求、接口与测试链路是否形成可评审闭环。
+   - 成熟度：当前为 Partial，`spec.md` 与 `plan.md` 已就绪，`contracts/test-case-matrix.md` 缺失。
+   - 风险：测试追踪链未闭环，Owner=QA，下一步执行 `/speckit.plan` 补齐测试矩阵输入。
+
+2. **Review Questions example (Product page)**
+   - 范围边界是否已明确区分 in-scope / out-of-scope，并可追溯到 `spec.md`？
+   - 每条 `FR-###` 是否有对应场景与可验证结果（Given/When/Then）？
+   - 成功指标是否可量化并可由测试用例验证？
+
+3. **N/A fallback row example**
+   - Status: `N/A (MODE=spec)`
+   - Evidence: `contracts/openapi.yaml` (missing for this mode)
+   - Next: run `/speckit.plan` when frontend-backend HTTP API is in scope
+
+4. **ID explanation example**
+   - `FR-003` | Readable Meaning: 用户提交后系统必须（MUST）在 2 秒内返回可见反馈。
+   - `operationId=createOrder` | Readable Meaning: 创建订单主流程接口，覆盖 `FR-001, FR-003`。
+   - `CaseID=TC-API-014` | Readable Meaning: 验证创建订单超时重试与错误提示路径。
+
 ## Execution Steps
 
 0. **Parse mode**:
@@ -126,15 +249,19 @@ The preview must be:
     - Use the HTML template as the structure baseline (preserve the page set, page order, and table intent).
     - The HTML template is a single-file "review website" with hash-based tab pages.
     - **Do not delete pages**. For pages that are out-of-scope for the selected `MODE`, keep them but clearly mark key sections as `N/A (MODE=<mode>)` and explain what artifact/command would populate them.
+      - Apply deterministic fill recipes and score rubric above; do not leave summary/question/score sections empty.
     - Always add a short note on the Overview page if `EXTRA_NOTES` is provided.
     - Fill each page according to `MODE`:
        - **Overview page**:
           - Iteration snapshot (review status, owners, actors, scope summary, success criteria).
+          - 3-sentence narrative summary + 3 review questions.
+          - Readability scorecard (completeness/traceability/testability/reviewability).
           - Artifact readiness matrix (spec/plan/tasks/data-model/contracts/interface-details/ux/ui/prototype/checklists/research/quickstart).
           - Quick metrics (UC/FR/UDD/task progress placeholders).
           - Process audit overview: Mermaid pipeline DAG + Mermaid timeline/gantt (auto-render when possible; fallback to source-only).
           - Top risks table.
        - **Product page**:
+          - 3-sentence narrative summary + 3 review questions.
           - JTBD summary: prefer `ux/jtbd.md` excerpt; fallback to `spec.md` excerpt.
           - Scope/goals/non-goals: verbatim excerpt from `spec.md`.
           - Functional breakdown tree (capability -> FR -> scenario/edge).
@@ -143,30 +270,37 @@ The preview must be:
           - State machine PlantUML source: prefer `data-model.md` if present.
           - UI element contract table from `spec.md` (map UI -> `Entity.field`).
        - **UX/UI page**:
+          - 3-sentence narrative summary + 3 review questions.
           - Links/status for `ux/journey.md`, `ux/flow.md`, `ui/ui-spec.md`, `prototype/index.html`.
           - Journey map summary table (verbatim/near-verbatim).
           - Screen inventory / IA / component inventory / state model / microcopy / a11y checklist.
        - **Backend page**:
+          - 3-sentence narrative summary + 3 review questions.
           - OpenAPI interface inventory table (method/path/operationId/summary/auth/x-fr-ids/status) when available.
           - Data model entity summary table (from `data-model.md`).
           - PlantUML class diagram source from `data-model.md` when available.
           - Per-interface detail docs integration (MANDATORY when available): table + expandable highlights.
        - **Frontend page**:
+          - 3-sentence narrative summary + 3 review questions.
           - Route/page map Mermaid source; component tree Mermaid source.
           - UI element definitions and mapping to `ui/ui-spec.md` when present.
           - Client state/data fetching strategy table.
        - **Testing page**:
+          - 3-sentence narrative summary + 3 review questions.
           - AC acceptance checklist (explicit items).
           - Flow cross-reference table (reuse same flow IDs as Product/UX).
           - Test-case matrix summary (from `contracts/test-case-matrix.md` when available).
           - Coverage table (FR <-> operationId <-> CaseID <-> transition).
           - Edge/negative cases table.
        - **Audit page**:
+          - 3-sentence narrative summary + 3 review questions.
           - NEEDS CLARIFICATION aggregation.
           - Assumptions & Decisions table.
           - Risks & Issues table.
           - Checklist index from `checklists/*.md` when present.
        - **Appendices page**:
+          - 3-sentence narrative summary + 3 review questions.
+          - Appendix navigation index (artifact + anchor + purpose).
           - Appendix A MUST include full `spec.md` verbatim.
           - If present, include full `plan.md`, `tasks.md`, `data-model.md`.
           - If present, include key excerpts from `ux/*`, `ui/ui-spec.md`, and index/excerpts for `interface-details/*.md`.

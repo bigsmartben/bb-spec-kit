@@ -33,14 +33,13 @@ description: "Per-operation interface detailed design template (OpenAPI only)"
 
 ## 3. Evidence & Call Chain *(mandatory)*
 
-> Call-chain drilldown. Every step MUST be marked `Existing` (verified) or `Planned/New code`.
-> If the constitution defines an Architecture Evidence Index (SSOT) with `AEI-###`, any **Existing** boundary step MUST cite `AEI-###`.
+Call-chain drilldown (operation-scoped). Each step marked `Existing` or `Planned/New code`.  
+**SSOT Rule**: Any `Existing` boundary step MUST cite `AEI-###` (per constitution). Do not duplicate repo boundary index here.
 
-| Step | Layer/Component | Evidence (file/symbol) | Status | Notes |
+| Step | Layer/Component | Evidence (file:symbol) | Status | Notes |
 | --- | --- | --- | --- | --- |
 | 1 | `[Router/Controller]` | `[path:line] :: [symbol]` | `Existing` | `[AEI-### if boundary]` |
 | 2 | `[Service]` | `[path:line] :: [symbol]` | `Planned/New code` |  |
-| 3 | `[Persistence/Remote]` | `[path:line] :: [symbol]` | `Planned/New code` |  |
 
 ## 4. Related Applications & Dependency Inventory *(mandatory)*
 
@@ -52,6 +51,9 @@ description: "Per-operation interface detailed design template (OpenAPI only)"
 
 ## 5. Sequence Diagram *(mandatory)*
 
+PlantUML. Must include ALL dependencies from Section 4 (Dependency Inventory).  
+See `/speckit.tasks` Execution Contract: Diagram Rules (SSOT).
+
 ```plantuml
 @startuml
 title [operationId] sequence
@@ -62,7 +64,7 @@ participant API
 Client -> API: [method] [path]
 activate API
 
-' Add dependencies from the inventory above (DB, caches, services, remote calls)
+' Include all dependencies from Section 4 (Section 4 is authority on what to include)
 
 API --> Client: [status] [response]
 deactivate API
@@ -71,13 +73,14 @@ deactivate API
 
 ## 6. Relevant Code Class Diagram *(mandatory)*
 
-> The class diagram MUST be operation-scoped and consistent with Section 3 (Evidence & Call Chain) and Section 4 (Dependency Inventory).
-> Include only in-repo code structures directly involved in this operation.
-> External systems must stay represented in the sequence diagram and dependency inventory, not as internal code classes.
+Operation-scoped PlantUML. MUST be consistent with Section 3 (Evidence) & Section 4 (Inventory).  
+Include only in-repo code structures involved in this operation.  
+External systems NOT modeled as classes; see Section 4 for ownership/protocol/timeout/retry.  
+See `/speckit.tasks` Execution Contract: Diagram Rules (SSOT).
 
 ```plantuml
 @startuml
-' Add only classes relevant to this operation.
+' Only classes/modules directly relevant to this operation
 @enduml
 ```
 

@@ -133,7 +133,9 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
 
 1. **Step 1 — Interface Definition (OpenAPI 3.0)** *(frontend ↔ backend HTTP API features only)*:
    - Create `specs/<feature>/contracts/openapi.yaml` using the OpenAPI 3.0 specification.
-   - Use `templates/openapi-template.yaml` as the starting structure baseline (do not remove required fields; expand/replace placeholders).
+   - Use the OpenAPI template as the starting structure baseline (do not remove required fields; expand/replace placeholders):
+     - Preferred: `.specify/templates/openapi-template.yaml`
+     - Fallback: `templates/openapi-template.yaml`
    - Use `operationId` as the stable interface ID (unique across the API surface).
    - Each operation MUST include:
      - `operationId`
