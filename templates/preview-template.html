@@ -493,6 +493,7 @@
       }
 
       .diagram .src {
+        display: none;
         margin: 0;
         border: 0;
         border-radius: 0;
@@ -501,13 +502,15 @@
 
       .diagram .render {
         padding: 12px 12px 12px;
-        display: none;
-      }
-
-      .diagram[data-rendered="1"] .render {
         display: block;
         border-top: 1px solid var(--line);
         background: color-mix(in srgb, var(--card2) 78%, transparent);
+      }
+
+      .diagram .render:empty::before {
+        content: "Mermaid render unavailable or diagram source is empty.";
+        color: var(--muted);
+        font-size: 12px;
       }
 
       .note {
@@ -651,8 +654,6 @@
             <button class="btn" id="toggleTheme">Theme</button>
             <button class="btn" id="expandAll">Expand All</button>
             <button class="btn" id="collapseAll">Collapse All</button>
-            <button class="btn" id="renderMermaid">Render Mermaid</button>
-            <button class="btn" id="resetDiagrams">Reset Diagrams</button>
           </div>
         </div>
       </div>
@@ -660,8 +661,8 @@
 
     <div class="wrap" id="app">
       <div class="note mini">
-        Tips: 在允许 JavaScript 的浏览器中，本页会在加载时尽力自动渲染 Mermaid（online/CDN）。渲染失败时会保留源码视图。
-        部分 IDE 预览会禁用 JS，此时只能查看源码（建议用真实浏览器打开）。所有 checkbox 结果会保存到本地浏览器 localStorage。
+        Tips: 在允许 JavaScript 的浏览器中，本页会在加载时尽力自动渲染 Mermaid（online/CDN）。渲染失败时会显示占位提示。
+        部分 IDE 预览会禁用 JS（建议用真实浏览器打开）。所有 checkbox 结果会保存到本地浏览器 localStorage。
       </div>
 
       <div class="recipe-box mini">
@@ -872,9 +873,6 @@
                   <div class="title">
                     Mermaid: Pipeline DAG <span class="hint">(commands -> artifacts)</span>
                   </div>
-                  <div class="group">
-                    <button class="btn" data-action="copy-src">Copy</button>
-                  </div>
                 </div>
                 <pre class="src" data-diagram-src><!-- FILL: mermaid graph TD ... --></pre>
                 <div class="render" data-diagram-render></div>
@@ -883,9 +881,6 @@
               <div class="diagram" data-diagram="mermaid" data-diagram-id="timeline">
                 <div class="bar">
                   <div class="title">Mermaid: Timeline/Gantt <span class="hint">(review gates)</span></div>
-                  <div class="group">
-                    <button class="btn" data-action="copy-src">Copy</button>
-                  </div>
                 </div>
                 <pre class="src" data-diagram-src><!-- FILL: mermaid gantt/timeline ... --></pre>
                 <div class="render" data-diagram-render></div>
@@ -953,11 +948,23 @@
               <h3>Scope, Goals, Non-Goals / 范围与目标</h3>
               <p><!-- FILL: verbatim excerpt --></p>
 
-              <h3>Functional Breakdown / 功能拆解树</h3>
-              <div class="note mini">Use concrete nodes: Capability -> FR-### -> Scenario/Edge cases. Prefer tree + table.</div>
-              <ul class="ul-tree">
-                <!-- FILL: tree list -->
-              </ul>
+              <h3>User Interaction Flow / 用户交互流程</h3>
+              <div class="diagram" data-diagram="mermaid" data-diagram-id="user-flow">
+                <div class="bar">
+                  <div class="title">Mermaid: User Flow</div>
+                </div>
+                <pre class="src" data-diagram-src><!-- FILL: mermaid flowchart from ux/flow.md or spec.md --></pre>
+                <div class="render" data-diagram-render></div>
+              </div>
+
+              <h3>State Machine / 状态机</h3>
+              <div class="diagram" data-diagram="mermaid" data-diagram-id="state-machine">
+                <div class="bar">
+                  <div class="title">Mermaid: State Diagram</div>
+                </div>
+                <pre class="src" data-diagram-src><!-- FILL: mermaid stateDiagram-v2 ... --></pre>
+                <div class="render" data-diagram-render></div>
+              </div>
 
               <h3>UC Index</h3>
               <table>
@@ -986,30 +993,6 @@
                 </thead>
                 <tbody><!-- FILL --></tbody>
               </table>
-
-              <h3>User Interaction Flow / 用户交互流程</h3>
-              <div class="diagram" data-diagram="mermaid" data-diagram-id="user-flow">
-                <div class="bar">
-                  <div class="title">Mermaid: User Flow</div>
-                  <div class="group">
-                    <button class="btn" data-action="copy-src">Copy</button>
-                  </div>
-                </div>
-                <pre class="src" data-diagram-src><!-- FILL: mermaid flowchart from ux/flow.md or spec.md --></pre>
-                <div class="render" data-diagram-render></div>
-              </div>
-
-              <h3>State Machine / 状态机</h3>
-              <div class="diagram" data-diagram="mermaid" data-diagram-id="state-machine">
-                <div class="bar">
-                  <div class="title">Mermaid: State Diagram</div>
-                  <div class="group">
-                    <button class="btn" data-action="copy-src">Copy</button>
-                  </div>
-                </div>
-                <pre class="src" data-diagram-src><!-- FILL: mermaid stateDiagram-v2 ... --></pre>
-                <div class="render" data-diagram-render></div>
-              </div>
 
               <h3>UI Element Contract / UI 元素契约 (UDD)</h3>
               <table>
@@ -1176,9 +1159,6 @@
                   <div class="diagram" data-diagram="mermaid" data-diagram-id="ia-map">
                     <div class="bar">
                       <div class="title">Mermaid: IA / Route Map</div>
-                      <div class="group">
-                        <button class="btn" data-action="copy-src">Copy</button>
-                      </div>
                     </div>
                     <pre class="src" data-diagram-src><!-- FILL: mermaid mindmap/flowchart --></pre>
                     <div class="render" data-diagram-render></div>
@@ -1335,9 +1315,6 @@
               <div class="diagram" data-diagram="mermaid" data-diagram-id="class-diagram">
                 <div class="bar">
                   <div class="title">Mermaid: Class Diagram</div>
-                  <div class="group">
-                    <button class="btn" data-action="copy-src">Copy</button>
-                  </div>
                 </div>
                 <pre class="src" data-diagram-src><!-- FILL: mermaid classDiagram ... --></pre>
                 <div class="render" data-diagram-render></div>
@@ -1454,7 +1431,6 @@
               <div class="diagram" data-diagram="mermaid" data-diagram-id="fe-route-map">
                 <div class="bar">
                   <div class="title">Mermaid: Route Map</div>
-                  <div class="group"><button class="btn" data-action="copy-src">Copy</button></div>
                 </div>
                 <pre class="src" data-diagram-src><!-- FILL --></pre>
                 <div class="render" data-diagram-render></div>
@@ -1464,7 +1440,6 @@
               <div class="diagram" data-diagram="mermaid" data-diagram-id="fe-component-tree">
                 <div class="bar">
                   <div class="title">Mermaid: Component Tree</div>
-                  <div class="group"><button class="btn" data-action="copy-src">Copy</button></div>
                 </div>
                 <pre class="src" data-diagram-src><!-- FILL --></pre>
                 <div class="render" data-diagram-render></div>
@@ -1990,36 +1965,7 @@
           });
         });
 
-        // Copy helpers (for diagram sources and any element tagged with data-action=copy-src)
-        async function copyText(text) {
-          try {
-            await navigator.clipboard.writeText(text);
-            return true;
-          } catch (e) {
-            const ta = document.createElement("textarea");
-            ta.value = text;
-            ta.style.position = "fixed";
-            ta.style.left = "-9999px";
-            document.body.appendChild(ta);
-            ta.select();
-            try {
-              document.execCommand("copy");
-              return true;
-            } finally {
-              ta.remove();
-            }
-          }
-        }
-
-        document.querySelectorAll("[data-action='copy-src']").forEach((btn) => {
-          btn.addEventListener("click", async () => {
-            const diagram = btn.closest(".diagram");
-            const src = diagram?.querySelector("[data-diagram-src]")?.textContent || "";
-            await copyText(src.trim());
-          });
-        });
-
-        // Mermaid (optional CDN render; fallback to source)
+        // Mermaid (optional CDN render; render-only view with placeholder fallback)
         let mermaidLoaded = false;
         async function loadMermaid() {
           if (mermaidLoaded) return true;
@@ -2053,23 +1999,13 @@
             try {
               const rendered = await window.mermaid.render(id, src);
               out.innerHTML = rendered.svg;
-              d.setAttribute("data-rendered", "1");
             } catch (e) {
-              // keep source-only
+              out.innerHTML = "";
             }
           }
         }
 
-        document.getElementById("renderMermaid")?.addEventListener("click", renderAllMermaid);
-        document.getElementById("resetDiagrams")?.addEventListener("click", () => {
-          document.querySelectorAll(".diagram").forEach((d) => {
-            d.removeAttribute("data-rendered");
-            const out = d.querySelector("[data-diagram-render]");
-            if (out) out.innerHTML = "";
-          });
-        });
-
-        // Auto-render (best-effort). Fallback is always source-only.
+        // Auto-render (best-effort). Fallback keeps placeholder text.
         renderAllMermaid();
       })();
     </script>

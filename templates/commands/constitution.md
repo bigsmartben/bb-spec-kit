@@ -22,6 +22,12 @@ You are updating the project constitution at `.specify/memory/constitution.md`. 
 
 Follow this execution flow:
 
+0. **Evidence source requirement (MANDATORY)**:
+   - For all codebase/repository-derived reasoning and evidence chains, you MUST use `sourcegraph-mcp` as the primary evidence source.
+   - This requirement applies to any `Existing` claim and to all repo-derived entries in `DEPENDENCY_MATRIX` and `ARCHITECTURE_EVIDENCE_INDEX`.
+   - You MUST NOT rely only on memory or unstated assumptions for repository facts.
+   - If `sourcegraph-mcp` evidence cannot be retrieved for a required field, use `TODO(<FIELD>): sourcegraph-mcp evidence missing` and list it in the Sync Impact Report.
+
 1. Load the existing constitution at `.specify/memory/constitution.md`.
    - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.
    **IMPORTANT**: The user might require less or more principles than the ones used in the template. If a number is specified, respect that - follow the general template. You will update the doc accordingly.
@@ -37,14 +43,14 @@ Follow this execution flow:
    - If version bump type ambiguous, propose reasoning before finalizing.
    - For `DEPENDENCY_MATRIX`:
      - Replace with **Markdown table rows** matching the template header.
-     - Populate from repo evidence (dependency manifests/lockfiles, build configs, and runtime integrations referenced in code/docs).
+       - Populate from repo evidence (dependency manifests/lockfiles, build configs, and runtime integrations referenced in code/docs) gathered via `sourcegraph-mcp`.
      - Include third-party libraries AND intermediary services (SaaS/APIs/queues/caches/etc.).
      - Include transitive dependencies when they are risk-relevant (e.g., license/copyright constraints, security posture, critical intermediaries).
      - If any value is unknown (license/owner/upgrade path), use `TODO(<FIELD>): ...` and list it in the Sync Impact Report.
    - For `ARCHITECTURE_EVIDENCE_INDEX`:
      - Replace with **Markdown table rows** matching the template header.
      - Purpose: provide a repo-derived, evidence-based architectural index that downstream plan/tasks can reference as **single source of truth** (SSOT) for entrypoints and boundaries.
-     - Populate from repo evidence (routing/handlers/CLI entrypoints/jobs/events, service boundaries, persistence adapters, external call sites).
+       - Populate from repo evidence (routing/handlers/CLI entrypoints/jobs/events, service boundaries, persistence adapters, external call sites) gathered via `sourcegraph-mcp`.
        - Each row MUST include:
           - A stable `IndexID (AEI-###)` (e.g., `AEI-001`) that downstream artifacts can reference (do not renumber unless meaning changes)
           - Concrete `Entry Point (file:symbol)` when `Status` is `Existing`
@@ -83,6 +89,7 @@ Follow this execution flow:
    - Dates ISO format YYYY-MM-DD.
    - Principles are declarative, testable, and free of vague language ("should" → replace with MUST/SHOULD rationale where appropriate).
    - Dependency Matrix is a valid Markdown table (header + separator + 0..N rows).
+   - All codebase-derived evidence claims reference `sourcegraph-mcp` results; otherwise mark as TODO and report.
 
 7. Write the completed constitution back to `.specify/memory/constitution.md` (overwrite).
 

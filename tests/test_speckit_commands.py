@@ -60,6 +60,7 @@ COMMANDS_WITH_HANDOFFS = [
 
 # ───────── helpers ─────────
 
+
 def _parse_frontmatter(content: str) -> tuple[dict, str]:
     """Parse YAML frontmatter from markdown content.
 
@@ -95,13 +96,13 @@ def _load_command(name: str) -> tuple[str, dict, str]:
 
 # ───────── existence tests ─────────
 
+
 class TestCommandFilesExist:
     """All expected command files must be present."""
 
     def test_commands_directory_exists(self):
         assert COMMANDS_DIR.exists(), (
-            f"templates/commands/ directory not found at {COMMANDS_DIR}\n"
-            "Is this running from the spec-kit repo root?"
+            f"templates/commands/ directory not found at {COMMANDS_DIR}\nIs this running from the spec-kit repo root?"
         )
 
     @pytest.mark.parametrize("name", EXPECTED_COMMANDS)
@@ -115,12 +116,11 @@ class TestCommandFilesExist:
     def test_no_unexpected_extensions(self):
         """All files in commands/ must be .md (no stray .txt or .bak files)."""
         bad = [f for f in COMMANDS_DIR.iterdir() if f.suffix != ".md"]
-        assert not bad, (
-            f"Non-markdown files found in templates/commands/: {[f.name for f in bad]}"
-        )
+        assert not bad, f"Non-markdown files found in templates/commands/: {[f.name for f in bad]}"
 
 
 # ───────── frontmatter structure tests ─────────
+
 
 class TestCommandFrontmatter:
     """Each command file must have valid YAML frontmatter with required fields."""
@@ -134,7 +134,7 @@ class TestCommandFrontmatter:
         content = path.read_text(encoding="utf-8")
         assert content.startswith("---"), (
             f"templates/commands/{name}.md must start with '---' (YAML frontmatter).\n"
-            "Add: ---\\ndescription: \"...\"\n---"
+            'Add: ---\\ndescription: "..."\n---'
         )
 
     @pytest.mark.parametrize("name", EXPECTED_COMMANDS)
@@ -152,8 +152,7 @@ class TestCommandFrontmatter:
         except yaml.YAMLError as exc:
             pytest.fail(f"{name}.md has invalid YAML frontmatter: {exc}")
         assert result is not None, (
-            f"{name}.md frontmatter is empty (None after YAML parse).\n"
-            "At minimum, add: description: \"...\""
+            f'{name}.md frontmatter is empty (None after YAML parse).\nAt minimum, add: description: "..."'
         )
 
     @pytest.mark.parametrize("name", EXPECTED_COMMANDS)
@@ -165,7 +164,7 @@ class TestCommandFrontmatter:
         _, fm, _ = _load_command(name)
         assert "description" in fm, (
             f"templates/commands/{name}.md frontmatter missing 'description' field.\n"
-            "Add: description: \"Short description of what this command does\""
+            'Add: description: "Short description of what this command does"'
         )
         assert fm["description"] and str(fm["description"]).strip(), (
             f"templates/commands/{name}.md 'description' must not be empty."
@@ -173,6 +172,7 @@ class TestCommandFrontmatter:
 
 
 # ───────── body content tests ─────────
+
 
 class TestCommandBody:
     """Command body must be non-trivial."""
@@ -204,6 +204,7 @@ class TestCommandBody:
 
 # ───────── prd2spec specific tests ─────────
 
+
 class TestPrd2Spec:
     """prd2spec command must fully describe PRD→Spec conversion workflow."""
 
@@ -217,16 +218,12 @@ class TestPrd2Spec:
     def test_description_mentions_prd(self):
         """Description must mention PRD."""
         desc = str(self.fm.get("description", "")).lower()
-        assert "prd" in desc, (
-            f"prd2spec description should mention 'PRD'. Got: {self.fm.get('description')!r}"
-        )
+        assert "prd" in desc, f"prd2spec description should mention 'PRD'. Got: {self.fm.get('description')!r}"
 
     def test_description_mentions_spec(self):
         """Description must mention Spec or spec.md."""
         desc = str(self.fm.get("description", "")).lower()
-        assert "spec" in desc, (
-            f"prd2spec description should mention 'spec'. Got: {self.fm.get('description')!r}"
-        )
+        assert "spec" in desc, f"prd2spec description should mention 'spec'. Got: {self.fm.get('description')!r}"
 
     def test_body_has_usage_section(self):
         """prd2spec must include a Usage section."""
@@ -236,9 +233,7 @@ class TestPrd2Spec:
 
     def test_body_references_spec_md_output(self):
         """prd2spec must reference spec.md as its output target."""
-        assert "spec.md" in self.content, (
-            "prd2spec.md must reference 'spec.md' as the output of the conversion."
-        )
+        assert "spec.md" in self.content, "prd2spec.md must reference 'spec.md' as the output of the conversion."
 
     def test_body_references_speckit_plan(self):
         """prd2spec output must be ready for speckit.plan (downstream handoff)."""
@@ -249,14 +244,8 @@ class TestPrd2Spec:
     def test_body_has_workflow_steps(self):
         """prd2spec must describe its workflow steps."""
         # Expect numbered steps or headers indicating workflow
-        has_steps = (
-            "Step 1" in self.content
-            or "### Step" in self.content
-            or "1." in self.content
-        )
-        assert has_steps, (
-            "prd2spec.md should contain numbered workflow steps (e.g., 'Step 1: ...')."
-        )
+        has_steps = "Step 1" in self.content or "### Step" in self.content or "1." in self.content
+        assert has_steps, "prd2spec.md should contain numbered workflow steps (e.g., 'Step 1: ...')."
 
     def test_body_mentions_traceability(self):
         """prd2spec must mention traceability from PRD to Spec."""
@@ -278,12 +267,11 @@ class TestPrd2Spec:
 
     def test_has_scripts_in_frontmatter(self):
         """prd2spec must have scripts field in frontmatter."""
-        assert "scripts" in self.fm, (
-            "prd2spec.md frontmatter must contain 'scripts' (sh and/or ps entries)."
-        )
+        assert "scripts" in self.fm, "prd2spec.md frontmatter must contain 'scripts' (sh and/or ps entries)."
 
 
 # ───────── speckit phase command tests ─────────
+
 
 class TestSpecifyCommand:
     """specify command: creates spec.md from natural language description."""
@@ -299,9 +287,7 @@ class TestSpecifyCommand:
         assert "scripts" in self.fm, "specify.md must have scripts in frontmatter"
 
     def test_has_handoffs(self):
-        assert "handoffs" in self.fm, (
-            "specify.md must declare handoffs (downstream commands like speckit.plan)"
-        )
+        assert "handoffs" in self.fm, "specify.md must declare handoffs (downstream commands like speckit.plan)"
 
     def test_handoffs_includes_plan(self):
         handoffs = self.fm.get("handoffs", [])
@@ -311,9 +297,7 @@ class TestSpecifyCommand:
         )
 
     def test_references_spec_template(self):
-        assert "spec" in self.body.lower(), (
-            "specify.md body must mention spec creation."
-        )
+        assert "spec" in self.body.lower(), "specify.md body must mention spec creation."
 
 
 class TestPlanCommand:
@@ -333,9 +317,7 @@ class TestPlanCommand:
         )
 
     def test_body_references_spec(self):
-        assert "spec" in self.body.lower(), (
-            "plan.md must reference the spec.md as its input."
-        )
+        assert "spec" in self.body.lower(), "plan.md must reference the spec.md as its input."
 
 
 class TestTasksCommand:
@@ -355,9 +337,7 @@ class TestTasksCommand:
         )
 
     def test_body_references_plan(self):
-        assert "plan" in self.body.lower(), (
-            "tasks.md must reference the plan as its input."
-        )
+        assert "plan" in self.body.lower(), "tasks.md must reference the plan as its input."
 
 
 class TestImplementCommand:
@@ -377,9 +357,7 @@ class TestImplementCommand:
         )
 
     def test_body_references_tasks(self):
-        assert "task" in self.body.lower(), (
-            "implement.md must reference tasks as its input."
-        )
+        assert "task" in self.body.lower(), "implement.md must reference tasks as its input."
 
 
 class TestConstitutionCommand:
@@ -453,6 +431,7 @@ class TestChecklistCommand:
 
 # ───────── uniqueness / integrity tests ─────────
 
+
 class TestCommandIntegrity:
     """Ensure no duplicate descriptions and no broken file structures."""
 
@@ -467,8 +446,7 @@ class TestCommandIntegrity:
             desc = fm.get("description", "")
             if desc:
                 assert desc not in descriptions.values(), (
-                    f"Duplicate description found in '{name}.md' and '{descriptions.get(desc)}':\n"
-                    f"  {desc!r}"
+                    f"Duplicate description found in '{name}.md' and '{descriptions.get(desc)}':\n  {desc!r}"
                 )
                 descriptions[name] = desc
 
@@ -476,9 +454,7 @@ class TestCommandIntegrity:
         """templates/commands/ should contain at least all EXPECTED_COMMANDS."""
         actual = {f.stem for f in COMMANDS_DIR.glob("*.md")}
         missing = set(EXPECTED_COMMANDS) - actual
-        assert not missing, (
-            f"Missing command files in templates/commands/: {sorted(missing)}"
-        )
+        assert not missing, f"Missing command files in templates/commands/: {sorted(missing)}"
 
     def test_no_empty_files(self):
         """No command file should be zero bytes."""

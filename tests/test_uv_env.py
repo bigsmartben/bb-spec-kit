@@ -18,6 +18,7 @@ import pytest
 
 # ───────── helpers ─────────
 
+
 def _run(*args, **kwargs):
     """Run a subprocess and return CompletedProcess. Never raises on non-zero exit."""
     return subprocess.run(
@@ -39,6 +40,7 @@ requires_uv = pytest.mark.skipif(
 
 # ───────── path checks ─────────
 
+
 class TestUvAvailability:
     """Verify uv binary is present and usable."""
 
@@ -55,10 +57,7 @@ class TestUvAvailability:
     def test_uv_version_exits_zero(self):
         """'uv --version' must succeed."""
         result = _run("uv", "--version")
-        assert result.returncode == 0, (
-            f"'uv --version' exited {result.returncode}.\n"
-            f"stderr: {result.stderr.strip()}"
-        )
+        assert result.returncode == 0, f"'uv --version' exited {result.returncode}.\nstderr: {result.stderr.strip()}"
 
     @requires_uv
     def test_uv_version_format(self):
@@ -67,8 +66,7 @@ class TestUvAvailability:
         output = result.stdout.strip() or result.stderr.strip()
         # uv prints to stdout: "uv 0.5.x (commit ...)"
         assert re.match(r"uv\s+\d+\.\d+", output), (
-            f"Unexpected version format: {output!r}\n"
-            "Expected pattern: 'uv X.Y.Z ...'"
+            f"Unexpected version format: {output!r}\nExpected pattern: 'uv X.Y.Z ...'"
         )
 
     @requires_uv
@@ -80,6 +78,7 @@ class TestUvAvailability:
 
 # ───────── package management ─────────
 
+
 class TestUvPackageManagement:
     """Verify uv can list packages in the active environment."""
 
@@ -90,8 +89,7 @@ class TestUvPackageManagement:
         if result.returncode != 0 and "Read-only file system" in result.stderr:
             pytest.skip("uv cache is read-only in this environment (acceptable in CI)")
         assert result.returncode == 0, (
-            f"'uv pip list' failed (exit {result.returncode}).\n"
-            f"stderr: {result.stderr.strip()}"
+            f"'uv pip list' failed (exit {result.returncode}).\nstderr: {result.stderr.strip()}"
         )
 
     @requires_uv
@@ -107,13 +105,11 @@ class TestUvPackageManagement:
         # check for either pytest or specify-cli with test deps
         has_pytest = "pytest" in packages
         has_specify = "specify-cli" in packages
-        assert has_pytest or has_specify, (
-            "pytest not found in uv pip list output.\n"
-            "Run: pip install -e '.[test]'"
-        )
+        assert has_pytest or has_specify, "pytest not found in uv pip list output.\nRun: pip install -e '.[test]'"
 
 
 # ───────── specify-cli package ─────────
+
 
 class TestSpecifyCliPackage:
     """Verify specify-cli is importable and entry-point works."""
@@ -123,23 +119,20 @@ class TestSpecifyCliPackage:
         try:
             import specify_cli  # noqa: F401
         except ImportError as exc:
-            pytest.fail(
-                f"Cannot import specify_cli: {exc}\n"
-                "Run: pip install -e '.[test]' from the repo root."
-            )
+            pytest.fail(f"Cannot import specify_cli: {exc}\nRun: pip install -e '.[test]' from the repo root.")
 
     def test_specify_cli_has_agent_config(self):
         """AGENT_CONFIG must be exported from specify_cli."""
         import specify_cli
-        assert hasattr(specify_cli, "AGENT_CONFIG"), (
-            "specify_cli.AGENT_CONFIG not found — possible broken __init__.py"
-        )
+
+        assert hasattr(specify_cli, "AGENT_CONFIG"), "specify_cli.AGENT_CONFIG not found — possible broken __init__.py"
         assert isinstance(specify_cli.AGENT_CONFIG, dict)
         assert len(specify_cli.AGENT_CONFIG) > 0
 
     def test_specify_cli_has_app(self):
         """The Typer app must be exported."""
         import specify_cli
+
         assert hasattr(specify_cli, "app"), "specify_cli.app not found"
 
     def test_specify_entry_point_resolvable(self):
@@ -161,8 +154,7 @@ class TestSpecifyCliPackage:
         else:
             result = _run(specify_bin, "--help")
             assert result.returncode == 0, (
-                f"'specify --help' failed (exit {result.returncode}).\n"
-                f"stderr: {result.stderr.strip()}"
+                f"'specify --help' failed (exit {result.returncode}).\nstderr: {result.stderr.strip()}"
             )
 
     @requires_uv
@@ -173,6 +165,5 @@ class TestSpecifyCliPackage:
         # Non-zero is acceptable if 'specify_cli' not installed in system uv env;
         # we just verify uv itself doesn't crash fatally (exit code != 127)
         assert result.returncode != 127, (
-            "uv run exited with 127 (command not found) — "
-            "uv may be broken or PATH is misconfigured."
+            "uv run exited with 127 (command not found) — uv may be broken or PATH is misconfigured."
         )
