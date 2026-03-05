@@ -660,7 +660,7 @@
 
     <div class="wrap" id="app">
       <div class="note mini">
-        Tips: 在允许 JavaScript 的浏览器中，本页会在加载时尽力自动渲染 Mermaid / PlantUML（online/CDN or server-based）。渲染失败时会保留源码视图。
+        Tips: 在允许 JavaScript 的浏览器中，本页会在加载时尽力自动渲染 Mermaid（online/CDN）。渲染失败时会保留源码视图。
         部分 IDE 预览会禁用 JS，此时只能查看源码（建议用真实浏览器打开）。所有 checkbox 结果会保存到本地浏览器 localStorage。
       </div>
 
@@ -1000,15 +1000,14 @@
               </div>
 
               <h3>State Machine / 状态机</h3>
-              <div class="diagram" data-diagram="plantuml" data-diagram-id="state-machine">
+              <div class="diagram" data-diagram="mermaid" data-diagram-id="state-machine">
                 <div class="bar">
-                  <div class="title">PlantUML: State Diagram <span class="hint">(source only; optional server link)</span></div>
+                  <div class="title">Mermaid: State Diagram</div>
                   <div class="group">
                     <button class="btn" data-action="copy-src">Copy</button>
-                    <button class="btn" data-action="plantuml-link">Generate Link</button>
                   </div>
                 </div>
-                <pre class="src" data-diagram-src><!-- FILL: PlantUML source (include @startuml/@enduml; no Markdown fences) --></pre>
+                <pre class="src" data-diagram-src><!-- FILL: mermaid stateDiagram-v2 ... --></pre>
                 <div class="render" data-diagram-render></div>
               </div>
 
@@ -1333,15 +1332,14 @@
                 <tbody><!-- FILL from data-model.md --></tbody>
               </table>
 
-              <div class="diagram" data-diagram="plantuml" data-diagram-id="class-diagram">
+              <div class="diagram" data-diagram="mermaid" data-diagram-id="class-diagram">
                 <div class="bar">
-                  <div class="title">PlantUML: Class Diagram <span class="hint">(source only; optional server link)</span></div>
+                  <div class="title">Mermaid: Class Diagram</div>
                   <div class="group">
                     <button class="btn" data-action="copy-src">Copy</button>
-                    <button class="btn" data-action="plantuml-link">Generate Link</button>
                   </div>
                 </div>
-                <pre class="src" data-diagram-src><!-- FILL: PlantUML class diagram source (include @startuml/@enduml; no Markdown fences) --></pre>
+                <pre class="src" data-diagram-src><!-- FILL: mermaid classDiagram ... --></pre>
                 <div class="render" data-diagram-render></div>
               </div>
 
@@ -2071,108 +2069,8 @@
           });
         });
 
-        // PlantUML: source-only, optionally generate server link via deflate-raw + PlantUML encoding.
-        const PLANTUML_SERVER = "https://www.plantuml.com/plantuml/svg/";
-
-        function plantumlEncode6bit(b) {
-          if (b < 10) return String.fromCharCode(48 + b);
-          b -= 10;
-          if (b < 26) return String.fromCharCode(65 + b);
-          b -= 26;
-          if (b < 26) return String.fromCharCode(97 + b);
-          b -= 26;
-          if (b === 0) return "-";
-          if (b === 1) return "_";
-          return "?";
-        }
-
-        function plantumlAppend3bytes(b1, b2, b3) {
-          const c1 = b1 >> 2;
-          const c2 = ((b1 & 0x3) << 4) | (b2 >> 4);
-          const c3 = ((b2 & 0xF) << 2) | (b3 >> 6);
-          const c4 = b3 & 0x3F;
-          return "" + plantumlEncode6bit(c1 & 0x3F) + plantumlEncode6bit(c2 & 0x3F) + plantumlEncode6bit(c3 & 0x3F) + plantumlEncode6bit(c4 & 0x3F);
-        }
-
-        function plantumlEncode64(data) {
-          let r = "";
-          for (let i = 0; i < data.length; i += 3) {
-            if (i + 2 === data.length) {
-              r += plantumlAppend3bytes(data[i], data[i + 1], 0);
-            } else if (i + 1 === data.length) {
-              r += plantumlAppend3bytes(data[i], 0, 0);
-            } else {
-              r += plantumlAppend3bytes(data[i], data[i + 1], data[i + 2]);
-            }
-          }
-          return r;
-        }
-
-        async function deflateRawUtf8(str) {
-          if (!("CompressionStream" in window)) return null;
-          let cs = null;
-          try {
-            cs = new CompressionStream("deflate-raw");
-          } catch (e) {
-            return null;
-          }
-          const enc = new TextEncoder();
-          const input = new Blob([enc.encode(str)]).stream();
-          const compressed = input.pipeThrough(cs);
-          const buf = await new Response(compressed).arrayBuffer();
-          return new Uint8Array(buf);
-        }
-
-        async function plantumlMakeLink(umlText) {
-          const bytes = await deflateRawUtf8(umlText);
-          if (!bytes) return null;
-          const encoded = plantumlEncode64(bytes);
-          return PLANTUML_SERVER + encoded;
-        }
-
-        async function renderAllPlantuml() {
-          const items = Array.from(document.querySelectorAll(".diagram[data-diagram='plantuml']"));
-          for (const d of items) {
-            const src = (d.querySelector("[data-diagram-src]")?.textContent || "").trim();
-            const out = d.querySelector("[data-diagram-render]");
-            if (!src || !out) continue;
-            const link = await plantumlMakeLink(src);
-            if (!link) continue;
-            try {
-              const img = document.createElement("img");
-              img.alt = "PlantUML diagram";
-              img.loading = "lazy";
-              img.decoding = "async";
-              img.referrerPolicy = "no-referrer";
-              img.src = link;
-              out.innerHTML = "";
-              out.appendChild(img);
-              d.setAttribute("data-rendered", "1");
-            } catch (e) {
-              // keep source-only
-            }
-          }
-        }
-
-        document.querySelectorAll("[data-action='plantuml-link']").forEach((btn) => {
-          btn.addEventListener("click", async () => {
-            const diagram = btn.closest(".diagram");
-            const src = (diagram?.querySelector("[data-diagram-src]")?.textContent || "").trim();
-            if (!src) return;
-            const link = await plantumlMakeLink(src);
-            if (!link) {
-              await copyText(src);
-              alert("PlantUML link generation not supported in this browser. Source copied instead.");
-              return;
-            }
-            await copyText(link);
-            window.open(link, "_blank", "noopener,noreferrer");
-          });
-        });
-
         // Auto-render (best-effort). Fallback is always source-only.
         renderAllMermaid();
-        renderAllPlantuml();
       })();
     </script>
   </body>
