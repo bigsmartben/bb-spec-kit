@@ -36,9 +36,17 @@ This command is optimized for **communication + implementation readiness**, not 
 
 3. Load context:
    - Read `FEATURE_SPEC`
-   - Read the design template and use it as the structure baseline for generated artifacts:
-     - Preferred: `.specify/templates/design-template.md`
-     - Fallback: `templates/design-template.md`
+   - Read the design template pack and use it as the structure baseline for generated artifacts:
+     - Preferred (split templates, flat):
+       - `.specify/templates/design-template.md` (index + checklist)
+       - `.specify/templates/design-ux-template.md` (UX artifacts)
+       - `.specify/templates/design-ui-template.md` (UI spec)
+       - `.specify/templates/design-prototype-template.md` (static prototype)
+     - Fallback:
+       - `templates/design-template.md`
+       - `templates/design-ux-template.md`
+       - `templates/design-ui-template.md`
+       - `templates/design-prototype-template.md`
    - If `IMPL_PLAN` exists, read it and extract any UI constraints (platforms, libraries, routes, a11y requirements, design system notes).
 
 ## Outputs (write files)
