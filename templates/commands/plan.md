@@ -136,7 +136,7 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
      - `summary` and/or `description`
      - `x-fr-ids: [FR-...]` (non-empty; use `FR-###` exactly as in the Spec)
      - `x-uc-ids: [UC-...]` when the Spec is UC-structured (recommended)
-     - Request/response schemas; include fields explicitly indicated by Spec UI elements and acceptance scenarios
+      - Request/response schemas; include fields explicitly indicated by Spec UI elements and acceptance scenarios
    - **FR coverage gate (ERROR if violated)**:
      - Enumerate all in-scope `FR-###` from FEATURE_SPEC (include `UC ID` column if applicable).
      - Verify every FR appears in at least one operation’s `x-fr-ids`.
@@ -187,7 +187,7 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
        - `operationId`
        - `FR-###` references (and `UC-...` references when applicable)
        - Priority: `P0|P1|P2|P3` (derive from Spec; default to `P1` only when clearly Key Path)
-       - Tags (multi): e.g. `happy-path`, `validation`, `authn`, `authz`, `not-found`, `conflict`, `state-transition`, `pagination`, `idempotency`, `concurrency`, `rate-limit` (use only relevant tags)
+      - Tags (multi): e.g. `happy-path`, `validation`, `authn`, `authz`, `not-found`, `conflict`, `state-transition`, `pagination`, `idempotency`, `concurrency`, `rate-limit` (use only relevant tags)
        - Scenario summary (Given/When/Then or equivalent)
        - Preconditions and required state transition(s)
        - Inputs and expected outputs
@@ -202,7 +202,7 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
        - **FR coverage**: every in-scope `FR-###` appears in ≥1 CaseID row
        - **Operation coverage**: every in-scope `operationId` has at least:
          - 1 `happy-path` case (Key Path/P1 when applicable)
-         - 1 negative case derived from Spec acceptance scenarios or contract constraints (typically `validation` or `authz`)
+        - 1 negative case derived from Spec acceptance scenarios or contract constraints (typically `validation`; include `authn`/`authz` only when explicitly in scope)
        - **Status-code coverage**: for each operation, include at least one case for each *meaningful* response class that exists in OpenAPI and is in-scope (2xx + key 4xx/5xx); mark rare/unsupported codes as `N/A` with rationale
        - **Schema coverage (Key Path)**: for Key Path + System-backed outputs, ensure cases explicitly assert presence/shape of the required response fields (do not rely on “happy path implies it”)
        - **State-machine coverage (when applicable)**:

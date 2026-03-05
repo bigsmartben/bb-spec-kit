@@ -94,7 +94,7 @@ description: "Task list template for feature implementation"
 Examples of foundational tasks (adjust based on your project):
 
 - [ ] T020 [Type:Infra] Setup database schema and migrations framework in [path]
-- [ ] T021 [P] [Type:Infra] Implement authentication/authorization framework in [paths]
+- [ ] T021 [P] [Type:Infra] Integrate Ops/Platform-managed authentication/authorization (gateway/IAM/WAF) in [paths] (or `N/A` if out of feature scope per constitution)
 - [ ] T022 [P] [Type:Infra] Setup API routing and middleware structure in [paths]
 - [ ] T023 [Type:Infra] Create base models/entities shared by multiple interfaces in [paths]
 - [ ] T024 [Type:Infra] Configure error handling and logging infrastructure in [paths]
