@@ -7,6 +7,12 @@ Recent changes to the Specify CLI and templates are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.88.26] - 2026-03-05
+
+### Changed
+
+- **Codex Agent**: Set `requires_cli: False` in `AGENT_CONFIG` to avoid conflicts with older `codex-cli` npm packages that are incompatible with modern Node.js environments.
+
 ## [0.89.1] - 2026-03-04
 
 ### Added

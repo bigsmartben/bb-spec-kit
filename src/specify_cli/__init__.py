@@ -178,7 +178,7 @@ AGENT_CONFIG = {
         "folder": ".codex/",
         "commands_subdir": "prompts",  # Special: uses prompts/ not commands/
         "install_url": "https://github.com/openai/codex",
-        "requires_cli": True,
+        "requires_cli": False,
     },
     "windsurf": {
         "name": "Windsurf",
