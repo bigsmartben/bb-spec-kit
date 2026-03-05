@@ -30,6 +30,7 @@ If no input: **ERROR** — "Usage: /speckit.skills2speckit <local-path or GitHub
 Extract from input:
 - `SOURCE_TYPE`: `local` or `github`
 - `SKILL_NAME`: last path segment, normalized to `kebab-case`
+- `COMMAND_NAME`: `speckit.<SKILL_NAME>`
 - `OUTPUT_DIR`: `.agents/skills/<SKILL_NAME>/` (relative to current project root)
 
 ---
@@ -51,32 +52,56 @@ files = {f.name: f.read_text(encoding="utf-8") for f in source.rglob("*") if f.i
 Convert the GitHub URL to a raw-content API call using `httpx` (already available — no new install needed):
 
 ```python
-import httpx, os
-
-# Convert github.com tree URL → api.github.com/repos/.../contents/... 
-# Example: https://github.com/owner/repo/tree/main/path/to/skill
-#       → https://api.github.com/repos/owner/repo/contents/path/to/skill?ref=main
+import httpx, os, re, urllib.parse
 
 headers = {}
 token = os.getenv("GH_TOKEN") or os.getenv("GITHUB_TOKEN")
 if token:
     headers["Authorization"] = f"Bearer {token}"
 
-resp = httpx.get(api_url, headers=headers, timeout=15)
-if resp.status_code == 401:
-    # Do NOT prompt interactively — just fail with a clear message
-    raise SystemExit("Private repo: set GH_TOKEN or GITHUB_TOKEN env var and retry.")
-if resp.status_code == 403:
-    raise SystemExit("Rate limited. Set GH_TOKEN to increase limits (5000 req/hr vs 60).")
-resp.raise_for_status()
-
-# Download each file listed in the API response
 files = {}  # {filename: content}
-for item in resp.json():
-    if item["type"] == "file":
-        raw = httpx.get(item["download_url"], headers=headers, timeout=15)
-        raw.raise_for_status()
-        files[item["name"]] = raw.text
+
+# Case 1: raw.githubusercontent.com single-file URL
+if "raw.githubusercontent.com" in input_url:
+    # Example: https://raw.githubusercontent.com/owner/repo/branch/path/SKILL.md
+    filename = input_url.split("/")[-1]
+    resp = httpx.get(input_url, headers=headers, timeout=15)
+    if resp.status_code == 401:
+        raise SystemExit("Private repo: set GH_TOKEN or GITHUB_TOKEN env var and retry.")
+    if resp.status_code == 403:
+        raise SystemExit("Rate limited. Set GH_TOKEN to increase limits (5000 req/hr vs 60).")
+    resp.raise_for_status()
+    files[filename] = resp.text
+
+# Case 2: github.com/owner/repo/tree/branch/path tree URL (directory)
+else:
+    # Parse: https://github.com/owner/repo/tree/branch/path/to/skill
+    # Convert to: https://api.github.com/repos/owner/repo/contents/path/to/skill?ref=branch
+    match = re.match(r"https://github\.com/([^/]+)/([^/]+)/tree/([^/]+)/(.*)", input_url)
+    if not match:
+        raise SystemExit(f"Invalid GitHub URL format: {input_url}")
+    owner, repo, branch, path = match.groups()
+    api_url = f"https://api.github.com/repos/{owner}/{repo}/contents/{path}?ref={branch}"
+    
+    # Recursive fetch: use a queue to process all levels
+    queue = [api_url]
+    while queue:
+        current_url = queue.pop(0)
+        resp = httpx.get(current_url, headers=headers, timeout=15)
+        if resp.status_code == 401:
+            raise SystemExit("Private repo: set GH_TOKEN or GITHUB_TOKEN env var and retry.")
+        if resp.status_code == 403:
+            raise SystemExit("Rate limited. Set GH_TOKEN to increase limits (5000 req/hr vs 60).")
+        resp.raise_for_status()
+        
+        for item in resp.json():
+            if item["type"] == "file":
+                raw = httpx.get(item["download_url"], headers=headers, timeout=15)
+                raw.raise_for_status()
+                files[item["name"]] = raw.text
+            elif item["type"] == "dir":
+                # Queue subdirectory for processing
+                queue.append(item["url"])
 ```
 
 ---
@@ -153,7 +178,8 @@ For each non-Python script file detected in Step 3:
 ```python
 """Python wrapper for <original-filename>.
 Compatible with Python >=3.11
-Original: references/<original-filename>
+Original: ../references/<original-filename>
+(Relative path from sample_codes/getting-started/wrapper.py → .agents/skills/<SKILL_NAME>/references/)
 
 Usage:
     python wrapper.py [args...]
@@ -162,7 +188,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-SCRIPT = Path(__file__).parent.parent / "references" / "<original-filename>"
+# Navigate: ./wrapper.py → ../ (getting-started) → ../ (sample_codes) → ../ (SKILL_NAME) → references/
+SCRIPT = Path(__file__).parent.parent.parent / "references" / "<original-filename>"
 
 
 def run(*args: str) -> int:
@@ -173,9 +200,12 @@ def run(*args: str) -> int:
         ".js": ["node"],
         ".ts": ["npx", "ts-node"],
         ".rb": ["ruby"],
+        # Note: .go and .rs files must be compiled first; copy to references only
     }
     ext = SCRIPT.suffix.lower()
-    cmd = interpreter_map.get(ext, []) + [str(SCRIPT), *args]
+    if ext not in interpreter_map:
+        raise SystemExit(f"Unsupported script type: {ext}. Ensure {SCRIPT} is executable or compiles in target environment.")
+    cmd = interpreter_map[ext] + [str(SCRIPT), *args]
     result = subprocess.run(cmd, check=False)
     return result.returncode
 
@@ -270,19 +300,71 @@ Rules:
 
 ---
 
-### Step 9 — Output Summary
+### Step 9 — Detect Workspace Agents and Sync Command Entrypoints
+
+Goal: make `/speckit.<SKILL_NAME>` usable in the **current workspace immediately**, without requiring a full re-init.
+
+Use this agent registry (aligned with spec-kit conventions):
+
+| Agent Key | Command Entrypoint Directory | Output Format |
+|-----------|------------------------------|---------------|
+| `claude` | `.claude/commands/` | Markdown `.md` |
+| `gemini` | `.gemini/commands/` | TOML `.toml` |
+| `copilot` | `.github/agents/` | Markdown `.md` |
+| `cursor-agent` | `.cursor/commands/` | Markdown `.md` |
+| `qwen` | `.qwen/commands/` | TOML `.toml` |
+| `opencode` | `.opencode/command/` | Markdown `.md` |
+| `codex` | `.codex/commands/` | Markdown `.md` |
+| `windsurf` | `.windsurf/workflows/` | Markdown `.md` |
+| `kilocode` | `.kilocode/rules/` | Markdown `.md` |
+| `auggie` | `.augment/rules/` | Markdown `.md` |
+| `roo` | `.roo/rules/` | Markdown `.md` |
+| `codebuddy` | `.codebuddy/commands/` | Markdown `.md` |
+| `qodercli` | `.qoder/commands/` | Markdown `.md` |
+| `q` | `.amazonq/prompts/` | Markdown `.md` |
+| `amp` | `.agents/commands/` | Markdown `.md` |
+| `shai` | `.shai/commands/` | Markdown `.md` |
+| `bob` | `.bob/commands/` | Markdown `.md` |
+
+Detection and sync rules:
+
+1. Detect active agents by checking whether each agent root directory already exists in the workspace.
+2. Read canonical source command from `templates/commands/<SKILL_NAME>.md`.
+3. For each detected agent, generate `COMMAND_NAME` in agent-native format:
+   - **Markdown agents** (claude, copilot, cursor-agent, opencode, codex, windsurf, kilocode, auggie, roo, codebuddy, qodercli, q, amp, shai, bob): write `<entrypoint>/speckit.<SKILL_NAME>.md` with `$ARGUMENTS` placeholder intact.
+   - **TOML agents** (gemini, qwen): write `<entrypoint>/speckit.<SKILL_NAME>.toml`, convert `$ARGUMENTS` → `{{args}}`, render as:
+
+```toml
+description = "<same description>"
+
+prompt = """
+<command content>
+"""
+```
+
+4. Create missing subdirectories under detected agent roots as needed.
+5. If target command file already exists, warn and overwrite (non-interactive).
+6. If no agent roots are detected, warn clearly and keep generated canonical files (`SKILL.md` + `templates/commands/<SKILL_NAME>.md`) as the source of truth.
+
+---
+
+### Step 10 — Output Summary
 
 Print a structured summary:
 
 ```
 ✓ Skill standardized:  .agents/skills/<SKILL_NAME>/SKILL.md
 ✓ Command registered:  templates/commands/<SKILL_NAME>.md
+✓ Command name:        speckit.<SKILL_NAME>
+✓ Detected agents:     <list> [or "none"]
+✓ Entrypoints synced:  <per-agent output paths> [or "none"]
 ✓ References:          .agents/skills/<SKILL_NAME>/references/<n> file(s)
 ✓ Python wrappers:     .agents/skills/<SKILL_NAME>/sample_codes/getting-started/wrapper.py  [or "none needed"]
 ✓ Dependencies added:  <list> [or "none"]
 
 Next steps:
-  1. Review .agents/skills/<SKILL_NAME>/SKILL.md — adjust description if needed
-  2. Run `uv sync` to install any new dependencies
-  3. Run `specify init --ai <agent> --ai-skills` to distribute the new command
+  1. Review .agents/skills/<SKILL_NAME>/SKILL.md and templates/commands/<SKILL_NAME>.md
+  2. Run `/speckit.<SKILL_NAME> ...` in a detected agent workspace
+  3. If no agent was detected, initialize one agent workspace (for example `specify init --ai codex --here`) and rerun `/speckit.skills2speckit`
+  4. Run `uv sync` only if dependencies were added
 ```
