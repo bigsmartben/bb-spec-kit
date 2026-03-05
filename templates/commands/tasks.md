@@ -14,6 +14,35 @@ scripts:
   ps: scripts/powershell/check-prerequisites.ps1 -Json
 ---
 
+## Execution Contract (SSOT)
+
+**Inputs**: Feature spec, plan, data model, contracts  
+**Outputs**: tasks.md, interface detail docs, coverage checklist  
+**Task Format**: `- [ ] T### [P?] [Type:...] [IFxx?] Description with file path`  
+**Task Types**: Research | Interface | Test | Infra | Docs  
+**Interface Rules**:  
+- Organize by interface delivery units (IF01, IF02, ...)
+- Each interface: ≥1 Test + ≥1 Implementation task
+- If test-case-matrix exists, reference CaseID explicitly
+
+**Diagram Rules (Canonical)**:  
+- All diagrams are operation-scoped (no cross-interface duplication)
+- Sequence Diagram (PlantUML): MUST include ALL dependencies from Section 4 inventory
+- Class Diagram (PlantUML): MUST reflect Section 3 evidence chain; external systems NOT modeled as internal classes
+- Both diagrams MUST be consistent with Evidence & Call Chain + Dependency Inventory
+
+**DAG Rules (Canonical)**:  
+- Adjacency List is PRIMARY (machine-parseable SSOT)
+- Mermaid Task DAG OPTIONAL (human visualization)
+- Every `[P]` task has zero blocking edges per DAG
+- Every edge cites valid TaskID present in checklist
+
+**Severity Policy**:  
+- Missing AEI-### citation for Existing boundary: **CRITICAL** (SSOT violation)
+- Interface without ≥1 Test task: **CRITICAL** (coverage gap)
+- UDD mismatch (spec vs interface detail): **HIGH** (design not ready)
+- Scope noise in diagrams (irrelevant classes/steps): **MEDIUM** (clarity issue)
+
 ## User Input
 
 ```text
@@ -55,25 +84,11 @@ You **MUST** consider the user input before proceeding (if not empty).
        - Use the interface detail template as the structure baseline (preserve headings; fill/replace placeholders; keep it operation-scoped):
            - Preferred: `.specify/templates/interface-detail-template.md`
            - Fallback: `templates/interface-detail-template.md`
-       - Each interface detail doc MUST include:
-         1) Interface Reference Table (method/path/operationId/x-fr-ids/request/response schema refs)
-         2) UDD Coverage (Key Path):
-            - List the **Key Path + System-backed** UDD Items this interface covers
-            - For each UDD Item, provide the corresponding `VO field path` (schema path) as evidence
-            - If an interface has no Key Path scope, explicitly note: `Key Path coverage: N/A`
-         3) Evidence & Call Chain (call-chain drilldown; file paths + symbols; each step marked `Existing` vs `Planned/New code`)
-            - If the project constitution includes an Architecture Evidence Index (SSOT) with stable `AEI-###` IDs:
-              - Any step marked `Existing` MUST cite the corresponding `AEI-###` for the boundary/entrypoint it references.
-              - Do NOT restate the repo boundary index here; reference `AEI-###` and keep details operation-scoped.
-         4) Related Applications & Dependency Inventory (for this operation only): for each dependency record app/system name, ownership (internal/2nd-party/3rd-party), call direction (inbound/outbound), protocol/interface, timeout & retry policy, and failure/degradation mode
-         5) Sequence Diagram (PlantUML; MUST include every dependency from the inventory and all remote calls: 2nd-party, 3rd-party, middleware, queues, caches, etc.)
-         6) Relevant Code Class Diagram (PlantUML; mandatory; only code relevant to this interface/feature)
-            - The class diagram MUST be consistent with the operation call chain and dependency inventory for this interface
-            - Include only in-repo code classes/modules directly involved in this operation (controller/service/domain/repository/gateway/adapter as applicable)
-            - Do NOT model external systems as internal code classes; represent those in sequence diagram and dependency inventory
-         7) Core Algorithm Pseudocode (business-critical logic only)
-         8) Change List (resources: DB/config/infra; source code modules/files; API/schema deltas)
-         9) Performance Analysis (latency budget, critical path, external call timeouts/retries, caching, concurrency, failure modes, observability)
+       - Each interface detail doc MUST follow template: `Section 1: Reference | 2: UDD Coverage | 3: Evidence & Call Chain | 4: Dependency Inventory | 5: Sequence Diagram | 6: Class Diagram | 7: Pseudocode | 8: Change List | 9: Performance`
+       - Diagram rules (Canonical SSOT in Execution Contract):
+         - Sequence & Class diagrams MUST be consistent with Section 3 (Evidence) + Section 4 (Inventory)
+         - External dependencies NOT modeled as internal classes; see Section 4 for ownership/protocol/timeout/retry
+       - Evidence requirement: Any `Existing` boundary step MUST cite `AEI-###` (per constitution SSOT); do NOT duplicate repo boundary index
        - Map each interface to the user stories it serves (from spec.md)
      - Else if contracts/ exists and contains one or more `*.md` contract docs:
        - Sort contract doc paths lexicographically
@@ -90,11 +105,11 @@ You **MUST** consider the user input before proceeding (if not empty).
      - If `contracts/test-case-matrix.md` exists:
        - Every interface MUST have at least one `Type:Test` task that explicitly references the concrete `CaseID` set it covers
        - Each such test task MUST list required mocks/fixtures extracted from those `CaseID` rows
-   - Generate a DAG (both Mermaid and adjacency list):
+   - Generate a DAG (Adjacency List as SSOT; optional Mermaid visualization):
      - Interface-level dependencies (IFxx -> IFyy)
      - Task-level dependencies (T### -> T###)
-   - Identify parallel execution opportunities and mark them with `[P]` consistently with the DAG
-   - Validate completeness: each interface is independently deliverable and verifiable
+   - Mark `[P]` tasks consistently with DAG (see Execution Contract: DAG Rules)
+   - Validate completeness: each interface independently deliverable & verifiable
 
 4. **Generate tasks.md**: Use the tasks template as structure (preferred: `.specify/templates/tasks-template.md`; fallback: `templates/tasks-template.md`), fill with:
    - Correct feature name from plan.md
@@ -113,10 +128,9 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Final Phase: Polish & cross-cutting concerns
    - All tasks MUST follow the strict checklist format (see Task Generation Rules below)
    - Every task MUST include concrete file paths (or explicit N/A only for tasks that do not modify repository files)
-   - DAG section including:
-     - Interface DAG (Mermaid)
-     - Task DAG (Mermaid)
-     - Task DAG (Adjacency List)
+   - DAG section:
+     - Task DAG (Adjacency List) — PRIMARY SSOT for machine parsing
+     - Interface DAG (Mermaid) — OPTIONAL human visualization
 
    - Also generate a coverage checklist (soft gate for implementation):
      - Create/overwrite `FEATURE_DIR/checklists/udd-vo-coverage.md`
@@ -151,40 +165,16 @@ The tasks.md should be immediately executable - each task must be specific enoug
 
 ### Checklist Format (REQUIRED)
 
-Every task MUST strictly follow this format:
+`- [ ] T### [P?] [Type:<Research|Interface|Test|Infra|Docs>] [IFxx?] Description with file path`
 
-```text
-- [ ] T### [P?] [Type:<Research|Interface|Test|Infra|Docs>] [IFxx?] Description with file path
-```
+- **Checkbox** (`- [ ]`): ALWAYS start
+- **Task ID** (T###): Sequential, execution order
+- **[P]**: Mark if parallelizable (zero blocking edges per DAG, no shared-file conflict)
+- **[Type:...]**: REQUIRED; one of Research|Interface|Test|Infra|Docs
+- **[IFxx]**: REQUIRED for Type:Interface & Type:Test; OPTIONAL otherwise
+- **Description**: Exact file path (or explicit `N/A` only if no file edits)
 
-**Format Components**:
-
-1. **Checkbox**: ALWAYS start with `- [ ]` (markdown checkbox)
-2. **Task ID**: Sequential number (T001, T002, T003...) in execution order
-3. **[P] marker**: Include ONLY if task is parallelizable:
-   - No dependencies on incomplete tasks (per DAG)
-   - No shared-file conflict (tasks should target different files/areas)
-4. **[Type:...] label**: REQUIRED for every task
-   - Allowed values: Research, Interface, Test, Infra, Docs
-5. **[IFxx] label**:
-   - REQUIRED for `Type:Interface` and `Type:Test` tasks
-   - OPTIONAL for other types
-6. **[USx] label (optional)**:
-   - OPTIONAL only
-   - Primary user-story traceability MUST be captured in a mapping table, not enforced per task line
-7. **Description**: Clear action with exact file path (or explicit N/A only for tasks that do not modify repository files)
-
-**Examples**:
-
-- ✅ CORRECT: `- [ ] T001 [Type:Infra] Create project structure in src/ and tests/ per plan.md`
-- ✅ CORRECT: `- [ ] T010 [P] [Type:Test] [IF01] Add contract test in tests/contract/test_login.py`
-- ✅ CORRECT: `- [ ] T012 [P] [Type:Interface] [IF01] Implement login handler in src/api/login.py`
-- ✅ CORRECT: `- [ ] T014 [Type:Interface] [IF01] Wire route in src/api/routes.py (depends on T012)`
-- ❌ WRONG: `- [ ] Create User model` (missing ID and required labels)
-- ❌ WRONG: `T001 [US1] Create model` (missing checkbox)
-- ❌ WRONG: `- [ ] [Type:Interface] [IF01] Implement login` (missing Task ID)
-- ❌ WRONG: `- [ ] T001 [Type:Interface] Implement login` (missing IF label)
-- ❌ WRONG: `- [ ] T001 [Type:Interface] [IF01] Implement login` (missing file path or N/A)
+**Examples**: ✅ `- [ ] T001 [Type:Infra] Create structure in src/` | ✅ `- [ ] T010 [P] [Type:Test] [IF01] Add test in tests/contract/test_login.py` | ❌ `- [ ] Create model` (missing ID)
 
 ### Task Organization
 

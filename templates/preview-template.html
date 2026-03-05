@@ -530,6 +530,73 @@
         margin: 6px 0;
       }
 
+      .summary-block {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin-bottom: 12px;
+        background: color-mix(in srgb, var(--card2) 86%, transparent);
+      }
+
+      .summary-block h3,
+      .review-questions h3 {
+        margin-top: 0;
+      }
+
+      .review-questions {
+        border-left: 3px solid color-mix(in srgb, var(--primary) 62%, var(--line));
+        padding: 10px 12px;
+        margin: 10px 0 14px;
+        background: color-mix(in srgb, var(--primary) 10%, var(--card2));
+        border-radius: 0 10px 10px 0;
+      }
+
+      .review-questions ol {
+        margin: 6px 0 0;
+        padding-left: 20px;
+      }
+
+      .review-questions li {
+        margin: 6px 0;
+      }
+
+      .score-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+        margin: 10px 0 14px;
+      }
+
+      .score-item {
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        padding: 10px;
+        background: color-mix(in srgb, var(--card2) 84%, transparent);
+      }
+
+      .score-item .name {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .score-item .score {
+        margin-top: 6px;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+      }
+
+      .decode-hint {
+        margin: 8px 0 10px;
+      }
+
+      .recipe-box {
+        border: 1px dashed color-mix(in srgb, var(--accent) 58%, var(--line));
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin: 12px 0;
+        background: color-mix(in srgb, var(--accent) 10%, var(--card2));
+      }
+
       @media print {
         .topbar {
           display: none;
@@ -597,6 +664,32 @@
         部分 IDE 预览会禁用 JS，此时只能查看源码（建议用真实浏览器打开）。所有 checkbox 结果会保存到本地浏览器 localStorage。
       </div>
 
+      <div class="recipe-box mini">
+        <strong>Deterministic Fill Recipe / 填充配方：</strong>
+        每页必须填写：①三句摘要（目标/成熟度/风险）；②3个评审问题；③ID保留 + 人话解释。
+        缺失信息时使用：<code>N/A (MODE=&lt;mode&gt;)</code> + 缺失路径 + 生成命令。
+      </div>
+
+      <details class="mini">
+        <summary>Mini Examples / 最小示例（风格参考）</summary>
+        <ul class="ul-tree">
+          <li>
+            三句摘要示例：
+            <ul class="ul-tree">
+              <li>目标：确认需求-接口-测试链路是否闭环。</li>
+              <li>成熟度：Partial（spec/plan ready，test-case-matrix missing）。</li>
+              <li>风险：测试追踪链未闭环，Owner=QA，Next=/speckit.plan。</li>
+            </ul>
+          </li>
+          <li>
+            N/A 行示例：<code>Status=N/A (MODE=spec)</code>；Evidence=<code>contracts/openapi.yaml</code>；Next=<code>/speckit.plan</code>
+          </li>
+          <li>
+            ID 解码示例：<code>FR-003</code> → 用户提交后系统必须（MUST）在 2 秒内返回可见反馈。
+          </li>
+        </ul>
+      </details>
+
       <!-- PAGE 1: Overview -->
       <section class="page" data-page="overview" id="overview">
         <div class="grid">
@@ -606,6 +699,45 @@
               <div class="sub">Iteration snapshot + readiness + audit summary</div>
             </div>
             <div class="bd">
+              <div class="summary-block">
+                <h3>3-Sentence Summary / 三句摘要</h3>
+                <ol>
+                  <li><!-- FILL: 业务目标一句话 --></li>
+                  <li><!-- FILL: 当前成熟度一句话 --></li>
+                  <li><!-- FILL: 主要风险一句话 --></li>
+                </ol>
+              </div>
+
+              <div class="review-questions">
+                <h3>Review Questions / 评审问题</h3>
+                <ol>
+                  <li><!-- FILL: Q1 --></li>
+                  <li><!-- FILL: Q2 --></li>
+                  <li><!-- FILL: Q3 --></li>
+                </ol>
+              </div>
+
+              <h3>Readability Scorecard / 可读性评分</h3>
+              <p class="muted mini">Rubric: High/Medium/Low 或 0-100。建议依据完整性、追踪链闭环、测试覆盖、可评审性评分。</p>
+              <div class="score-grid" aria-label="Readability scorecard">
+                <div class="score-item">
+                  <div class="name">Completeness / 完整性</div>
+                  <div class="score"><!-- FILL: 0-100 or H/M/L --></div>
+                </div>
+                <div class="score-item">
+                  <div class="name">Traceability / 可追踪性</div>
+                  <div class="score"><!-- FILL: 0-100 or H/M/L --></div>
+                </div>
+                <div class="score-item">
+                  <div class="name">Testability / 可测试性</div>
+                  <div class="score"><!-- FILL: 0-100 or H/M/L --></div>
+                </div>
+                <div class="score-item">
+                  <div class="name">Reviewability / 可评审性</div>
+                  <div class="score"><!-- FILL: 0-100 or H/M/L --></div>
+                </div>
+              </div>
+
               <div class="split">
                 <div>
                   <h3>Iteration Snapshot / 迭代快照</h3>
@@ -692,6 +824,12 @@
                   </tr>
                 </thead>
                 <tbody>
+                  <tr>
+                    <td><em>Example fallback</em></td>
+                    <td><code>contracts/openapi.yaml</code></td>
+                    <td><code>N/A (MODE=spec)</code></td>
+                    <td>Generate with <code>/speckit.plan</code> when HTTP API surface is in scope</td>
+                  </tr>
                   <!-- FILL: rows with badge-style status (Ready/Planned/Missing/N/A) -->
                 </tbody>
               </table>
@@ -782,6 +920,24 @@
               <div class="sub">JTBD, scope, functional breakdown, flows, state machine, UI contract</div>
             </div>
             <div class="bd">
+              <div class="summary-block">
+                <h3>3-Sentence Summary / 三句摘要</h3>
+                <ol>
+                  <li><!-- FILL: 产品目标与业务价值 --></li>
+                  <li><!-- FILL: 当前范围成熟度判断 --></li>
+                  <li><!-- FILL: 关键产品风险 --></li>
+                </ol>
+              </div>
+
+              <div class="review-questions">
+                <h3>Review Questions / 评审问题</h3>
+                <ol>
+                  <li><!-- FILL: 范围是否清晰且可验证？ --></li>
+                  <li><!-- FILL: FR 是否覆盖核心用户场景？ --></li>
+                  <li><!-- FILL: 成功指标是否可度量？ --></li>
+                </ol>
+              </div>
+
               <div class="lens-block" data-lens="PM">
                 <div class="who">PM focus: scope + outcomes</div>
                 <ul class="ul-tree">
@@ -817,6 +973,7 @@
               </table>
 
               <h3>FR Index</h3>
+              <p class="muted mini decode-hint">Decode rule: keep <code>FR-###</code> unchanged and add one human-readable capability summary per row.</p>
               <table>
                 <thead>
                   <tr>
@@ -824,6 +981,7 @@
                     <th>FR ID</th>
                     <th>Capability</th>
                     <th>Scenario</th>
+                    <th>Readable Meaning</th>
                   </tr>
                 </thead>
                 <tbody><!-- FILL --></tbody>
@@ -913,6 +1071,24 @@
               <div class="sub">Journey, flows, screen inventory, IA, components, states, copy, a11y, prototype</div>
             </div>
             <div class="bd">
+              <div class="summary-block">
+                <h3>3-Sentence Summary / 三句摘要</h3>
+                <ol>
+                  <li><!-- FILL: 核心体验目标 --></li>
+                  <li><!-- FILL: 当前设计成熟度 --></li>
+                  <li><!-- FILL: 主要可用性/无障碍风险 --></li>
+                </ol>
+              </div>
+
+              <div class="review-questions">
+                <h3>Review Questions / 评审问题</h3>
+                <ol>
+                  <li><!-- FILL: 关键旅程是否闭环？ --></li>
+                  <li><!-- FILL: 错误与边界态是否被设计覆盖？ --></li>
+                  <li><!-- FILL: a11y 基线是否明确？ --></li>
+                </ol>
+              </div>
+
               <div class="lens-block" data-lens="UX">
                 <div class="who">UX focus: journey + usability</div>
                 <ul class="ul-tree">
@@ -1099,6 +1275,24 @@
               <div class="sub">Interfaces, data model, per-operation details, readiness gates</div>
             </div>
             <div class="bd">
+              <div class="summary-block">
+                <h3>3-Sentence Summary / 三句摘要</h3>
+                <ol>
+                  <li><!-- FILL: 后端能力目标 --></li>
+                  <li><!-- FILL: 契约与模型成熟度 --></li>
+                  <li><!-- FILL: 稳定性/性能主要风险 --></li>
+                </ol>
+              </div>
+
+              <div class="review-questions">
+                <h3>Review Questions / 评审问题</h3>
+                <ol>
+                  <li><!-- FILL: operationId 与 FR 是否完整映射？ --></li>
+                  <li><!-- FILL: 错误模型和幂等策略是否可验证？ --></li>
+                  <li><!-- FILL: 调用链与性能预算是否有证据？ --></li>
+                </ol>
+              </div>
+
               <div class="lens-block" data-lens="BE">
                 <div class="who">BE focus: contract + correctness</div>
                 <ul class="ul-tree">
@@ -1231,6 +1425,24 @@
               <div class="sub">Routes, component tree, client state, performance and a11y</div>
             </div>
             <div class="bd">
+              <div class="summary-block">
+                <h3>3-Sentence Summary / 三句摘要</h3>
+                <ol>
+                  <li><!-- FILL: 前端交互目标 --></li>
+                  <li><!-- FILL: 页面/组件成熟度 --></li>
+                  <li><!-- FILL: 性能与可访问性风险 --></li>
+                </ol>
+              </div>
+
+              <div class="review-questions">
+                <h3>Review Questions / 评审问题</h3>
+                <ol>
+                  <li><!-- FILL: 路由与页面信息架构是否清晰？ --></li>
+                  <li><!-- FILL: 客户端状态与数据策略是否一致？ --></li>
+                  <li><!-- FILL: 错误恢复与性能预算是否可测？ --></li>
+                </ol>
+              </div>
+
               <div class="lens-block" data-lens="FE">
                 <div class="who">FE focus: interaction + performance</div>
                 <ul class="ul-tree">
@@ -1341,6 +1553,24 @@
               <div class="sub">AC, case matrix, coverage, edge/negative, determinism</div>
             </div>
             <div class="bd">
+              <div class="summary-block">
+                <h3>3-Sentence Summary / 三句摘要</h3>
+                <ol>
+                  <li><!-- FILL: 验收目标 --></li>
+                  <li><!-- FILL: 覆盖成熟度 --></li>
+                  <li><!-- FILL: 主要测试风险 --></li>
+                </ol>
+              </div>
+
+              <div class="review-questions">
+                <h3>Review Questions / 评审问题</h3>
+                <ol>
+                  <li><!-- FILL: FR/operationId/CaseID 链路是否闭环？ --></li>
+                  <li><!-- FILL: 负向与边界场景是否覆盖？ --></li>
+                  <li><!-- FILL: 用例执行是否确定性可复现？ --></li>
+                </ol>
+              </div>
+
               <div class="lens-block" data-lens="QA">
                 <div class="who">QA focus: acceptance + coverage</div>
                 <ul class="ul-tree">
@@ -1470,6 +1700,24 @@
               <div class="sub">Clarifications, decisions, risks, checklist index</div>
             </div>
             <div class="bd">
+              <div class="summary-block">
+                <h3>3-Sentence Summary / 三句摘要</h3>
+                <ol>
+                  <li><!-- FILL: 审计目标 --></li>
+                  <li><!-- FILL: 决策沉淀成熟度 --></li>
+                  <li><!-- FILL: 当前未闭合问题风险 --></li>
+                </ol>
+              </div>
+
+              <div class="review-questions">
+                <h3>Review Questions / 评审问题</h3>
+                <ol>
+                  <li><!-- FILL: 关键澄清项是否已定位与归档？ --></li>
+                  <li><!-- FILL: 主要假设是否有证据支持？ --></li>
+                  <li><!-- FILL: 高风险项是否有责任人与缓解计划？ --></li>
+                </ol>
+              </div>
+
               <details open>
                 <summary>NEEDS CLARIFICATION</summary>
                 <pre><!-- FILL: aggregated markers + refs --></pre>
@@ -1535,20 +1783,110 @@
               <div class="sub">Spec is SSOT; other artifacts optional</div>
             </div>
             <div class="bd">
+              <div class="summary-block">
+                <h3>3-Sentence Summary / 三句摘要</h3>
+                <ol>
+                  <li><!-- FILL: 附录用途与边界 --></li>
+                  <li><!-- FILL: 当前附录完整度 --></li>
+                  <li><!-- FILL: 需要优先阅读的证据 --></li>
+                </ol>
+              </div>
+
+              <div class="review-questions">
+                <h3>Review Questions / 评审问题</h3>
+                <ol>
+                  <li><!-- FILL: SSOT 引用是否正确且可追溯？ --></li>
+                  <li><!-- FILL: 哪些附录直接支撑当前评审结论？ --></li>
+                  <li><!-- FILL: 还缺失哪些关键证据文档？ --></li>
+                </ol>
+              </div>
+
+              <h3>Appendix Navigation Index / 附录导航索引</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Artifact</th>
+                    <th>Anchor</th>
+                    <th>Why Read / 用途</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>spec.md</code></td>
+                    <td><code>#appendix-a</code></td>
+                    <td><!-- FILL: 核心需求 SSOT 证据 --></td>
+                  </tr>
+                  <tr>
+                    <td><code>plan.md</code></td>
+                    <td><code>#appendix-b</code></td>
+                    <td><!-- FILL: 技术路线与分阶段计划 --></td>
+                  </tr>
+                  <tr>
+                    <td><code>tasks.md</code></td>
+                    <td><code>#appendix-c</code></td>
+                    <td><!-- FILL: 任务拆解与依赖图 --></td>
+                  </tr>
+                  <tr>
+                    <td><code>data-model.md</code></td>
+                    <td><code>#appendix-d</code></td>
+                    <td><!-- FILL: 实体约束与状态演进 --></td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <h3>Terminology Quick Index / 术语速查</h3>
+              <p class="muted mini">Keep stable tokens unchanged. Add one short reviewer-facing explanation and evidence pointer per token.</p>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Token</th>
+                    <th>Readable Meaning</th>
+                    <th>Evidence Ref</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>UC-###</code></td>
+                    <td><!-- FILL --></td>
+                    <td><!-- FILL --></td>
+                  </tr>
+                  <tr>
+                    <td><code>FR-###</code></td>
+                    <td><!-- FILL --></td>
+                    <td><!-- FILL --></td>
+                  </tr>
+                  <tr>
+                    <td><code>Entity.field</code></td>
+                    <td><!-- FILL --></td>
+                    <td><!-- FILL --></td>
+                  </tr>
+                  <tr>
+                    <td><code>operationId</code></td>
+                    <td><!-- FILL --></td>
+                    <td><!-- FILL --></td>
+                  </tr>
+                  <tr>
+                    <td><code>CaseID</code></td>
+                    <td><!-- FILL --></td>
+                    <td><!-- FILL --></td>
+                  </tr>
+                </tbody>
+              </table>
+
               <details open>
-                <summary>Appendix A — spec.md (mandatory)</summary>
+                <summary id="appendix-a">Appendix A — spec.md (mandatory)</summary>
                 <pre><!-- FILL full spec.md verbatim --></pre>
               </details>
               <details>
-                <summary>Appendix B — plan.md (optional)</summary>
+                <summary id="appendix-b">Appendix B — plan.md (optional)</summary>
                 <pre><!-- FILL full plan.md verbatim if present --></pre>
               </details>
               <details>
-                <summary>Appendix C — tasks.md (optional)</summary>
+                <summary id="appendix-c">Appendix C — tasks.md (optional)</summary>
                 <pre><!-- FILL full tasks.md verbatim if present --></pre>
               </details>
               <details>
-                <summary>Appendix D — data-model.md (optional)</summary>
+                <summary id="appendix-d">Appendix D — data-model.md (optional)</summary>
                 <pre><!-- FILL full data-model.md verbatim if present --></pre>
               </details>
               <details>

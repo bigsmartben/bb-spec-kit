@@ -147,7 +147,25 @@ Focus on high-signal findings. Limit to 50 findings total; aggregate remainder i
 - Task ordering contradictions (e.g., integration tasks before foundational setup tasks without dependency note)
 - Conflicting requirements (e.g., one requires Next.js while other specifies Vue)
 
-#### G. Test Case Matrix Alignment *(if `contracts/test-case-matrix.md` exists)*
+#### G. OpenAPI Field Alignment *(if OpenAPI exists)*
+
+OpenAPI defines the system's data contract. This section ensures requirements and contracts stay synchronized with API specifications.
+
+1. **Schema field presence**
+   - Track schema.properties in OpenAPI
+   - Verify every request/response field in spec requirements has a corresponding schema.property definition
+   - Flag additions to OpenAPI without spec acknowledgment as design drift
+   - Flag spec requirements referencing fields not in any OpenAPI schema as underspecification
+
+2. **Parameter alignment**
+   - Parameters in spec contract (path/query/header) MUST exist in OpenAPI
+   - Validate dataType and validation constraints match between spec and OpenAPI
+
+3. **Edge case coverage**
+   - For each schema field, check that nullable/minLength/pattern constraints are explicit in OpenAPI
+   - Flag missing or implicit constraints that contradicts spec requirements
+
+#### H. Test Case Matrix Alignment *(if `contracts/test-case-matrix.md` exists)*
 
 Treat the matrix as a design + traceability artifact. This section is a **consistency check** only (no file writes).
 
@@ -186,7 +204,7 @@ Perform these checks and emit findings with precise locations:
      - If Interface Inventory maps `IFxx` to an `operationId`, verify referenced CaseIDs are for that same `operationId`
    - If any referenced CaseID is missing/mismatched: report **CRITICAL** (implementation will ERROR later)
 
-#### H. Interface Detail Docs Alignment *(if `contracts/interface-details/` exists or is expected)*
+#### I. Interface Detail Docs Alignment *(if `contracts/interface-details/` exists or is expected)*
 
 Treat interface detail docs as operation-scoped design packets (not implementation). This section verifies that `data-model.md` and `interface-details/<operationId>.md` are aligned and that evidence chains are relevant and properly cited.
 
@@ -213,8 +231,20 @@ Perform these checks and emit findings with precise locations:
    - Evidence in interface detail docs MUST be operation-scoped:
      - If a call chain step is not relevant to the operation’s request/response behavior or persistence mapping, flag as **MEDIUM** (noise / weak relevance).
    - If the constitution includes an Architecture Evidence Index with `AEI-###` IDs:
-     - Any evidence-chain step labeled `Existing` in interface detail docs SHOULD cite the corresponding `AEI-###` boundary/entrypoint it relies on.
-     - Missing `AEI-###` citations for `Existing` boundary/entrypoint steps: **HIGH** (SSOT drift risk).
+     - Any evidence-chain step labeled `Existing` in interface detail docs MUST cite the corresponding `AEI-###` boundary/entrypoint it relies on.
+     - Missing `AEI-###` citations for `Existing` boundary/entrypoint steps: **CRITICAL** (constitution/SSOT violation).
+
+5. **Class diagram context consistency (PlantUML)**
+   - For each `contracts/interface-details/<operationId>.md`:
+     - Section 6 (Relevant Code Class Diagram) MUST be present and non-empty (not placeholder-only).
+     - Class diagram scope MUST be operation-scoped:
+       - Include only in-repo code classes/modules directly involved in this operation.
+       - If classes/components in the diagram have no corresponding relevance in Section 3 call chain, flag as **MEDIUM** (scope noise).
+     - External systems MUST NOT be modeled as internal code classes in Section 6:
+       - If external dependencies (2nd/3rd-party, middleware, queues, caches, remote systems) are modeled as internal classes, flag as **HIGH** and recommend moving representation to Section 5 sequence diagram + Section 4 dependency inventory.
+     - Structural alignment checks:
+       - Any gateway/adapter/repository class shown in Section 6 SHOULD be reflected in either Section 3 evidence call chain or Section 4 dependency inventory context.
+       - Missing corresponding context evidence for key boundary classes: **HIGH** (traceability gap).
 
 ### 5. Severity Assignment
 
@@ -248,6 +278,8 @@ Output a Markdown report (no file writes) with the following structure:
 
 **Interface Detail Docs Alignment Issues:** (if any; when `contracts/interface-details/` is present or expected)
 
+**Class Diagram Context Consistency Issues:** (if any; when `contracts/interface-details/` is present or expected)
+
 **Metrics:**
 
 - Total Requirements
@@ -261,6 +293,8 @@ Output a Markdown report (no file writes) with the following structure:
   - Missing interface detail docs (count; list operationIds)
   - UDD Coverage mismatches (count)
   - Missing VO→Persistence rows for referenced `VO field path` (count)
+  - Missing/empty class diagrams in Section 6 (count)
+  - Class-diagram context mismatches (count)
 - If `contracts/test-case-matrix.md` exists:
   - Total CaseIDs
   - CaseIDs per `operationId` (top 5 by count; and list any 0-count OpenAPI ops when applicable)
