@@ -72,7 +72,7 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
    - Phase 0: Generate research.md (resolve all NEEDS CLARIFICATION)
    - Phase 1: Generate design artifacts in strict dependency order:
      - `contracts/openapi.yaml` (OpenAPI 3.0; frontend ↔ backend HTTP API features only; MUST achieve full FR coverage)
-     - `data-model.md` (incl. detailed state machines + class diagrams)
+     - `data-model.md` (incl. state model (Full FSM when applicable) + class diagrams)
      - `contracts/test-case-matrix.md` (derived from OpenAPI + data model + Spec; frontend ↔ backend HTTP API features only)
      - `contracts/` (other contract formats as appropriate for non-HTTP projects)
      - `quickstart.md`
@@ -126,6 +126,10 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
    - If the feature includes a **frontend ↔ backend HTTP API surface**, you MUST generate the API-centric artifacts below (Steps 1→3).
    - If the feature does **not** include a frontend ↔ backend HTTP API surface, you MUST NOT force OpenAPI/Test Matrix/Interface Detail documents.
      In that case, keep `/contracts/` for whatever contract format is appropriate for the project type (CLI schema, public library API, internal module contracts, etc.).
+   - **Compatibility-first (hard rule)**: If the repository already has an existing contract surface (OpenAPI or non-HTTP contracts), you MUST preserve backward compatibility via **additive change only**:
+     - Prefer reproducing current interfaces and evolving them via new optional fields, enum extensions, and new operations.
+     - MUST NOT delete fields/operations, change types, narrow constraints, or redefine semantics.
+     - If a breaking change is unavoidable, record explicit justification and a migration strategy in `plan.md` under `## Complexity Tracking`.
 
 1. **Step 1 — Interface Definition (OpenAPI 3.0)** *(frontend ↔ backend HTTP API features only)*:
    - Create `specs/<feature>/contracts/openapi.yaml` using the OpenAPI 3.0 specification.
@@ -142,8 +146,11 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
      - Verify every FR appears in at least one operation’s `x-fr-ids`.
      - If any FR is unmapped, treat the plan as **ERROR** and revise the API surface until coverage is complete.
 
-2. **Step 2 — Data Model (incl. detailed state machines + class diagrams)**:
+2. **Step 2 — Data Model (incl. state model + class diagrams)**:
    - Create `specs/<feature>/data-model.md` based on FEATURE_SPEC + repo evidence.
+   - **Minimal-change (hard rule)**: In existing repositories, the data model MUST be repo-convention-first and delta-oriented:
+     - Start from existing schemas/types/naming conventions and propose the smallest change set that satisfies Spec/UDD/VO requirements.
+     - MUST NOT perform 3NF-driven redesign unless directly required by feature constraints.
    - Include:
      - Entities/classes in scope, with relationships (only fields required by Spec UI/API; do not model every database column)
      - Validation rules derived from requirements
@@ -154,11 +161,23 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
      - **VO → Persistence mapping (minimum viable; Domain optional)**:
        - Add a table mapping each VO field to its persistence source (or planned source):
          - `VO field path` | `Persistence source` | `Transform/validation` | `Evidence (file/symbol or Planned/New code)`
-     - For each stateful entity: detailed state machine design
-       - Exhaustive state enumeration (must cover Spec states)
-       - Transition table
-       - Transition pseudocode
-       - PlantUML state diagram and/or class diagram (use Markdown fences: ```plantuml)
+     - For each stateful entity: produce a **state model** using the **FSM Gate** (hard rule)
+       - Definitions:
+         - `N` = number of distinct, user-meaningful lifecycle states (discrete nodes)
+         - `T` = number of effective transitions (unique `FromState → ToState` edges)
+       - Applicability: a **Full FSM** is applicable iff `N > 4 OR T ≥ 2N`
+       - If Full FSM is applicable, include:
+         - Exhaustive state enumeration (must cover Spec states)
+         - Transition table
+         - Transition pseudocode
+         - PlantUML state diagram and/or class diagram (use Markdown fences: ```plantuml)
+       - If Full FSM is not applicable, include a **Lightweight State Model** instead:
+         - state field definition (if any)
+         - allowed transitions list (event/guard optional)
+         - forbidden transitions list
+         - invariants (if any)
+         - no PlantUML required
+       - Exception policy: Full FSM below the threshold requires explicit justification in `plan.md` under `## Complexity Tracking`
      - A feature-scope class diagram (PlantUML) showing relationships and key fields
      - Evidence mapping table: Entity/Class ↔ repo types (file paths + symbols) or mark as `Planned/New code`
 
@@ -167,7 +186,7 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
    - Generate it from:
      - `contracts/openapi.yaml` (`operationId` + `x-fr-ids` + schemas)
      - Spec FR descriptions + acceptance scenarios
-     - State machine design from `data-model.md`
+     - State model from `data-model.md` (Full FSM when applicable; otherwise Lightweight State Model)
    - Primary goal: make verification **implementable without further discovery** while maximizing coverage of:
      - Spec intent (FR/UC + acceptance scenarios)
      - Interface contract (request/response schema + status codes)
@@ -198,16 +217,16 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
      - Traceability matrix (MUST be explicit, not implied):
        - FR → operationId(s) → CaseID(s) → (state transition(s) if applicable)
        - If UC-structured: UC → FR → CaseID(s)
-     - Coverage gates (ERROR if violated for in-scope items):
+    - Coverage gates (ERROR if violated for in-scope items):
        - **FR coverage**: every in-scope `FR-###` appears in ≥1 CaseID row
        - **Operation coverage**: every in-scope `operationId` has at least:
          - 1 `happy-path` case (Key Path/P1 when applicable)
         - 1 negative case derived from Spec acceptance scenarios or contract constraints (typically `validation`; include `authn`/`authz` only when explicitly in scope)
        - **Status-code coverage**: for each operation, include at least one case for each *meaningful* response class that exists in OpenAPI and is in-scope (2xx + key 4xx/5xx); mark rare/unsupported codes as `N/A` with rationale
        - **Schema coverage (Key Path)**: for Key Path + System-backed outputs, ensure cases explicitly assert presence/shape of the required response fields (do not rely on “happy path implies it”)
-       - **State-machine coverage (when applicable)**:
-         - Every designed state transition appears in ≥1 case
-         - Include key invalid transitions (attempt action in wrong state) as negative cases
+      - **State-model coverage (when applicable)**:
+        - Every designed/allowed transition appears in ≥1 case
+        - Include key invalid/forbidden transitions (attempt action in wrong state) as negative cases
      - Design heuristics (use judgement; avoid combinatorial explosion):
        - Prefer boundary-value coverage for numeric limits and string length/patterns
        - Prefer pairwise coverage for multi-parameter filtering/sorting when relevant (`pagination` tag)

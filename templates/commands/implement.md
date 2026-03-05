@@ -64,7 +64,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 3. Load and validate the implementation context (fail fast):
    - **REQUIRED**: Read `tasks.md` for the complete task list, Interface Inventory, and Task DAG
    - **REQUIRED**: Read `plan.md` for tech stack, architecture, and file structure
-   - **REQUIRED**: Read `data-model.md` for entities, relationships, and state machines
+   - **REQUIRED**: Read `data-model.md` for entities, relationships, and the state model (Full FSM when applicable; otherwise Lightweight State Model)
      - If `data-model.md` is missing: **ERROR** and STOP (design is incomplete)
    - **REQUIRED**: Ensure `contracts/` exists and is non-empty
      - If `contracts/` is missing or empty: **ERROR** and STOP (design is incomplete)

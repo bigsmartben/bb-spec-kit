@@ -40,13 +40,58 @@ This section defines non-negotiable terminology and layering rules to prevent se
 - **UI-local UDD Item**: A user-visible information item that is purely UI-local (e.g., local state, formatting-only derived fields). These items do NOT require a VO source, but MUST declare their derivation rules in the UDD.
 - **Interface VO (View Object)**: The outward-facing interface contract schemas in `contracts/` (OpenAPI or other contract formats). VO is **not equal** to UDD and is often a superset: `VO ⊃ UDD` (technical/non-user-visible fields may exist).
 - **Persistence Model**: Storage/cache/index structures. Persistence MUST NOT define or override UDD semantics.
-- **Domain Entity (Optional)**: Introduce only when needed for complex business rules, state machines, or cross-interface invariants. Domain is not mandatory for every feature.
+- **Domain Entity (Optional)**: Introduce only when needed for complex business rules, cross-interface invariants, or when the **FSM Gate** indicates lifecycle complexity. Domain is not mandatory for every feature.
 
 ### Layering Rules (MUST / MUST NOT)
 
 - **Spec phase (user perspective)** MUST define UDD and use it to describe what the user sees. Spec MUST NOT introduce storage schemas, endpoints, or frameworks unless mandated as a hard constraint.
 - **Plan phase (architecture perspective)** MUST design Interface VO (contracts) first, then map VO fields to Persistence. Domain is optional.
 - **Tasks/Implement phases (development/implementation perspective)** MUST NOT invent new semantics for user-visible fields. If a semantic gap is discovered, it MUST be pushed upstream to Spec/Plan (UDD/VO/mapping), not patched ad-hoc in code.
+
+## State Machine Applicability Gate (FSM Gate)
+
+This section prevents downstream overdesign by defining when a **Full FSM** is warranted.
+
+### Definitions
+
+- `N`: Number of distinct, user-meaningful lifecycle states (discrete nodes).
+- `T`: Number of effective transitions (directed edges). Count unique `FromState → ToState` edges.
+  - Multiple triggers producing the same edge count as **one** edge unless triggers have distinct business meaning that must be separately tested.
+
+### Applicability (hard rule)
+
+- A **Full FSM** (transition table + transition pseudocode + PlantUML state diagram) is applicable iff:
+  - `N > 4 OR T ≥ 2N`
+- If the gate is not satisfied, produce a **Lightweight State Model** instead:
+  - state field definition (if any),
+  - allowed transitions list (event/guard optional),
+  - forbidden transitions list,
+  - invariants (if any),
+  - no PlantUML required.
+
+### Exceptions
+
+- A Full FSM below the threshold is allowed only with explicit justification recorded in `plan.md` under `## Complexity Tracking` (why needed + why the lightweight model is insufficient).
+
+## Compatibility-First Interface Evolution (Minimal Change)
+
+This section defines non-negotiable compatibility rules for Plan-stage contract design.
+
+- Scope: applies to **all contract types** under `contracts/` (OpenAPI and non-HTTP contracts).
+- Prefer **additive evolution**:
+  - add new optional fields,
+  - add new operations/endpoints,
+  - extend enums with new values.
+- **MUST NOT** delete fields/operations, change types, narrow constraints, or redefine semantics.
+- Deprecation is allowed but MUST be “deprecated but retained” (removal requires an explicit breaking-change plan).
+
+## Minimal-Change Data Modeling (Repo-Convention-First)
+
+This section defines how Plan-stage data models must evolve in existing repositories.
+
+- Start from repo evidence (existing schemas/types/naming conventions) and propose the smallest delta that satisfies Spec/UDD/VO requirements.
+- **MUST NOT** perform 3NF-driven redesign unless directly required by feature constraints; prefer alignment with existing patterns and idioms.
+- Any breaking migration requires explicit justification and documented migration steps in plan/data-model artifacts.
 
 ## Output Language & Stability
 
