@@ -26,16 +26,17 @@ from specify_cli import AGENT_CONFIG, app
 
 # Required agents: (agent_key, expected_folder, expected_commands_subdir)
 REQUIRED_AGENTS = [
-    ("codex",     ".codex",     "prompts"),
-    ("claude",    ".claude",    "commands"),
-    ("opencode",  ".opencode",  "command"),   # singular
-    ("roo",       ".roo",       "commands"),
+    ("codex", ".codex", "prompts"),
+    ("claude", ".claude", "commands"),
+    ("opencode", ".opencode", "command"),  # singular
+    ("roo", ".roo", "commands"),
 ]
 
 runner = CliRunner()
 
 
 # ───────── fixtures ─────────
+
 
 @pytest.fixture
 def tmp_project(tmp_path):
@@ -57,8 +58,15 @@ def _make_download_mock(project_path: Path, agent_key: str):
     subdir = AGENT_CONFIG[agent_key]["commands_subdir"]
 
     def _side_effect(
-        proj_path, ai_assistant, script_type, is_current_dir=False,
-        *, verbose=True, tracker=None, client=None, debug=False,
+        proj_path,
+        ai_assistant,
+        script_type,
+        is_current_dir=False,
+        *,
+        verbose=True,
+        tracker=None,
+        client=None,
+        debug=False,
         github_token=None,
     ):
         base = Path(proj_path)
@@ -74,9 +82,7 @@ def _make_download_mock(project_path: Path, agent_key: str):
         specify_root = base / ".specify"
         (specify_root / "templates").mkdir(parents=True, exist_ok=True)
         (specify_root / "memory").mkdir(parents=True, exist_ok=True)
-        (specify_root / "templates" / "constitution-template.md").write_text(
-            "# Project Constitution\n"
-        )
+        (specify_root / "templates" / "constitution-template.md").write_text("# Project Constitution\n")
 
         return base
 
@@ -87,6 +93,7 @@ def _make_download_mock(project_path: Path, agent_key: str):
 # Layer 1: AGENT_CONFIG unit tests (no mocks, no network)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestAgentConfigExists:
     """All four required agents must be registered in AGENT_CONFIG."""
 
@@ -94,8 +101,7 @@ class TestAgentConfigExists:
     def test_agent_key_present(self, agent_key, _folder, _subdir):
         """Agent key must exist in AGENT_CONFIG."""
         assert agent_key in AGENT_CONFIG, (
-            f"'{agent_key}' not found in AGENT_CONFIG.\n"
-            f"Available keys: {sorted(AGENT_CONFIG.keys())}"
+            f"'{agent_key}' not found in AGENT_CONFIG.\nAvailable keys: {sorted(AGENT_CONFIG.keys())}"
         )
 
     @pytest.mark.parametrize("agent_key,_folder,_subdir", REQUIRED_AGENTS)
@@ -103,9 +109,7 @@ class TestAgentConfigExists:
         """Each agent config must contain all mandatory fields."""
         cfg = AGENT_CONFIG[agent_key]
         for field in ("name", "folder", "commands_subdir", "install_url", "requires_cli"):
-            assert field in cfg, (
-                f"AGENT_CONFIG['{agent_key}'] missing field '{field}'"
-            )
+            assert field in cfg, f"AGENT_CONFIG['{agent_key}'] missing field '{field}'"
 
     @pytest.mark.parametrize("agent_key,_folder,_subdir", REQUIRED_AGENTS)
     def test_agent_name_is_nonempty_string(self, agent_key, _folder, _subdir):
@@ -119,14 +123,13 @@ class TestAgentConfigExists:
     def test_agent_requires_cli_is_bool(self, agent_key, _folder, _subdir):
         """requires_cli must be a boolean."""
         val = AGENT_CONFIG[agent_key]["requires_cli"]
-        assert isinstance(val, bool), (
-            f"AGENT_CONFIG['{agent_key}']['requires_cli'] must be bool, got {type(val)}"
-        )
+        assert isinstance(val, bool), f"AGENT_CONFIG['{agent_key}']['requires_cli'] must be bool, got {type(val)}"
 
 
 # ─────────────────────────────────────────────────────────────────────────────
 # Layer 2: Directory-mapping tests
 # ─────────────────────────────────────────────────────────────────────────────
+
 
 class TestAgentDirectoryMapping:
     """Verify folder and commands_subdir for each required agent."""
@@ -157,8 +160,7 @@ class TestAgentDirectoryMapping:
     def test_codex_uses_prompts_not_commands(self):
         """codex specifically must use 'prompts', not the default 'commands'."""
         assert AGENT_CONFIG["codex"]["commands_subdir"] == "prompts", (
-            "codex must use commands_subdir='prompts' "
-            "(matches .codex/prompts/ directory convention)"
+            "codex must use commands_subdir='prompts' (matches .codex/prompts/ directory convention)"
         )
 
     def test_opencode_uses_singular_command(self):
@@ -205,6 +207,7 @@ class TestAgentDirectoryMapping:
 # Layer 3: CLI integration tests (mocked download + check_tool)
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestInitCliCodex:
     """specify init --here --ai codex — must pass."""
 
@@ -221,17 +224,14 @@ class TestInitCliCodex:
                 os.chdir(tmp_project)
                 result = runner.invoke(
                     app,
-                    ["init", "--here", "--ai", "codex", "--script", "sh",
-                     "--no-git", "--ignore-agent-tools"],
+                    ["init", "--here", "--ai", "codex", "--script", "sh", "--no-git", "--ignore-agent-tools"],
                     catch_exceptions=False,
                     env={"HOME": str(tmp_project.parent)},
                 )
             finally:
                 os.chdir(orig_cwd)
         # Accept 0 exit code
-        assert result.exit_code == 0, (
-            f"CLI exited {result.exit_code}\nOutput:\n{result.output}"
-        )
+        assert result.exit_code == 0, f"CLI exited {result.exit_code}\nOutput:\n{result.output}"
 
     def test_codex_config_folder_correct(self):
         """End-to-end config check: codex folder is .codex."""
@@ -256,16 +256,13 @@ class TestInitCliClaude:
                 os.chdir(tmp_project)
                 result = runner.invoke(
                     app,
-                    ["init", "--here", "--ai", "claude", "--script", "sh",
-                     "--no-git", "--ignore-agent-tools"],
+                    ["init", "--here", "--ai", "claude", "--script", "sh", "--no-git", "--ignore-agent-tools"],
                     catch_exceptions=False,
                     env={"HOME": str(tmp_project.parent)},
                 )
             finally:
                 os.chdir(orig_cwd)
-        assert result.exit_code == 0, (
-            f"CLI exited {result.exit_code}\nOutput:\n{result.output}"
-        )
+        assert result.exit_code == 0, f"CLI exited {result.exit_code}\nOutput:\n{result.output}"
 
     def test_claude_config_folder_correct(self):
         cfg = AGENT_CONFIG["claude"]
@@ -289,22 +286,18 @@ class TestInitCliOpencode:
                 os.chdir(tmp_project)
                 result = runner.invoke(
                     app,
-                    ["init", "--here", "--ai", "opencode", "--script", "sh",
-                     "--no-git", "--ignore-agent-tools"],
+                    ["init", "--here", "--ai", "opencode", "--script", "sh", "--no-git", "--ignore-agent-tools"],
                     catch_exceptions=False,
                     env={"HOME": str(tmp_project.parent)},
                 )
             finally:
                 os.chdir(orig_cwd)
-        assert result.exit_code == 0, (
-            f"CLI exited {result.exit_code}\nOutput:\n{result.output}"
-        )
+        assert result.exit_code == 0, f"CLI exited {result.exit_code}\nOutput:\n{result.output}"
 
     def test_opencode_subdir_is_singular(self):
         """opencode commands_subdir must be 'command' (singular) not 'commands'."""
         assert AGENT_CONFIG["opencode"]["commands_subdir"] == "command", (
-            "opencode uses .opencode/command/ (singular). "
-            "AGENT_CONFIG must reflect this exactly."
+            "opencode uses .opencode/command/ (singular). AGENT_CONFIG must reflect this exactly."
         )
 
 
@@ -324,16 +317,13 @@ class TestInitCliRoo:
                 os.chdir(tmp_project)
                 result = runner.invoke(
                     app,
-                    ["init", "--here", "--ai", "roo", "--script", "sh",
-                     "--no-git", "--ignore-agent-tools"],
+                    ["init", "--here", "--ai", "roo", "--script", "sh", "--no-git", "--ignore-agent-tools"],
                     catch_exceptions=False,
                     env={"HOME": str(tmp_project.parent)},
                 )
             finally:
                 os.chdir(orig_cwd)
-        assert result.exit_code == 0, (
-            f"CLI exited {result.exit_code}\nOutput:\n{result.output}"
-        )
+        assert result.exit_code == 0, f"CLI exited {result.exit_code}\nOutput:\n{result.output}"
 
     def test_roo_config_is_ide_based(self):
         """Roo Code is IDE-based: requires_cli must be False."""
@@ -348,6 +338,7 @@ class TestInitCliRoo:
 # Layer 4: Cross-agent invariant tests
 # ─────────────────────────────────────────────────────────────────────────────
 
+
 class TestAgentInvariants:
     """Cross-agent invariants that must hold for all four required agents."""
 
@@ -355,9 +346,7 @@ class TestAgentInvariants:
     def test_agent_folder_starts_with_dot(self, agent_key, _f, _s):
         """All agent folders must start with '.' (hidden directory convention)."""
         folder = AGENT_CONFIG[agent_key]["folder"]
-        assert folder.startswith("."), (
-            f"AGENT_CONFIG['{agent_key}']['folder'] must start with '.', got: {folder!r}"
-        )
+        assert folder.startswith("."), f"AGENT_CONFIG['{agent_key}']['folder'] must start with '.', got: {folder!r}"
 
     @pytest.mark.parametrize("agent_key,_f,_s", REQUIRED_AGENTS)
     def test_agent_commands_subdir_nonempty(self, agent_key, _f, _s):
@@ -375,14 +364,12 @@ class TestAgentInvariants:
         """
         invalid_key = "nonexistent-agent-xyz"
         assert invalid_key not in AGENT_CONFIG, (
-            f"'{invalid_key}' was unexpectedly found in AGENT_CONFIG — "
-            "either remove it or update this test."
+            f"'{invalid_key}' was unexpectedly found in AGENT_CONFIG — either remove it or update this test."
         )
 
     def test_all_four_agents_in_config(self):
         """All four required agents must be present in AGENT_CONFIG simultaneously."""
         missing = [k for k, _, _ in REQUIRED_AGENTS if k not in AGENT_CONFIG]
         assert not missing, (
-            f"Missing required agents in AGENT_CONFIG: {missing}\n"
-            "Add them to specify_cli.__init__.AGENT_CONFIG"
+            f"Missing required agents in AGENT_CONFIG: {missing}\nAdd them to specify_cli.__init__.AGENT_CONFIG"
         )

@@ -30,6 +30,7 @@ from specify_cli.extensions import (
 
 # ===== Fixtures =====
 
+
 @pytest.fixture
 def temp_dir():
     """Create a temporary directory for tests."""
@@ -84,8 +85,9 @@ def extension_dir(temp_dir, valid_manifest_data):
 
     # Write manifest
     import yaml
+
     manifest_path = ext_dir / "extension.yml"
-    with open(manifest_path, 'w') as f:
+    with open(manifest_path, "w") as f:
         yaml.dump(valid_manifest_data, f)
 
     # Create commands directory
@@ -121,6 +123,7 @@ def project_dir(temp_dir):
 
 # ===== ExtensionManifest Tests =====
 
+
 class TestExtensionManifest:
     """Test ExtensionManifest validation and parsing."""
 
@@ -141,7 +144,7 @@ class TestExtensionManifest:
         import yaml
 
         manifest_path = temp_dir / "extension.yml"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             yaml.dump({"schema_version": "1.0"}, f)  # Missing 'extension'
 
         with pytest.raises(ValidationError, match="Missing required field"):
@@ -154,7 +157,7 @@ class TestExtensionManifest:
         valid_manifest_data["extension"]["id"] = "Invalid_ID"  # Uppercase not allowed
 
         manifest_path = temp_dir / "extension.yml"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             yaml.dump(valid_manifest_data, f)
 
         with pytest.raises(ValidationError, match="Invalid extension ID"):
@@ -167,7 +170,7 @@ class TestExtensionManifest:
         valid_manifest_data["extension"]["version"] = "invalid"
 
         manifest_path = temp_dir / "extension.yml"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             yaml.dump(valid_manifest_data, f)
 
         with pytest.raises(ValidationError, match="Invalid version"):
@@ -180,7 +183,7 @@ class TestExtensionManifest:
         valid_manifest_data["provides"]["commands"][0]["name"] = "invalid-name"
 
         manifest_path = temp_dir / "extension.yml"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             yaml.dump(valid_manifest_data, f)
 
         with pytest.raises(ValidationError, match="Invalid command name"):
@@ -193,7 +196,7 @@ class TestExtensionManifest:
         valid_manifest_data["provides"]["commands"] = []
 
         manifest_path = temp_dir / "extension.yml"
-        with open(manifest_path, 'w') as f:
+        with open(manifest_path, "w") as f:
             yaml.dump(valid_manifest_data, f)
 
         with pytest.raises(ValidationError, match="must provide at least one command"):
@@ -210,6 +213,7 @@ class TestExtensionManifest:
 
 
 # ===== ExtensionRegistry Tests =====
+
 
 class TestExtensionRegistry:
     """Test ExtensionRegistry operations."""
@@ -278,6 +282,7 @@ class TestExtensionRegistry:
 
 # ===== ExtensionManager Tests =====
 
+
 class TestExtensionManager:
     """Test ExtensionManager installation and removal."""
 
@@ -306,7 +311,7 @@ class TestExtensionManager:
         manifest = manager.install_from_directory(
             extension_dir,
             "0.1.0",
-            register_commands=False  # Skip command registration for now
+            register_commands=False,  # Skip command registration for now
         )
 
         assert manifest.id == "test-ext"
@@ -396,6 +401,7 @@ class TestExtensionManager:
 
 # ===== CommandRegistrar Tests =====
 
+
 class TestCommandRegistrar:
     """Test CommandRegistrar command registration."""
 
@@ -431,10 +437,7 @@ $ARGUMENTS
 
     def test_render_frontmatter(self):
         """Test rendering frontmatter to YAML."""
-        frontmatter = {
-            "description": "Test command",
-            "tools": ["tool1", "tool2"]
-        }
+        frontmatter = {"description": "Test command", "tools": ["tool1", "tool2"]}
 
         registrar = CommandRegistrar()
         output = registrar.render_frontmatter(frontmatter)
@@ -453,11 +456,7 @@ $ARGUMENTS
         manifest = ExtensionManifest(extension_dir / "extension.yml")
 
         registrar = CommandRegistrar()
-        registered = registrar.register_commands_for_claude(
-            manifest,
-            extension_dir,
-            project_dir
-        )
+        registered = registrar.register_commands_for_claude(manifest, extension_dir, project_dir)
 
         assert len(registered) == 1
         assert "speckit.test.hello" in registered
@@ -501,7 +500,7 @@ $ARGUMENTS
             },
         }
 
-        with open(ext_dir / "extension.yml", 'w') as f:
+        with open(ext_dir / "extension.yml", "w") as f:
             yaml.dump(manifest_data, f)
 
         (ext_dir / "commands").mkdir()
@@ -522,6 +521,7 @@ $ARGUMENTS
 
 
 # ===== Utility Function Tests =====
+
 
 class TestVersionSatisfies:
     """Test version_satisfies utility function."""
@@ -551,6 +551,7 @@ class TestVersionSatisfies:
 
 # ===== Integration Tests =====
 
+
 class TestIntegration:
     """Integration tests for complete workflows."""
 
@@ -562,11 +563,7 @@ class TestIntegration:
         manager = ExtensionManager(project_dir)
 
         # Install
-        manager.install_from_directory(
-            extension_dir,
-            "0.1.0",
-            register_commands=True
-        )
+        manager.install_from_directory(extension_dir, "0.1.0", register_commands=True)
 
         # Verify installation
         assert manager.registry.is_installed("test-ext")
@@ -582,10 +579,7 @@ class TestIntegration:
         metadata = manager.registry.get("test-ext")
         registered_commands = metadata["registered_commands"]
         # Check that the command is registered for at least one agent
-        assert any(
-            "speckit.test.hello" in cmds
-            for cmds in registered_commands.values()
-        )
+        assert any("speckit.test.hello" in cmds for cmds in registered_commands.values())
 
         # Remove
         result = manager.remove("test-ext")
@@ -624,7 +618,7 @@ class TestIntegration:
                 },
             }
 
-            with open(ext_dir / "extension.yml", 'w') as f:
+            with open(ext_dir / "extension.yml", "w") as f:
                 yaml.dump(manifest_data, f)
 
             (ext_dir / "commands").mkdir()

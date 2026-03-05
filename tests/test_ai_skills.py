@@ -32,6 +32,7 @@ from specify_cli import (
 
 # ===== Fixtures =====
 
+
 @pytest.fixture
 def temp_dir():
     """Create a temporary directory for tests."""
@@ -79,32 +80,19 @@ def templates_dir(project_dir):
 
     # Template with minimal frontmatter
     (tpl_root / "plan.md").write_text(
-        "---\n"
-        "description: Generate implementation plan.\n"
-        "---\n"
-        "\n"
-        "# Plan Command\n"
-        "\n"
-        "Plan body content.\n",
+        "---\ndescription: Generate implementation plan.\n---\n\n# Plan Command\n\nPlan body content.\n",
         encoding="utf-8",
     )
 
     # Template with no frontmatter
     (tpl_root / "tasks.md").write_text(
-        "# Tasks Command\n"
-        "\n"
-        "Body without frontmatter.\n",
+        "# Tasks Command\n\nBody without frontmatter.\n",
         encoding="utf-8",
     )
 
     # Template with empty YAML frontmatter (yaml.safe_load returns None)
     (tpl_root / "empty_fm.md").write_text(
-        "---\n"
-        "---\n"
-        "\n"
-        "# Empty Frontmatter Command\n"
-        "\n"
-        "Body with empty frontmatter.\n",
+        "---\n---\n\n# Empty Frontmatter Command\n\nBody with empty frontmatter.\n",
         encoding="utf-8",
     )
 
@@ -132,6 +120,7 @@ def commands_dir_gemini(project_dir):
 
 
 # ===== _get_skills_dir Tests =====
+
 
 class TestGetSkillsDir:
     """Test the _get_skills_dir() helper function."""
@@ -184,6 +173,7 @@ class TestGetSkillsDir:
 
 
 # ===== install_ai_skills Tests =====
+
 
 class TestInstallAiSkills:
     """Test SKILL.md generation and installation logic."""
@@ -317,12 +307,7 @@ class TestInstallAiSkills:
         cmds_dir.mkdir(parents=True)
 
         (cmds_dir / "broken.md").write_text(
-            "---\n"
-            "description: [unclosed bracket\n"
-            "  invalid: yaml: content: here\n"
-            "---\n"
-            "\n"
-            "# Broken\n",
+            "---\ndescription: [unclosed bracket\n  invalid: yaml: content: here\n---\n\n# Broken\n",
             encoding="utf-8",
         )
 
@@ -389,9 +374,7 @@ class TestInstallAiSkills:
         agent_folder = AGENT_CONFIG[agent_key]["folder"]
         cmds_dir = proj / agent_folder.rstrip("/") / "commands"
         cmds_dir.mkdir(parents=True)
-        (cmds_dir / "specify.md").write_text(
-            "---\ndescription: Test command\n---\n\n# Test\n\nBody.\n"
-        )
+        (cmds_dir / "specify.md").write_text("---\ndescription: Test command\n---\n\n# Test\n\nBody.\n")
 
         result = install_ai_skills(proj, agent_key)
 
@@ -401,7 +384,6 @@ class TestInstallAiSkills:
         skill_dirs = [d.name for d in skills_dir.iterdir() if d.is_dir()]
         assert "speckit-specify" in skill_dirs
         assert (skills_dir / "speckit-specify" / "SKILL.md").exists()
-
 
 
 class TestCommandCoexistence:
@@ -448,6 +430,7 @@ class TestCommandCoexistence:
 
 # ===== New-Project Command Skip Tests =====
 
+
 class TestNewProjectCommandSkip:
     """Test that init() removes extracted commands for new projects only.
 
@@ -474,12 +457,14 @@ class TestNewProjectCommandSkip:
         def fake_download(project_path, *args, **kwargs):
             self._fake_extract("claude", project_path)
 
-        with patch("specify_cli.download_and_extract_template", side_effect=fake_download), \
-             patch("specify_cli.ensure_executable_scripts"), \
-             patch("specify_cli.ensure_constitution_from_template"), \
-             patch("specify_cli.install_ai_skills", return_value=True) as mock_skills, \
-             patch("specify_cli.is_git_repo", return_value=False), \
-             patch("specify_cli.shutil.which", return_value="/usr/bin/git"):
+        with (
+            patch("specify_cli.download_and_extract_template", side_effect=fake_download),
+            patch("specify_cli.ensure_executable_scripts"),
+            patch("specify_cli.ensure_constitution_from_template"),
+            patch("specify_cli.install_ai_skills", return_value=True) as mock_skills,
+            patch("specify_cli.is_git_repo", return_value=False),
+            patch("specify_cli.shutil.which", return_value="/usr/bin/git"),
+        ):
             _ = runner.invoke(app, ["init", str(target), "--ai", "claude", "--ai-skills", "--script", "sh", "--no-git"])
 
         # Skills should have been called
@@ -499,12 +484,14 @@ class TestNewProjectCommandSkip:
         def fake_download(project_path, *args, **kwargs):
             self._fake_extract("claude", project_path)
 
-        with patch("specify_cli.download_and_extract_template", side_effect=fake_download), \
-             patch("specify_cli.ensure_executable_scripts"), \
-             patch("specify_cli.ensure_constitution_from_template"), \
-             patch("specify_cli.install_ai_skills", return_value=False), \
-             patch("specify_cli.is_git_repo", return_value=False), \
-             patch("specify_cli.shutil.which", return_value="/usr/bin/git"):
+        with (
+            patch("specify_cli.download_and_extract_template", side_effect=fake_download),
+            patch("specify_cli.ensure_executable_scripts"),
+            patch("specify_cli.ensure_constitution_from_template"),
+            patch("specify_cli.install_ai_skills", return_value=False),
+            patch("specify_cli.is_git_repo", return_value=False),
+            patch("specify_cli.shutil.which", return_value="/usr/bin/git"),
+        ):
             _ = runner.invoke(app, ["init", str(target), "--ai", "claude", "--ai-skills", "--script", "sh", "--no-git"])
 
         # Commands should still exist since skills failed
@@ -531,12 +518,14 @@ class TestNewProjectCommandSkip:
         def fake_download(project_path, *args, **kwargs):
             pass  # commands already exist, no need to re-create
 
-        with patch("specify_cli.download_and_extract_template", side_effect=fake_download), \
-             patch("specify_cli.ensure_executable_scripts"), \
-             patch("specify_cli.ensure_constitution_from_template"), \
-             patch("specify_cli.install_ai_skills", return_value=True), \
-             patch("specify_cli.is_git_repo", return_value=True), \
-             patch("specify_cli.shutil.which", return_value="/usr/bin/git"):
+        with (
+            patch("specify_cli.download_and_extract_template", side_effect=fake_download),
+            patch("specify_cli.ensure_executable_scripts"),
+            patch("specify_cli.ensure_constitution_from_template"),
+            patch("specify_cli.install_ai_skills", return_value=True),
+            patch("specify_cli.is_git_repo", return_value=True),
+            patch("specify_cli.shutil.which", return_value="/usr/bin/git"),
+        ):
             _ = runner.invoke(app, ["init", "--here", "--ai", "claude", "--ai-skills", "--script", "sh", "--no-git"])
 
         # Commands must remain for --here
@@ -545,6 +534,7 @@ class TestNewProjectCommandSkip:
 
 
 # ===== Skip-If-Exists Tests =====
+
 
 class TestSkipIfExists:
     """Test that install_ai_skills does not overwrite existing SKILL.md files."""
@@ -580,14 +570,23 @@ class TestSkipIfExists:
 
 # ===== SKILL_DESCRIPTIONS Coverage Tests =====
 
+
 class TestSkillDescriptions:
     """Test SKILL_DESCRIPTIONS constants."""
 
     def test_all_known_commands_have_descriptions(self):
         """All standard spec-kit commands should have enhanced descriptions."""
         expected_commands = [
-            "specify", "plan", "tasks", "implement", "analyze",
-            "preview", "clarify", "constitution", "checklist", "taskstoissues",
+            "specify",
+            "plan",
+            "tasks",
+            "implement",
+            "analyze",
+            "preview",
+            "clarify",
+            "constitution",
+            "checklist",
+            "taskstoissues",
         ]
         for cmd in expected_commands:
             assert cmd in SKILL_DESCRIPTIONS, f"Missing description for '{cmd}'"
@@ -595,6 +594,7 @@ class TestSkillDescriptions:
 
 
 # ===== CLI Validation Tests =====
+
 
 class TestCliValidation:
     """Test --ai-skills CLI flag validation."""
@@ -626,7 +626,7 @@ class TestCliValidation:
         runner = CliRunner()
         result = runner.invoke(app, ["init", "--help"])
 
-        plain = re.sub(r'\x1b\[[0-9;]*m', '', result.output)
+        plain = re.sub(r"\x1b\[[0-9;]*m", "", result.output)
         assert "--ai-skills" in plain
         assert "agent skills" in plain.lower()
 
