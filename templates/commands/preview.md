@@ -13,30 +13,27 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
-## Usage / Mode *(MANDATORY)*
+## Usage / Input File *(MANDATORY)*
 
-This command supports a **stage mode** as the first token in `$ARGUMENTS`:
+This command requires an explicit **input file** as the first token in `$ARGUMENTS`:
 
-- `spec` : Spec stage only (spec.md as SSOT). Requires `spec.md`.
-- `uiux` : Design stage. Requires `/speckit.design` outputs under `FEATURE_DIR`:
-  - `ux/jtbd.md`, `ux/journey.md`, `ux/flow.md`
-  - `ui/ui-spec.md`
-  - `prototype/index.html`
-- `plan` : Plan stage. Requires `plan.md`.
-- `tasks` : Tasks stage. Requires `tasks.md` (and integrates `contracts/interface-details/*.md` when present).
-- `all` : Full view. Requires only `spec.md` and includes any other artifacts when present.
+- `/speckit.preview <input-file> [reviewer-notes...]`
+- `<input-file>` can be an absolute path or a repo-root relative path.
+- Allowed input basenames are strictly:
+  - `spec.md` -> `MODE=spec`
+  - `plan.md` -> `MODE=plan`
+  - `tasks.md` -> `MODE=tasks`
 
 Examples:
 
-- `/speckit.preview all`
-- `/speckit.preview spec`
-- `/speckit.preview uiux`
-- `/speckit.preview plan`
-- `/speckit.preview tasks`
+- `/speckit.preview specs/001-foo/spec.md`
+- `/speckit.preview specs/001-foo/plan.md 请重点看接口一致性`
+- `/speckit.preview /abs/path/to/specs/001-foo/tasks.md`
 
-If `$ARGUMENTS` is empty, default to `all`.
+If `$ARGUMENTS` is empty: **ERROR** and STOP.
+- Show usage: `/speckit.preview <spec.md|plan.md|tasks.md> [reviewer-notes...]`
 
-If `$ARGUMENTS` contains additional text after the mode token, treat it as reviewer notes and incorporate it as a short note in the Overview page (without inventing requirements).
+If `$ARGUMENTS` contains additional text after `<input-file>`, treat that remaining text as reviewer notes and incorporate it as a short note in the Overview page (without inventing requirements).
 
 ## Goal
 
@@ -55,7 +52,7 @@ The preview must be:
 
 - **Manual only**: This command MUST NOT be auto-triggered by any other command (no handoffs).
 - **Overwrite**: Always overwrite `preview.html`.
-- **Minimum prerequisite**: Only `spec.md` is required.
+- **Input required**: `<input-file>` is mandatory and must be one of `spec.md|plan.md|tasks.md`.
 - **Write scope**: Do not modify any other files besides `preview.html`.
 
 ## Output Language & Stability Contract *(MANDATORY)*
@@ -138,6 +135,57 @@ To reduce variability, generate key blocks using these deterministic recipes:
     - Keep original token in dedicated column (`FR-001`, `operationId`, `CaseID`).
     - Add adjacent column: `Readable Meaning` (one short sentence, no invented behavior).
 
+## Output Completeness Gate *(MANDATORY)*
+
+Before writing `preview.html`, run this hard gate. If any check fails, regenerate the output (do not ship partial HTML):
+
+1. **Template fidelity gate**
+   - MUST start from the loaded HTML template file; do not emit a newly invented minimal HTML shell.
+   - MUST preserve the template's page skeleton, tab navigation, and section anchors.
+2. **Page presence gate**
+   - MUST include all pages with stable IDs/anchors: `overview`, `product`, `uxui`, `backend`, `frontend`, `testing`, `audit`, `appendices`.
+3. **Per-page payload gate**
+   - Every page MUST include:
+     - 3-sentence summary
+     - exactly 3 review questions
+     - at least one evidence table
+   - If evidence is unavailable, fill table rows with `N/A (MODE=<mode>)` + `Evidence` + `Next`.
+4. **Appendix integrity gate**
+   - Appendix navigation index table MUST exist.
+   - Appendix A MUST include full `spec.md` verbatim (no truncation).
+5. **No-placeholder gate**
+   - Final HTML MUST NOT contain unresolved placeholders like `TODO`, `FILL`, `TBD`, `<placeholder>`.
+
+## MODE=spec Enrichment Contract *(MANDATORY)*
+
+When `MODE=spec`, do not degrade most pages to generic N/A. Derive reviewer content from `spec.md` with deterministic extraction:
+
+1. **Overview**
+   - Compute quick metrics from `spec.md`: counts for `UC-###`, `FR-###`, `Entity.field`, scenario rows (`Given/When/Then` tables).
+   - Fill artifact readiness matrix with explicit statuses for `spec/plan/tasks/data-model/contracts/interface-details/ux/ui/prototype/checklists/research/quickstart`.
+2. **Product**
+   - Render full UC index table (all `UC-###` found in spec).
+   - Render full FR index table (all `FR-###` found in spec).
+   - Build capability tree `UC -> FR -> scenario/edge` from spec sections.
+3. **UX/UI**
+   - Use spec scenarios/flows to generate a derived journey summary table (do not output only N/A if spec has scenarios).
+   - If no design artifacts, mark design-file-specific fields as `N/A (MODE=spec)` but keep a spec-derived journey/state summary.
+4. **Backend**
+   - Build FR contract-readiness table with one row per `FR-###`:
+     - `FR ID`, `Readable Meaning`, `operationId` (`N/A (MODE=spec)` when absent), `Next`.
+   - If OpenAPI is missing, this page is Partial (not empty).
+5. **Frontend**
+   - Build UI contract table from all `Entity.field` rows in spec:
+     - `Entity`, `Field`, `User-visible meaning`, `Validation/display rule`, `Source`.
+   - Include spec-derived route/state map from UC flow/state machine when available.
+6. **Testing**
+   - Build FR coverage seed table with one row per `FR-###`:
+     - `FR ID`, `Scenario refs`, `operationId`, `CaseID`, `Status/Next`.
+   - Build edge/negative case table from `Failure / edge behavior` lines in spec.
+7. **Audit**
+   - Build assumptions/decisions table from in-scope/out-of-scope/constraints.
+   - Build risks/issues table from explicitly stated risks and unresolved dependencies.
+
 ## Readability Score Rubric *(MANDATORY)*
 
 Score each Overview dimension using one of these forms:
@@ -190,29 +238,42 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
 
 ## Execution Steps
 
-0. **Parse mode**:
+0. **Parse input file**:
    - Parse `$ARGUMENTS`:
-     - `MODE` = first token, case-insensitive; one of: `spec|uiux|plan|tasks|all`.
-     - `EXTRA_NOTES` = remaining text after the first token (may be empty).
-   - If `$ARGUMENTS` is empty: set `MODE=all`.
-   - If `MODE` is not one of the allowed values: **ERROR** and STOP.
-     - Show the allowed values and examples.
+     - `INPUT_FILE` = first token (mandatory).
+     - `EXTRA_NOTES` = remaining text after `INPUT_FILE` (may be empty).
+   - If `INPUT_FILE` is missing: **ERROR** and STOP.
+     - Show usage examples for `spec.md|plan.md|tasks.md`.
+   - Determine `MODE` by `basename(INPUT_FILE)`:
+     - `spec.md` -> `MODE=spec`
+     - `plan.md` -> `MODE=plan`
+     - `tasks.md` -> `MODE=tasks`
+   - If basename is not one of `spec.md|plan.md|tasks.md`: **ERROR** and STOP.
+     - Show allowed basenames and examples.
 
 1. **Resolve paths**:
    - Run `{SCRIPT}` from repo root and parse JSON:
+     - `REPO_ROOT`
      - `FEATURE_DIR` (expected: `<repo>/specs/<feature>`)
      - `FEATURE_SPEC`
      - `IMPL_PLAN`
      - `TASKS`
+   - Resolve `INPUT_FILE_ABS`:
+     - If `INPUT_FILE` is absolute, use as-is.
+     - If `INPUT_FILE` is relative and is a bare basename (`spec.md|plan.md|tasks.md`), resolve as `FEATURE_DIR/<basename>`.
+     - Otherwise (relative path with directories), resolve from `REPO_ROOT`.
 
 2. **Validate**:
-   - If `FEATURE_SPEC` does not exist: **ERROR** and STOP.
-     - Instruct user to run `/speckit.specify` first, or set `SPECIFY_FEATURE` to the feature directory name for non-git repos.
-   - Mode prerequisites (enforced):
-     - If `MODE=plan` and `IMPL_PLAN` does not exist: **ERROR** and STOP (instruct to run `/speckit.plan`).
-     - If `MODE=tasks` and `TASKS` does not exist: **ERROR** and STOP (instruct to run `/speckit.tasks`).
-     - If `MODE=uiux` and any of these are missing under `FEATURE_DIR`: **ERROR** and STOP (instruct to run `/speckit.design`):
-       - `ux/jtbd.md`, `ux/journey.md`, `ux/flow.md`, `ui/ui-spec.md`, `prototype/index.html`.
+   - Validate in this order:
+     1. `INPUT_FILE_ABS` exists and is readable; otherwise **ERROR** and STOP.
+     2. `basename(INPUT_FILE_ABS)` is one of `spec.md|plan.md|tasks.md`; otherwise **ERROR** and STOP.
+     3. `INPUT_FILE_ABS` must be under `FEATURE_DIR`; otherwise **ERROR** and STOP.
+        - Explain that input file must belong to the active feature directory.
+     4. Required sibling artifacts by `MODE`:
+        - `MODE=spec`: `FEATURE_SPEC` MUST exist; if missing, instruct to run `/speckit.specify`.
+        - `MODE=plan`: `FEATURE_SPEC` and `IMPL_PLAN` MUST exist; if plan missing, instruct to run `/speckit.plan`.
+        - `MODE=tasks`: `FEATURE_SPEC`, `IMPL_PLAN`, and `TASKS` MUST exist; if plan missing, instruct to run `/speckit.plan`; if tasks missing, instruct to run `/speckit.tasks`.
+   - For non-git repos, keep existing guidance about setting `SPECIFY_FEATURE` when path resolution fails.
 
 3. **Define output**:
     - `PREVIEW_FILE = FEATURE_DIR/preview.html`
@@ -229,27 +290,20 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
    - Then load additional documents depending on `MODE`:
      - `MODE=spec`:
        - Do NOT load or depend on `plan.md`, `tasks.md`, `ux/`, `ui/`, `prototype/`.
-     - `MODE=uiux`:
-       - Load: `ux/jtbd.md`, `ux/journey.md`, `ux/flow.md`, `ui/ui-spec.md`, `prototype/index.html` (+ key screens under `prototype/pages/*.html` when referenced).
      - `MODE=plan`:
        - Load: `plan.md` from `IMPL_PLAN`.
        - Also load these if present: `data-model.md`, `quickstart.md`, `contracts/openapi.yaml`, `contracts/test-case-matrix.md`.
      - `MODE=tasks`:
        - Load: `tasks.md` from `TASKS`.
        - Also load these if present: `contracts/interface-details/*.md`, `contracts/openapi.yaml`, `contracts/test-case-matrix.md`, `data-model.md`.
-     - `MODE=all`:
-       - Load everything when present:
-         - `plan.md`, `tasks.md`
-         - `contracts/` directory (incl. `contracts/openapi.yaml`, `contracts/test-case-matrix.md`, `contracts/interface-details/*.md`)
-         - `checklists/` directory
-         - `ux/`, `ui/`, `prototype/` design artifacts
-         - `research.md`, `data-model.md`, `quickstart.md`
 
 6. **Generate/overwrite preview**:
     - Use the HTML template as the structure baseline (preserve the page set, page order, and table intent).
     - The HTML template is a single-file "review website" with hash-based tab pages.
+    - Enforce **Output Completeness Gate** and **MODE=spec Enrichment Contract** before final write.
     - **Do not delete pages**. For pages that are out-of-scope for the selected `MODE`, keep them but clearly mark key sections as `N/A (MODE=<mode>)` and explain what artifact/command would populate them.
       - Apply deterministic fill recipes and score rubric above; do not leave summary/question/score sections empty.
+      - `MODE=spec` special rule: only fields that require post-spec artifacts (e.g., `operationId`, `CaseID`, interface details) may be `N/A`; UC/FR/UDD/scenario-derived sections MUST be concretely filled from `spec.md`.
     - Always add a short note on the Overview page if `EXTRA_NOTES` is provided.
     - Fill each page according to `MODE`:
        - **Overview page**:
