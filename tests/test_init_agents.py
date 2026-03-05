@@ -180,10 +180,10 @@ class TestAgentDirectoryMapping:
             "claude (Claude Code) is a CLI tool and should have requires_cli=True."
         )
 
-    def test_codex_requires_cli_true(self):
-        """codex is a CLI tool and MUST require CLI check."""
-        assert AGENT_CONFIG["codex"]["requires_cli"] is True, (
-            "codex (Codex CLI) is a CLI tool and should have requires_cli=True."
+    def test_codex_requires_cli_false(self):
+        """codex is currently set to false to avoid issues with older blog-cli tools."""
+        assert AGENT_CONFIG["codex"]["requires_cli"] is False, (
+            "codex (Codex CLI) should have requires_cli=False to avoid conflicts."
         )
 
     def test_opencode_requires_cli_true(self):
@@ -238,7 +238,7 @@ class TestInitCliCodex:
         cfg = AGENT_CONFIG["codex"]
         assert cfg["folder"].strip("/") == ".codex"
         assert cfg["commands_subdir"] == "prompts"
-        assert cfg["requires_cli"] is True
+        assert cfg["requires_cli"] is False
 
 
 class TestInitCliClaude:
