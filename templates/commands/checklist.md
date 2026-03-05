@@ -87,6 +87,9 @@ You **MUST** consider the user input before proceeding (if not empty).
    - spec.md: Feature requirements and scope
    - plan.md (required): Technical details, dependencies
    - tasks.md (if exists): Implementation tasks
+   - (Optional but recommended) constitution (governance authority):
+     - Preferred: `.specify/memory/constitution.md`
+     - Fallback: `memory/constitution.md`
 
    **Context Loading Strategy**:
    - Load only necessary portions relevant to active focus areas (avoid full-file dumping)
@@ -118,6 +121,12 @@ You **MUST** consider the user input before proceeding (if not empty).
    - **Requirement Clarity** (Are requirements specific and unambiguous?)
    - **Requirement Consistency** (Do requirements align without conflicts?)
    - **Acceptance Criteria Quality** (Are success criteria measurable?)
+
+   **Dev/Ops separation rule (when stated by the constitution)**:
+   - If the constitution indicates that system security, data security, privacy, interface authN/Z, and reliability controls are Ops/Platform-owned by default:
+     - Treat these domains as **out of scope** unless the user explicitly requests them OR the feature spec explicitly makes them in-scope.
+     - When they are out of scope, do NOT generate a `security.md` checklist by default.
+     - When they are in scope, keep items focused on requirement clarity/completeness (handoff criteria, boundaries, ownership, N/A allowances), not implementation details.
    - **Scenario Coverage** (Are all flows/cases addressed?)
    - **Edge Case Coverage** (Are boundary conditions defined?)
    - **Non-Functional Requirements** (Performance, Security, Accessibility, etc. - are they specified?)
