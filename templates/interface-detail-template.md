@@ -69,7 +69,11 @@ deactivate API
 @enduml
 ```
 
-## 6. Relevant Code Class Diagram *(optional)*
+## 6. Relevant Code Class Diagram *(mandatory)*
+
+> The class diagram MUST be operation-scoped and consistent with Section 3 (Evidence & Call Chain) and Section 4 (Dependency Inventory).
+> Include only in-repo code structures directly involved in this operation.
+> External systems must stay represented in the sequence diagram and dependency inventory, not as internal code classes.
 
 ```plantuml
 @startuml

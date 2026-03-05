@@ -5,6 +5,11 @@
 # - Enforce required fields: `operationId`, `x-fr-ids`, optional `x-uc-ids`
 # - Keep schemas minimal and driven by Spec UI elements + acceptance scenarios
 # -----------------------------------------------------------------------------
+# Compatibility & Change Policy (Plan-stage, hard rules for existing repos):
+# - Prefer additive evolution: new optional fields, new operations/endpoints, enum extensions.
+# - MUST NOT delete/rename fields or operations; MUST NOT change types, narrow constraints, or redefine semantics.
+# - Deprecation is allowed but MUST be "deprecated but retained" (use `deprecated: true` where applicable).
+# -----------------------------------------------------------------------------
 openapi: 3.0.3
 info:
   title: "[REPLACE] Feature API"

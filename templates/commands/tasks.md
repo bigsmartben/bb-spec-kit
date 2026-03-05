@@ -67,7 +67,10 @@ You **MUST** consider the user input before proceeding (if not empty).
               - Do NOT restate the repo boundary index here; reference `AEI-###` and keep details operation-scoped.
          4) Related Applications & Dependency Inventory (for this operation only): for each dependency record app/system name, ownership (internal/2nd-party/3rd-party), call direction (inbound/outbound), protocol/interface, timeout & retry policy, and failure/degradation mode
          5) Sequence Diagram (PlantUML; MUST include every dependency from the inventory and all remote calls: 2nd-party, 3rd-party, middleware, queues, caches, etc.)
-         6) Relevant Code Class Diagram (PlantUML; only code relevant to this interface/feature)
+         6) Relevant Code Class Diagram (PlantUML; mandatory; only code relevant to this interface/feature)
+            - The class diagram MUST be consistent with the operation call chain and dependency inventory for this interface
+            - Include only in-repo code classes/modules directly involved in this operation (controller/service/domain/repository/gateway/adapter as applicable)
+            - Do NOT model external systems as internal code classes; represent those in sequence diagram and dependency inventory
          7) Core Algorithm Pseudocode (business-critical logic only)
          8) Change List (resources: DB/config/infra; source code modules/files; API/schema deltas)
          9) Performance Analysis (latency budget, critical path, external call timeouts/retries, caching, concurrency, failure modes, observability)

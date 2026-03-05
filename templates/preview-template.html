@@ -593,8 +593,8 @@
 
     <div class="wrap" id="app">
       <div class="note mini">
-        Tips: 默认展示图表源码，点击 <strong>Render Mermaid</strong> 才会尝试在线加载渲染器；PlantUML 仅提供源码与可选 server
-        link。所有 checkbox 结果会保存到本地浏览器 localStorage。
+        Tips: 在允许 JavaScript 的浏览器中，本页会在加载时尽力自动渲染 Mermaid / PlantUML（online/CDN or server-based）。渲染失败时会保留源码视图。
+        部分 IDE 预览会禁用 JS，此时只能查看源码（建议用真实浏览器打开）。所有 checkbox 结果会保存到本地浏览器 localStorage。
       </div>
 
       <!-- PAGE 1: Overview -->
@@ -851,6 +851,7 @@
                   </div>
                 </div>
                 <pre class="src" data-diagram-src><!-- FILL: PlantUML source (include @startuml/@enduml; no Markdown fences) --></pre>
+                <div class="render" data-diagram-render></div>
               </div>
 
               <h3>UI Element Contract / UI 元素契约 (UDD)</h3>
@@ -1147,6 +1148,7 @@
                   </div>
                 </div>
                 <pre class="src" data-diagram-src><!-- FILL: PlantUML class diagram source (include @startuml/@enduml; no Markdown fences) --></pre>
+                <div class="render" data-diagram-render></div>
               </div>
 
               <h3>Per-Interface Detail Docs / 单接口详细设计</h3>
@@ -1790,6 +1792,30 @@
           return PLANTUML_SERVER + encoded;
         }
 
+        async function renderAllPlantuml() {
+          const items = Array.from(document.querySelectorAll(".diagram[data-diagram='plantuml']"));
+          for (const d of items) {
+            const src = (d.querySelector("[data-diagram-src]")?.textContent || "").trim();
+            const out = d.querySelector("[data-diagram-render]");
+            if (!src || !out) continue;
+            const link = await plantumlMakeLink(src);
+            if (!link) continue;
+            try {
+              const img = document.createElement("img");
+              img.alt = "PlantUML diagram";
+              img.loading = "lazy";
+              img.decoding = "async";
+              img.referrerPolicy = "no-referrer";
+              img.src = link;
+              out.innerHTML = "";
+              out.appendChild(img);
+              d.setAttribute("data-rendered", "1");
+            } catch (e) {
+              // keep source-only
+            }
+          }
+        }
+
         document.querySelectorAll("[data-action='plantuml-link']").forEach((btn) => {
           btn.addEventListener("click", async () => {
             const diagram = btn.closest(".diagram");
@@ -1805,6 +1831,10 @@
             window.open(link, "_blank", "noopener,noreferrer");
           });
         });
+
+        // Auto-render (best-effort). Fallback is always source-only.
+        renderAllMermaid();
+        renderAllPlantuml();
       })();
     </script>
   </body>

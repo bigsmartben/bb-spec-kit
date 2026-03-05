@@ -132,7 +132,7 @@ The preview must be:
           - Iteration snapshot (review status, owners, actors, scope summary, success criteria).
           - Artifact readiness matrix (spec/plan/tasks/data-model/contracts/interface-details/ux/ui/prototype/checklists/research/quickstart).
           - Quick metrics (UC/FR/UDD/task progress placeholders).
-          - Process audit overview: Mermaid pipeline DAG + Mermaid timeline/gantt (source-only by default).
+          - Process audit overview: Mermaid pipeline DAG + Mermaid timeline/gantt (auto-render when possible; fallback to source-only).
           - Top risks table.
        - **Product page**:
           - JTBD summary: prefer `ux/jtbd.md` excerpt; fallback to `spec.md` excerpt.
