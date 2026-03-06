@@ -28,10 +28,11 @@ scripts:
 **Diagram Rules (Canonical)**:
 - All diagrams are operation-scoped (no cross-interface duplication)
 - Sequence Diagram (PlantUML): MUST include ALL dependencies from Section 4 inventory
-- Sequence Diagram (PlantUML): MUST be class/module-level for in-repo interactions (no generic `API` participant)
+- Sequence Diagram (PlantUML): MUST be class-level for in-repo interactions (no generic `API` participant)
+- Sequence Diagram (PlantUML): MUST cover all internal class participants in the operation path and show key call/message directions between them
 - Sequence Diagram (PlantUML): each in-repo participant/call MUST be traceable to Section 3 Evidence (`[path:line] :: [symbol]`)
 - Sequence Diagram (PlantUML): if Section 4 defines timeout/retry/failure-degradation behavior, include at least one critical non-happy path (`alt`/`opt`)
-- Class Diagram (PlantUML): MUST reflect Section 3 evidence chain; external systems NOT modeled as internal classes
+- Class Diagram (PlantUML): MUST reflect Section 3 evidence chain with concrete class names and relationships; module-only placeholders are not allowed; external systems NOT modeled as internal classes
 - Both diagrams MUST be consistent with Evidence & Call Chain + Dependency Inventory
 
 **DAG Rules (Canonical)**:  
@@ -100,8 +101,10 @@ You **MUST** consider the user input before proceeding (if not empty).
        - Section 1 MUST include concrete OpenAPI linkage fields for this operation (`operationId`, `method`, `path`, and `OpenAPI operation ref`)
        - Diagram rules (Canonical SSOT in Execution Contract):
          - Sequence & Class diagrams MUST be consistent with Section 3 (Evidence) + Section 4 (Inventory)
-         - Sequence diagram MUST be class/module-level for in-repo interactions (no generic `API` participant)
+         - Sequence diagram MUST be class-level for in-repo interactions (no generic `API` participant)
+         - Sequence diagram MUST cover all internal class participants in the operation path and show key call/message directions between them
          - Sequence diagram MUST include at least one critical non-happy path (`alt`/`opt`) when Section 4 contains timeout/retry/failure-degradation behavior
+         - Class diagram MUST use concrete class names and explicit class relationships; module-only placeholders are not allowed
          - External dependencies NOT modeled as internal classes; see Section 4 for ownership/protocol/timeout/retry
        - Evidence requirement: Any `Existing` boundary step MUST cite `AEI-###` (per constitution SSOT); do NOT duplicate repo boundary index
        - Map each interface to the user stories it serves (from spec.md)
