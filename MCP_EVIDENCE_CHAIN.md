@@ -1,14 +1,14 @@
-# 🔗 MCP Sourcegraph 查询证据链
+# 🔗 MCP ISS-MCP 查询证据链
 
 **生成时间**: 2026-03-05  
-**MCP 服务**: http://localhost:8002/sourcegraph/mcp  
+**MCP 服务**: http://localhost:8002/iss-mcp  
 **目标仓库**: github.com/bigsmartben/bb-spec-kit  
 
 ---
 
 ## 📋 执行查询汇总
 
-总计 **12 个 Sourcegraph 搜索查询** + **3 个内容获取操作**
+总计 **12 个 ISS-MCP 搜索查询** + **3 个内容获取操作**
 
 | # | 查询类型 | 查询语句 | 目的 | 结果状态 |
 |---|---------|--------|------|---------|
@@ -34,7 +34,7 @@
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_fetch_content",
+  "tool": "mcp_iss-mcp_fetch_content",
   "repo": "github.com/bigsmartben/bb-spec-kit",
   "path": ""
 }
@@ -71,7 +71,7 @@
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_fetch_content",
+  "tool": "mcp_iss-mcp_fetch_content",
   "repo": "github.com/bigsmartben/bb-spec-kit",
   "path": "README.md"  // 或 "pyproject.toml"
 }
@@ -79,12 +79,12 @@
 
 **结果** ⚠️:
 ```
-Sourcegraph API 返回错误:
+ISS-MCP API 返回错误:
 "Invalid arguments: path or repository does not exist"
 ```
 
 **诊断**:
-- ❌ Sourcegraph 的 fetch_content 对于特定文件路径有限制
+- ❌ ISS-MCP 的 fetch_content 对于特定文件路径有限制
 - ✓ 已改用本地 read_file 工具成功读取文件
 - 💡 **教训**: Fetch 适合目录结构，单文件查询用文本搜索更好
 
@@ -100,7 +100,7 @@ AGENT_CONFIG lang:python
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "AGENT_CONFIG lang:python",
   "limit": 10
 }
@@ -152,7 +152,7 @@ type:repo spec-kit
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "type:repo spec-kit",
   "limit": 5
 }
@@ -190,7 +190,7 @@ def init lang:python repo:github.com/bigsmartben/bb-spec-kit
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "def init lang:python repo:github.com/bigsmartben/bb-spec-kit",
   "limit": 10
 }
@@ -227,7 +227,7 @@ def check_tool|def download|def init_git|def generate_commands lang:python
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "def check_tool|def download|def init_git|def generate_commands lang:python",
   "limit": 20
 }
@@ -239,7 +239,7 @@ No matches found
 ```
 
 **分析**:
-- ❌ Sourcegraph 管道操作符可能需要不同语法
+- ❌ ISS-MCP 管道操作符可能需要不同语法
 - ✓ 改用单个查询成功找到函数
 - 💡 **改进**: 布尔操作符应明确使用 AND/OR 而非 |
 
@@ -255,7 +255,7 @@ REQUIRED_AGENTS|AGENT_CONFIG lang:python
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "REQUIRED_AGENTS|AGENT_CONFIG lang:python",
   "limit": 15
 }
@@ -277,7 +277,7 @@ No matches found
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_fetch_content",
+  "tool": "mcp_iss-mcp_fetch_content",
   "repo": "github.com/bigsmartben/bb-spec-kit",
   "path": "src/specify_cli"
 }
@@ -306,7 +306,7 @@ class.*Tracker lang:python -file:test
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "class.*Tracker lang:python -file:test",
   "limit": 20
 }
@@ -320,7 +320,7 @@ No matches found
 **分析**:
 - ❌ 正则表达式语法可能需要特殊前缀 (patterntype:regexp)
 - ✓ 本地本文搜索找到了 StepTracker 类
-- 💡 **最佳实践**: Sourcegraph 基于关键字的搜索更可靠
+- 💡 **最佳实践**: ISS-MCP 基于关键字的搜索更可靠
 
 ---
 
@@ -334,7 +334,7 @@ type:symbol init_project lang:python
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "type:symbol init_project lang:python",
   "limit": 10
 }
@@ -361,7 +361,7 @@ TODO OR FIXME lang:python
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "TODO OR FIXME lang:python",
   "limit": 8
 }
@@ -510,7 +510,7 @@ Q4 结果对比: AGENT_CONFIG 包含这 4 个
 
 ## 🎯 提取的关键数据点
 
-### 通过 Sourcegraph 直接获得
+### 通过 ISS-MCP 直接获得
 
 | 数据点 | 查询 | 行号 | 值 |
 |--------|------|------|-----|
@@ -599,7 +599,7 @@ Q4 结果对比: AGENT_CONFIG 包含这 4 个
 ### 🚀 推荐的混合策略
 
 ```
-1. 用 Sourcegraph 做：
+1. 用 ISS-MCP 做：
    - 宽阔的关键字搜索
    - 目录结构发现
    - 大规模代码统计
@@ -610,7 +610,7 @@ Q4 结果对比: AGENT_CONFIG 包含这 4 个
    - 深层代码分析
    
 3. 联动使用：
-   - 先 Sourcegraph 快速定位
+   - 先 ISS-MCP 快速定位
    - 再本地 read/grep 精细获取
 ```
 
