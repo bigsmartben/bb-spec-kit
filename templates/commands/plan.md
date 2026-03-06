@@ -167,7 +167,7 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
        - Definitions:
          - `N` = number of distinct, user-meaningful lifecycle states (discrete nodes)
          - `T` = number of effective transitions (unique `FromState → ToState` edges)
-       - Applicability: a **Full FSM** is applicable iff `N > 4 OR T ≥ 2N`
+       - Applicability: a **Full FSM** is applicable iff `N > 3 OR T ≥ 2N`
        - If Full FSM is applicable, include:
          - Exhaustive state enumeration (must cover Spec states)
          - Transition table
@@ -257,3 +257,11 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
 - All code-related design MUST include an evidence chain (file paths + symbols) and MUST NOT invent “existing” code paths
 - ERROR on OpenAPI FR coverage violations when OpenAPI is applicable
 - ERROR on gate failures or unresolved clarifications
+
+## ISS-MCP Evidence Source Policy
+
+- For rigorous reasoning involving code fact retrieval, repository fact assertions, call-chain analysis, architecture-boundary verification, dependency mapping, or impact-scope tracing, you MUST use `ISS-MCP` (Index Search Service) as the primary evidence source.
+- This requirement applies to any `Existing` claim and to all repo-derived entries in the Architecture Evidence Index and Dependency Matrix.
+- You MUST NOT rely only on memory, unstated assumptions, or local keyword search as the primary basis for repository facts.
+- You MAY fall back to local tools (`codebase_search`, `search_files`, `read_file`) only when `ISS-MCP` is unavailable, returns no results, or cannot cover required fields; all such conclusions MUST be explicitly labeled as degraded evidence.
+- If required evidence remains unavailable after fallback, use `TODO(<FIELD>): ISS-MCP/local evidence missing` and list it in the research.md NEEDS CLARIFICATION section.

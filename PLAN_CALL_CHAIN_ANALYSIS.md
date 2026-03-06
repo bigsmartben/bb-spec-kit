@@ -1,7 +1,7 @@
 # 📋 Spec-Kit `speckit.plan` 调用链深度分析
 
 **分析日期**: 2026-03-05  
-**使用工具**: sourcegraph-mcp (代码搜索与分析)  
+**使用工具**: iss-mcp (代码搜索与分析)  
 **目标仓库**: github.com/bigsmartben/bb-spec-kit
 
 ---
@@ -455,7 +455,7 @@ speckit.checklist (基于 spec + plan 执行)
    → 缺少映射 = ERROR
 
 ③ FSM 覆盖 (data-model.md):
-  有状态实体必须有 Full FSM（if N > 4 or T ≥ 2N）
+  有状态实体必须有 Full FSM（if N > 3 or T ≥ 2N）
   否则 Lightweight State Model
   
    → 无状态模型 = ERROR
@@ -675,7 +675,7 @@ agent_scripts:
 **A**: 
 ```
 计算: N = states 数量, T = transitions 数量
-If (N > 4 OR T ≥ 2N):
+If (N > 3 OR T ≥ 2N):
   → Full FSM required (state enumeration + transition table + diagram)
 Else:
   → Lightweight State Model (state field definition + allowed/forbidden transitions)
@@ -746,4 +746,4 @@ tasks.md (实现层):
 
 ---
 
-*本分析由 Sourcegraph MCP 深度代码分析生成，确保所有引用均基于实际代码库*
+*本分析由 ISS-MCP 深度代码分析生成，确保所有引用均基于实际代码库*

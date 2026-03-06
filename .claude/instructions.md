@@ -1,8 +1,8 @@
 # Claude Code - Spec-Kit Development Instructions
 
-## 🔗 MANDATORY: Always Use Sourcegraph MCP for Code Analysis
+## 🔗 MANDATORY: Always Use ISS-MCP for Code Analysis
 
-When developing spec-kit using Claude Code, you **MUST** use `sourcegraph-mcp` to search, analyze, and understand the codebase. Never skip this step.
+When developing spec-kit using Claude Code, you **MUST** use `iss-mcp` to search, analyze, and understand the codebase. Never skip this step.
 
 ---
 

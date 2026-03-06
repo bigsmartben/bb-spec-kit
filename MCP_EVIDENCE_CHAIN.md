@@ -1,14 +1,14 @@
-# 🔗 MCP Sourcegraph 查询证据链
+# 🔗 MCP ISS-MCP 查询证据链
 
 **生成时间**: 2026-03-05  
-**MCP 服务**: http://localhost:8002/sourcegraph/mcp  
+**MCP 服务**: http://localhost:8002/iss-mcp  
 **目标仓库**: github.com/bigsmartben/bb-spec-kit  
 
 ---
 
 ## 📋 执行查询汇总
 
-总计 **12 个 Sourcegraph 搜索查询** + **3 个内容获取操作**
+总计 **12 个 ISS-MCP 搜索查询** + **3 个内容获取操作**
 
 | # | 查询类型 | 查询语句 | 目的 | 结果状态 |
 |---|---------|--------|------|---------|
@@ -34,7 +34,7 @@
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_fetch_content",
+  "tool": "mcp_iss-mcp_fetch_content",
   "repo": "github.com/bigsmartben/bb-spec-kit",
   "path": ""
 }
@@ -71,7 +71,7 @@
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_fetch_content",
+  "tool": "mcp_iss-mcp_fetch_content",
   "repo": "github.com/bigsmartben/bb-spec-kit",
   "path": "README.md"  // 或 "pyproject.toml"
 }
@@ -100,7 +100,7 @@ AGENT_CONFIG lang:python
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "AGENT_CONFIG lang:python",
   "limit": 10
 }
@@ -152,7 +152,7 @@ type:repo spec-kit
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "type:repo spec-kit",
   "limit": 5
 }
@@ -190,7 +190,7 @@ def init lang:python repo:github.com/bigsmartben/bb-spec-kit
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "def init lang:python repo:github.com/bigsmartben/bb-spec-kit",
   "limit": 10
 }
@@ -227,7 +227,7 @@ def check_tool|def download|def init_git|def generate_commands lang:python
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "def check_tool|def download|def init_git|def generate_commands lang:python",
   "limit": 20
 }
@@ -255,7 +255,7 @@ REQUIRED_AGENTS|AGENT_CONFIG lang:python
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "REQUIRED_AGENTS|AGENT_CONFIG lang:python",
   "limit": 15
 }
@@ -277,7 +277,7 @@ No matches found
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_fetch_content",
+  "tool": "mcp_iss-mcp_fetch_content",
   "repo": "github.com/bigsmartben/bb-spec-kit",
   "path": "src/specify_cli"
 }
@@ -306,7 +306,7 @@ class.*Tracker lang:python -file:test
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "class.*Tracker lang:python -file:test",
   "limit": 20
 }
@@ -334,7 +334,7 @@ type:symbol init_project lang:python
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "type:symbol init_project lang:python",
   "limit": 10
 }
@@ -361,7 +361,7 @@ TODO OR FIXME lang:python
 **参数**:
 ```json
 {
-  "tool": "mcp_sourcegraph-m_search",
+  "tool": "mcp_iss-mcp_search",
   "query": "TODO OR FIXME lang:python",
   "limit": 8
 }

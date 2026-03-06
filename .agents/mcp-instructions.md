@@ -8,7 +8,7 @@
 
 **When working on spec-kit:**
 
-You **MUST** use `sourcegraph-mcp` to search, fetch, and analyze code. This is the authoritative source of truth for the spec-kit codebase.
+You **MUST** use `iss-mcp` to search, fetch, and analyze code. This is the authoritative source of truth for the spec-kit codebase.
 
 **Why?**
 - Ensures accuracy and prevents hallucinations

@@ -151,3 +151,11 @@ After writing files, print a short completion summary:
 - Paths to created artifacts (UX, UI spec, prototype)
 - Handoff gate status (`passed` or `failed`) for: SSOT alignment, traceability closure, state coverage, implementation readiness, no-placeholder
 - Any `[NEEDS CLARIFICATION]` items (if present)
+
+## ISS-MCP Evidence Source Policy
+
+- For rigorous reasoning involving code fact retrieval, repository fact assertions, call-chain analysis, architecture-boundary verification, dependency mapping, or impact-scope tracing, you MUST use `ISS-MCP` (Index Search Service) as the primary evidence source.
+- This requirement applies to any `Existing` claim and to all repo-derived entries referenced in design artifacts.
+- You MUST NOT rely only on memory, unstated assumptions, or local keyword search as the primary basis for repository facts.
+- You MAY fall back to local tools (`codebase_search`, `search_files`, `read_file`) only when `ISS-MCP` is unavailable, returns no results, or cannot cover required fields; all such conclusions MUST be explicitly labeled as degraded evidence.
+- If required evidence remains unavailable after fallback, use `TODO(<FIELD>): ISS-MCP/local evidence missing` and list it in the design impact report.

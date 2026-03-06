@@ -339,7 +339,7 @@ State: DESIGN
 │  │        ERROR if: any FR-### unmapped
 │  ├─ [HARD] data-model.md UDD→VO mapping: Key Path + System-backed items
 │  │        ERROR if: any mapped item missing VO
-│  ├─ [HARD] data-model.md FSM: if N>4 or T≥2N, Full FSM required
+│  ├─ [HARD] data-model.md FSM: if N>3 or T≥2N, Full FSM required
 │  │        ERROR if: missing or incomplete FSM
 │  └─ [HARD] test-case-matrix.md coverage: FR, operationId, state transitions
 │           ERROR if: gaps in coverage
@@ -496,7 +496,7 @@ Gate 2: Key Path UDD → VO Mapping
 
 Gate 3: FSM Coverage (when applicable)
 ├─ Location: data-model.md
-├─ Rule: If N>4 or T≥2N, Full FSM required; else Lightweight State Model OK
+├─ Rule: If N>3 or T≥2N, Full FSM required; else Lightweight State Model OK
 ├─ Violation: ERROR
 ├─ Example:
 │  Entity: Order
@@ -506,7 +506,7 @@ Gate 3: FSM Coverage (when applicable)
 │
 │  Entity: Payment
 │  States: CREATED, AUTHORIZED, CAPTURED, FAILED, REFUNDING, REFUNDED (N=6)
-│  Applicability: N>4? → YES → Full FSM REQUIRED
+│  Applicability: N>3? → YES → Full FSM REQUIRED
 │  Must include: State enum, transition table, PlantUML diagram
 
 Gate 4: Test Case Matrix Coverage (multi-dimensional)
@@ -660,4 +660,4 @@ Recovery Pattern:
 
 ---
 
-*完整调用链可视化 - 基于 sourcegraph-mcp 深度分析*
+*完整调用链可视化 - 基于 iss-mcp 深度分析*

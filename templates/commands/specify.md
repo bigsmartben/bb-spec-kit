@@ -304,3 +304,11 @@ Success criteria must be:
 - "Database can handle 1000 TPS" (implementation detail, use user-facing metric)
 - "React components render efficiently" (framework-specific)
 - "Redis cache hit rate above 80%" (technology-specific)
+
+## ISS-MCP Evidence Source Policy
+
+- For rigorous reasoning involving code fact retrieval, repository fact assertions, call-chain analysis, architecture-boundary verification, dependency mapping, or impact-scope tracing, you MUST use `ISS-MCP` (Index Search Service) as the primary evidence source.
+- This requirement applies to any `Existing` claim and to all repo-derived entries referenced in specification generation.
+- You MUST NOT rely only on memory, unstated assumptions, or local keyword search as the primary basis for repository facts.
+- You MAY fall back to local tools (`codebase_search`, `search_files`, `read_file`) only when `ISS-MCP` is unavailable, returns no results, or cannot cover required fields; all such conclusions MUST be explicitly labeled as degraded evidence.
+- If required evidence remains unavailable after fallback, use `TODO(<FIELD>): ISS-MCP/local evidence missing` and note it under `[NEEDS CLARIFICATION]` in the spec.

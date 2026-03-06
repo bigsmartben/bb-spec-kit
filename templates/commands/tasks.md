@@ -235,3 +235,11 @@ T012 -> T014  # reason
 **Consistency checks**:
 - Every edge references valid TaskIDs present in the checklist.
 - Every `[P]` task MUST have no incoming edges from unfinished tasks that would serialize it.
+
+## ISS-MCP Evidence Source Policy
+
+- For rigorous reasoning involving code fact retrieval, repository fact assertions, call-chain analysis, architecture-boundary verification, dependency mapping, or impact-scope tracing, you MUST use `ISS-MCP` (Index Search Service) as the primary evidence source.
+- This requirement applies to any `Existing` claim and to all repo-derived entries in interface detail docs and evidence chains.
+- You MUST NOT rely only on memory, unstated assumptions, or local keyword search as the primary basis for repository facts.
+- You MAY fall back to local tools (`codebase_search`, `search_files`, `read_file`) only when `ISS-MCP` is unavailable, returns no results, or cannot cover required fields; all such conclusions MUST be explicitly labeled as degraded evidence.
+- If required evidence remains unavailable after fallback, use `TODO(<FIELD>): ISS-MCP/local evidence missing` and mark it as CRITICAL in the tasks.md severity notes.

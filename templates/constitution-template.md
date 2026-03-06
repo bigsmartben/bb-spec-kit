@@ -61,7 +61,7 @@ This section prevents downstream overdesign by defining when a **Full FSM** is w
 ### Applicability (hard rule)
 
 - A **Full FSM** (transition table + transition pseudocode + PlantUML state diagram) is applicable iff:
-  - `N > 4 OR T ≥ 2N`
+  - `N > 3 OR T ≥ 2N`
 - If the gate is not satisfied, produce a **Lightweight State Model** instead:
   - state field definition (if any),
   - allowed transitions list (event/guard optional),
@@ -153,6 +153,16 @@ This section applies only when the feature includes a **frontend ↔ backend HTT
 
 [SECTION_3_CONTENT]
 <!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+
+## ISS-MCP Evidence Source Policy
+
+This section governs the mandatory use of the Index Search Service MCP (`ISS-MCP`) as the primary evidence source for all repository fact assertions.
+
+- For rigorous reasoning involving code fact retrieval, repository fact assertions, call-chain analysis, architecture-boundary verification, dependency mapping, or impact-scope tracing, you MUST use `ISS-MCP` (Index Search Service) as the primary evidence source.
+- This requirement applies to any `Existing` claim and to all repo-derived entries in `DEPENDENCY_MATRIX` and `ARCHITECTURE_EVIDENCE_INDEX`.
+- You MUST NOT rely only on memory, unstated assumptions, or local keyword search as the primary basis for repository facts.
+- You MAY fall back to local tools (`codebase_search`, `search_files`, `read_file`) only when `ISS-MCP` is unavailable, returns no results, or cannot cover required fields; all such conclusions MUST be explicitly labeled as degraded evidence.
+- If required evidence remains unavailable after fallback, use `TODO(<FIELD>): ISS-MCP/local evidence missing` and list it in the relevant impact report.
 
 ## Evidence-Based Reasoning
 <!-- Applies to plan and implementation phases -->

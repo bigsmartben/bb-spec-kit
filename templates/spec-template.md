@@ -97,7 +97,7 @@ This section is navigation only. The Spec remains the **single source of truth (
 ### 2.2  Global State Machine Overview *(optional — include when entities have lifecycle and/or cross-UC transitions)*
 
 <!-- Only include when business lifecycle states matter across UCs. -->
-<!-- FSM Gate (hard): Use a Full FSM only when `N > 4 OR T ≥ 2N`. Otherwise use a Lightweight State Model. -->
+<!-- FSM Gate (hard): Use a Full FSM only when `N > 3 OR T ≥ 2N`. Otherwise use a Lightweight State Model. -->
 <!-- Definitions: `N` = number of distinct states; `T` = number of effective transitions (unique From→To edges). -->
 
 #### [Entity Name] State Machine *(ref: § 1.3 → [Entity Name])*
