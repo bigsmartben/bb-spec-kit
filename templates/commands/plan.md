@@ -176,7 +176,7 @@ Your job is to produce plan/design artifacts that are easy to read for Chinese s
        - Definitions:
          - `N` = number of distinct, user-meaningful lifecycle states (discrete nodes)
          - `T` = number of effective transitions (unique `FromState → ToState` edges)
-       - Applicability: a **Full FSM** is applicable iff `N > 4 OR T ≥ 2N`
+       - Applicability: a **Full FSM** is applicable iff `N > 3 OR T ≥ 2N`
        - If Full FSM is applicable, include:
          - Exhaustive state enumeration (must cover Spec states)
          - Transition table
