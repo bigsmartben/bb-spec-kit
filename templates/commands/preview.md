@@ -1,5 +1,5 @@
 ---
-description: Generate/overwrite specs/<feature>/preview.html as a reviewer-facing review view (Product/Technical/Test) with interactive HTML navigation and verbatim appendices.
+description: Generate/overwrite specs/<feature>/preview.html as a reviewer-facing review view (Product/Technical/Test) with interactive navigation and verbatim appendices. This view is not the SSOT and is regenerated on demand.
 scripts:
   sh: scripts/bash/check-prerequisites.sh --json --paths-only
   ps: scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly

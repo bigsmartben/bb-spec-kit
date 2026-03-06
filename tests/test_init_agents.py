@@ -2,7 +2,7 @@
 Tests for `specify init` with four required AI agents.
 
 These agents MUST pass:
-  - codex    (.codex/prompts/)
+  - codex    (.codex/prompts/)  ← intermediate commands; auto-converted to skills
   - claude   (.claude/commands/)
   - opencode (.opencode/command/)    ← singular 'command', not 'commands'
   - roo      (.roo/commands/)        ← maps to "Roo Code" in AGENTS.md
@@ -154,13 +154,15 @@ class TestAgentDirectoryMapping:
             f"  Expected: '{expected_subdir}'\n"
             f"  Got:      '{actual_subdir}'\n"
             "NOTE: opencode uses 'command' (singular). "
-            "codex uses 'prompts'. Others use standard 'commands'."
+            "codex uses 'prompts' as intermediate source; skills are installed separately. "
+            "Others use standard 'commands'."
         )
 
     def test_codex_uses_prompts_not_commands(self):
-        """codex specifically must use 'prompts', not the default 'commands'."""
+        """codex uses 'prompts' as commands_subdir, but final delivery is via skills."""
         assert AGENT_CONFIG["codex"]["commands_subdir"] == "prompts", (
-            "codex must use commands_subdir='prompts' (matches .codex/prompts/ directory convention)"
+            "codex uses commands_subdir='prompts' as intermediate format; "
+            "init auto-converts to .codex/skills/ via --ai-skills"
         )
 
     def test_opencode_uses_singular_command(self):

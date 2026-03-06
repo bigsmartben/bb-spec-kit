@@ -143,7 +143,7 @@ class TestGetSkillsDir:
     def test_codex_uses_override(self, project_dir):
         """Codex should use the AGENT_SKILLS_DIR_OVERRIDES value."""
         result = _get_skills_dir(project_dir, "codex")
-        assert result == project_dir / ".agents" / "skills"
+        assert result == project_dir / ".codex" / "skills"
 
     def test_cursor_agent_skills_dir(self, project_dir):
         """Cursor should use .cursor/skills/."""
@@ -691,3 +691,31 @@ class TestParameterOrderingIssue:
         assert result.exit_code == 1
         assert "Invalid value for --ai-commands-dir" in result.output
         assert "--here" in result.output
+
+
+class TestCodexAutoAiSkills:
+    """Codex should auto-enable skills installation during init()."""
+
+    def test_codex_auto_enables_ai_skills(self, tmp_path):
+        from typer.testing import CliRunner
+
+        runner = CliRunner()
+        target = tmp_path / "codex-proj"
+
+        def fake_download(project_path, *args, **kwargs):
+            codex_prompts = project_path / ".codex" / "prompts"
+            codex_prompts.mkdir(parents=True, exist_ok=True)
+            (codex_prompts / "speckit.specify.md").write_text("# spec")
+
+        with (
+            patch("specify_cli.download_and_extract_template", side_effect=fake_download),
+            patch("specify_cli.ensure_executable_scripts"),
+            patch("specify_cli.ensure_constitution_from_template"),
+            patch("specify_cli.install_ai_skills", return_value=True) as mock_skills,
+            patch("specify_cli.is_git_repo", return_value=False),
+            patch("specify_cli.shutil.which", return_value="/usr/bin/git"),
+        ):
+            result = runner.invoke(app, ["init", str(target), "--ai", "codex", "--script", "sh", "--no-git"])
+
+        assert result.exit_code == 0
+        mock_skills.assert_called_once()

@@ -150,46 +150,15 @@ Your job is to produce a Spec that is easy to read for Chinese stakeholders **wi
 
 6. **Specification Quality Validation**: After writing the initial spec, validate it against quality criteria:
 
-   a. **Create Spec Quality Checklist**: Create/overwrite `FEATURE_DIR/checklists/requirements.md` using the checklist template structure with these validation items:
+   a. **Create Spec Quality Checklist**: Create/overwrite `FEATURE_DIR/checklists/requirements.md` by loading and applying `templates/checklist-template.md`.
 
-      ```markdown
-      # Specification Quality Checklist: [FEATURE NAME]
-      
-      **Purpose**: Validate specification completeness and quality before proceeding to planning
-      **Created**: [DATE]
-      **Feature**: [Link to spec.md]
-      
-      ## Content Quality
-      
-      - [ ] No implementation details (languages, frameworks, APIs)
-      - [ ] Focused on user value and business needs
-      - [ ] Written for non-technical stakeholders
-      - [ ] All mandatory sections completed
-      
-      ## Requirement Completeness
-      
-      - [ ] No [NEEDS CLARIFICATION] markers remain
-      - [ ] Requirements are testable and unambiguous
-      - [ ] Success criteria are measurable
-      - [ ] Success criteria are technology-agnostic (no implementation details)
-      - [ ] All acceptance scenarios are defined
-      - [ ] Edge cases are identified
-      - [ ] Scope is clearly bounded
-      - [ ] Dependencies and assumptions identified
-      - [ ] All `→ ref: Entity.field` references used by UI/components are defined as UDD items (no dangling refs)
-      - [ ] Key Path (P1) System-backed UDD items are explicitly marked (Source Type + Key Path) for downstream VO coverage checks
-      
-      ## Feature Readiness
-      
-      - [ ] All functional requirements have clear acceptance criteria
-      - [ ] User scenarios cover primary flows
-      - [ ] Feature meets measurable outcomes defined in Success Criteria
-      - [ ] No implementation details leak into specification
-      
-      ## Notes
-      
-      - Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
-      ```
+      - Set checklist metadata fields to:
+        - `CHECKLIST TYPE`: `Specification Quality`
+        - `FEATURE NAME`: feature name derived from `SPEC_FILE`
+        - `Purpose`: `Validate specification completeness and quality before proceeding to planning`
+        - `Created`: current date
+        - `Feature`: relative link to `SPEC_FILE`
+      - Preserve the checklist section/item structure from the template exactly; do not inline or redefine checklist item text in this command.
 
    b. **Run Validation Check**: Review the spec against each checklist item:
       - For each item, determine if it passes or fails
