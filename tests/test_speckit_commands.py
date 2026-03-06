@@ -27,6 +27,7 @@ EXPECTED_COMMANDS = [
     "checklist",
     "clarify",
     "constitution",
+    "design",
     "implement",
     "plan",
     "prd2spec",
@@ -48,6 +49,7 @@ COMMANDS_WITH_ARGUMENTS = [
     "clarify",
     "checklist",
     "analyze",
+    "design",
 ]
 
 # Commands expected to reference a handoff or downstream command
@@ -318,6 +320,36 @@ class TestPlanCommand:
 
     def test_body_references_spec(self):
         assert "spec" in self.body.lower(), "plan.md must reference the spec.md as its input."
+
+
+class TestDesignCommand:
+    """design command: generates UX/UI artifacts and static prototype from spec."""
+
+    @pytest.fixture(autouse=True)
+    def load(self):
+        path = COMMANDS_DIR / "design.md"
+        if not path.exists():
+            pytest.skip("design.md does not exist")
+        self.content, self.fm, self.body = _load_command("design")
+
+    def test_description_mentions_design_or_prototype(self):
+        desc = str(self.fm.get("description", "")).lower()
+        assert "design" in desc or "prototype" in desc or "ux" in desc, (
+            f"design.md description must mention design/prototype/ux intent. Got: {desc!r}"
+        )
+
+    def test_body_references_spec_as_input(self):
+        assert "spec" in self.body.lower(), "design.md must reference spec.md as its input context."
+
+    def test_body_references_design_templates(self):
+        assert "design-template.md" in self.content and "design-ui-template.md" in self.content and "design-prototype-template.md" in self.content, (
+            "design.md must reference design template pack files for deterministic output structure."
+        )
+
+    def test_body_references_prototype_outputs(self):
+        assert "prototype/index.html" in self.content and "prototype/pages" in self.content, (
+            "design.md must explicitly define prototype output files/paths."
+        )
 
 
 class TestTasksCommand:
