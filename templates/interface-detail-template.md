@@ -14,6 +14,7 @@ description: "Per-operation interface detailed design template (OpenAPI only)"
 | operationId | `[operationId]` |
 | Method | `[GET|POST|PUT|PATCH|DELETE]` |
 | Path | `[/path]` |
+| OpenAPI operation ref | `contracts/openapi.yaml#/paths[/path]/[method]` |
 | Summary | `[summary]` |
 | x-fr-ids | `[FR-###, ...]` |
 | x-uc-ids (optional) | `[UC-###, ...]` |
@@ -51,7 +52,11 @@ Call-chain drilldown (operation-scoped). Each step marked `Existing` or `Planned
 
 ## 5. Sequence Diagram *(mandatory)*
 
-PlantUML. Must include ALL dependencies from Section 4 (Dependency Inventory).  
+PlantUML. Must include ALL dependencies from Section 4 (Dependency Inventory).
+MUST be **class/module-level** for in-repo interactions (e.g., `OrderController`, `OrderService`, `OrderRepository`) instead of generic `API`.
+Each in-repo participant/call MUST be traceable to Section 3 Evidence (`[path:line] :: [symbol]`).
+If Section 4 defines timeout/retry/failure-degradation behavior, include at least one critical non-happy path using `alt`/`opt`.
+External dependencies are modeled as system participants (not internal classes).
 See `/speckit.tasks` Execution Contract: Diagram Rules (SSOT).
 
 ```plantuml
@@ -59,15 +64,24 @@ See `/speckit.tasks` Execution Contract: Diagram Rules (SSOT).
 title [operationId] sequence
 
 actor Client
-participant API
+participant [ControllerClass]
+participant [ServiceClass]
+participant [RepositoryClass]
+participant [ExternalSystem]
 
-Client -> API: [method] [path]
-activate API
+Client -> [ControllerClass]: [method] [path]
+activate [ControllerClass]
 
-' Include all dependencies from Section 4 (Section 4 is authority on what to include)
+[ControllerClass] -> [ServiceClass]: [request DTO]
+[ServiceClass] -> [RepositoryClass]: [query/command]
+[ServiceClass] -> [ExternalSystem]: [protocol call]
 
-API --> Client: [status] [response]
-deactivate API
+alt dependency timeout / failure
+  [ServiceClass] -> [ServiceClass]: [retry or degrade policy]
+end
+
+[ControllerClass] --> Client: [status] [response]
+deactivate [ControllerClass]
 @enduml
 ```
 

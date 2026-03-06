@@ -1256,7 +1256,7 @@ def ensure_constitution_from_template(project_path: Path, tracker: StepTracker |
 # Agent-specific skill directory overrides for agents whose skills directory
 # doesn't follow the standard <agent_folder>/skills/ pattern
 AGENT_SKILLS_DIR_OVERRIDES = {
-    "codex": ".agents/skills",  # Codex agent layout override
+    "codex": ".codex/skills",  # Codex slash command discovery requires .codex/skills
 }
 
 # Default skills directory for agents not in AGENT_CONFIG
@@ -1650,6 +1650,8 @@ def init(
                 console.print(error_panel)
                 raise typer.Exit(1)
 
+    effective_ai_skills = ai_skills or selected_ai == "codex"
+
     if script_type:
         if script_type not in SCRIPT_TYPE_CHOICES:
             console.print(
@@ -1690,7 +1692,7 @@ def init(
         ("constitution", "Constitution setup"),
     ]:
         tracker.add(key, label)
-    if ai_skills:
+    if effective_ai_skills:
         tracker.add("ai-skills", "Install agent skills")
     for key, label in [("cleanup", "Cleanup"), ("git", "Initialize git repository"), ("final", "Finalize")]:
         tracker.add(key, label)
@@ -1733,21 +1735,22 @@ def init(
 
             ensure_constitution_from_template(project_path, tracker=tracker)
 
-            if ai_skills:
+            if effective_ai_skills:
                 skills_ok = install_ai_skills(project_path, selected_ai, tracker=tracker)
 
-                # When --ai-skills is used on a NEW project and skills were
+                # When skills are enabled on a NEW project and skills were
                 # successfully installed, remove the command files that the
-                # template archive just created.  Skills replace commands, so
-                # keeping both would be confusing.  For --here on an existing
+                # template archive just created. Skills replace commands, so
+                # keeping both would be confusing. For --here on an existing
                 # repo we leave pre-existing commands untouched to avoid a
-                # breaking change.  We only delete AFTER skills succeed so the
+                # breaking change. We only delete AFTER skills succeed so the
                 # project always has at least one of {commands, skills}.
                 if skills_ok and not here:
                     agent_cfg = AGENT_CONFIG.get(selected_ai, {})
                     agent_folder = agent_cfg.get("folder", "")
+                    commands_subdir = agent_cfg.get("commands_subdir", "commands")
                     if agent_folder:
-                        cmds_dir = project_path / agent_folder.rstrip("/") / "commands"
+                        cmds_dir = project_path / agent_folder.rstrip("/") / commands_subdir
                         if cmds_dir.exists():
                             try:
                                 shutil.rmtree(cmds_dir)

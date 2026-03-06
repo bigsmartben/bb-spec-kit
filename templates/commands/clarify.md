@@ -1,5 +1,5 @@
 ---
-description: Identify underspecified areas in the current feature spec by asking up to 20 highly targeted clarification questions and encoding answers back into the spec.
+description: Structured clarification workflow for underspecified requirements. Use before planning to resolve ambiguities through coverage-based questioning. Records answers in spec clarifications section.
 handoffs: 
   - label: Build Technical Plan
     agent: speckit.plan

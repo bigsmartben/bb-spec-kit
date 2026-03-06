@@ -1,6 +1,6 @@
 ---
 description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
-handoffs: 
+handoffs:
   - label: Analyze For Consistency
     agent: speckit.analyze
     prompt: Run a project analysis for consistency
@@ -25,9 +25,12 @@ scripts:
 - Each interface: ≥1 Test + ≥1 Implementation task
 - If test-case-matrix exists, reference CaseID explicitly
 
-**Diagram Rules (Canonical)**:  
+**Diagram Rules (Canonical)**:
 - All diagrams are operation-scoped (no cross-interface duplication)
 - Sequence Diagram (PlantUML): MUST include ALL dependencies from Section 4 inventory
+- Sequence Diagram (PlantUML): MUST be class/module-level for in-repo interactions (no generic `API` participant)
+- Sequence Diagram (PlantUML): each in-repo participant/call MUST be traceable to Section 3 Evidence (`[path:line] :: [symbol]`)
+- Sequence Diagram (PlantUML): if Section 4 defines timeout/retry/failure-degradation behavior, include at least one critical non-happy path (`alt`/`opt`)
 - Class Diagram (PlantUML): MUST reflect Section 3 evidence chain; external systems NOT modeled as internal classes
 - Both diagrams MUST be consistent with Evidence & Call Chain + Dependency Inventory
 
@@ -94,8 +97,11 @@ You **MUST** consider the user input before proceeding (if not empty).
            - Preferred: `.specify/templates/interface-detail-template.md`
            - Fallback: `templates/interface-detail-template.md`
        - Each interface detail doc MUST follow template: `Section 1: Reference | 2: UDD Coverage | 3: Evidence & Call Chain | 4: Dependency Inventory | 5: Sequence Diagram | 6: Class Diagram | 7: Pseudocode | 8: Change List | 9: Performance`
+       - Section 1 MUST include concrete OpenAPI linkage fields for this operation (`operationId`, `method`, `path`, and `OpenAPI operation ref`)
        - Diagram rules (Canonical SSOT in Execution Contract):
          - Sequence & Class diagrams MUST be consistent with Section 3 (Evidence) + Section 4 (Inventory)
+         - Sequence diagram MUST be class/module-level for in-repo interactions (no generic `API` participant)
+         - Sequence diagram MUST include at least one critical non-happy path (`alt`/`opt`) when Section 4 contains timeout/retry/failure-degradation behavior
          - External dependencies NOT modeled as internal classes; see Section 4 for ownership/protocol/timeout/retry
        - Evidence requirement: Any `Existing` boundary step MUST cite `AEI-###` (per constitution SSOT); do NOT duplicate repo boundary index
        - Map each interface to the user stories it serves (from spec.md)

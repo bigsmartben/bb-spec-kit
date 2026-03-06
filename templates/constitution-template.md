@@ -178,6 +178,26 @@ When an **Architecture Evidence Index** is present:
 <!-- Applies to downstream plan.research -->
 Any change that introduces a new third-party or intermediary dependency in the Dependency Matrix must be treated as a High-Risk item in plan.research.
 
+## Constitution Amendment Policy
+<!-- Applies to constitution updates and any command that proposes/validates constitution changes. -->
+
+### Versioning Policy (SemVer)
+
+- `CONSTITUTION_VERSION` MUST be incremented according to semantic versioning.
+- Bump level rules:
+  - `MAJOR`: Backward-incompatible governance/principle removals or redefinitions.
+  - `MINOR`: New principle/section added, or materially expanded normative guidance.
+  - `PATCH`: Clarifications, wording cleanups, typo fixes, or non-semantic refinements.
+- If bump level is ambiguous, artifacts MUST record rationale in the amendment summary.
+
+### Matrix Population Policy (Dependency Matrix & AEI)
+
+- `DEPENDENCY_MATRIX` and `ARCHITECTURE_EVIDENCE_INDEX` MUST be populated as Markdown table rows matching their template headers.
+- Population MUST be evidence-based and follow `## Evidence Source Policy (ISS-MCP)`.
+- `DEPENDENCY_MATRIX` MUST include third-party libraries and intermediary services; transitive dependencies SHOULD be included when risk-relevant.
+- `ARCHITECTURE_EVIDENCE_INDEX` entries with `Status = Existing` MUST include concrete `Entry Point (file:symbol)` and MUST NOT invent existing code paths.
+- Unknown required fields MUST be marked as `TODO(<FIELD>): ...` and listed in amendment/report outputs.
+
 ## Governance
 <!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 

@@ -1,5 +1,5 @@
 ---
-description: Create or update the project constitution from interactive or provided principle inputs, ensuring all dependent templates stay in sync.
+description: Create or update project governing principles and development guidelines. Use at project start to establish code quality, testing standards, and architectural constraints that guide all development.
 handoffs: 
   - label: Build Specification
     agent: speckit.specify
@@ -38,30 +38,11 @@ Follow this execution flow:
    - If user input (conversation) supplies a value, use it.
    - Otherwise infer from existing repo context (README, docs, prior constitution versions if embedded).
    - For governance dates: `RATIFICATION_DATE` is the original adoption date (if unknown ask or mark TODO), `LAST_AMENDED_DATE` is today if changes are made, otherwise keep previous.
-   - `CONSTITUTION_VERSION` must increment according to semantic versioning rules:
-     - MAJOR: Backward incompatible governance/principle removals or redefinitions.
-     - MINOR: New principle/section added or materially expanded guidance.
-     - PATCH: Clarifications, wording, typo fixes, non-semantic refinements.
-   - If version bump type ambiguous, propose reasoning before finalizing.
-   - For `DEPENDENCY_MATRIX`:
-     - Replace with **Markdown table rows** matching the template header.
-       - Populate from repo evidence (dependency manifests/lockfiles, build configs, and runtime integrations referenced in code/docs) gathered via `ISS-MCP` (or labeled degraded evidence when fallback is used).
-     - Include third-party libraries AND intermediary services (SaaS/APIs/queues/caches/etc.).
-     - Include transitive dependencies when they are risk-relevant (e.g., license/copyright constraints, security posture, critical intermediaries).
-     - If any value is unknown (license/owner/upgrade path), use `TODO(<FIELD>): ...` and list it in the Sync Impact Report.
-   - For `ARCHITECTURE_EVIDENCE_INDEX`:
-     - Replace with **Markdown table rows** matching the template header.
-     - Purpose: provide a repo-derived, evidence-based architectural index that downstream plan/tasks can reference as **single source of truth** (SSOT) for entrypoints and boundaries.
-       - Populate from repo evidence (routing/handlers/CLI entrypoints/jobs/events, service boundaries, persistence adapters, external call sites) gathered via `ISS-MCP` (or labeled degraded evidence when fallback is used).
-       - Each row MUST include:
-          - A stable `IndexID (AEI-###)` (e.g., `AEI-001`) that downstream artifacts can reference (do not renumber unless meaning changes)
-          - Concrete `Entry Point (file:symbol)` when `Status` is `Existing`
-          - `Interfaces` (HTTP/CLI/Event/etc.) at the boundary level (high-level only; do not embed full contracts here)
-          - `Persistence Touchpoints` (DB tables/collections/queues/caches/etc.) when applicable (may be `Planned/New code`)
-          - `Status`: `Existing` or `Planned/New code`
-     - You MUST NOT invent “Existing” code paths. If evidence does not exist yet, mark as `Planned/New code`.
-     - If any field is unknown, use `TODO(<FIELD>): ...` and list it in the Sync Impact Report.
-       - Avoid duplicating detailed call chains here; keep it an index. Detailed, feature-scoped call chains belong in plan/tasks/interface-details artifacts, but MUST reference `IndexID (AEI-###)` from this index.
+   - `CONSTITUTION_VERSION` MUST follow constitution policy SSOT in:
+     - `## Constitution Amendment Policy` → `### Versioning Policy (SemVer)`.
+   - For `DEPENDENCY_MATRIX` and `ARCHITECTURE_EVIDENCE_INDEX`, apply constitution policy SSOT in:
+     - `## Constitution Amendment Policy` → `### Matrix Population Policy (Dependency Matrix & AEI)`.
+   - If bump level or matrix evidence quality is ambiguous, record rationale before finalizing.
 
 3. Draft the updated constitution content:
    - Replace every placeholder with concrete text (no bracketed tokens left except intentionally retained template slots that the project has chosen not to define yet—explicitly justify any left).
