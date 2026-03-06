@@ -16,6 +16,25 @@ Use this template as the structure baseline for the design handoff index. Detail
 - `design-ui-template.md`
 - `design-prototype-template.md`
 
+## Design Summary *(mandatory)*
+
+- Scope summary: [What in-scope user outcomes this handoff covers]
+- Out of scope: [Explicitly excluded capabilities]
+- Primary actor(s): [Who this design optimizes for]
+- Implementation target: [Web/mobile platform and notable constraints from `plan.md`]
+
+SSOT note: `spec.md` remains the requirements SSOT. This design handoff MUST only operationalize in-scope requirements into UX/UI/prototype artifacts.
+
+---
+
+## Reviewer Notes *(optional)*
+
+- Key assumptions: [Assumption + rationale]
+- Open questions: [Question + owner]
+- Risk register: [Risk + impact + mitigation]
+
+---
+
 ## Artifacts Overview & Navigation *(mandatory)*
 
 Status MUST be one of: `Planned`, `Generated`, `N/A`.
@@ -31,6 +50,16 @@ Status MUST be one of: `Planned`, `Generated`, `N/A`.
 | Prototype Styles | `prototype/assets/styles.css` | Shared tokens, component styles, responsive and accessibility styling | `Planned` |
 | Prototype Script | `prototype/assets/app.js` | Mock data, state toggles, and minimal interactions | `Planned` |
 | Prototype Readme | `prototype/README.md` | Local viewing and optional static server instructions | `Planned` |
+
+---
+
+## Recommended Review Order *(mandatory)*
+
+1. `ux/jtbd.md` and `ux/journey.md` — verify user/job framing and pain points.
+2. `ux/flow.md` — verify happy path + edge/error logic and accessibility expectations.
+3. `ui/ui-spec.md` — verify screen/state/component/data contracts and requirement traceability.
+4. `prototype/index.html` then `prototype/pages/*.html` — verify implementation readiness and state demonstrations.
+5. `prototype/README.md` — verify handoff notes, assumptions, and known deltas.
 
 ---
 
@@ -71,7 +100,8 @@ specs/[###-feature]/
 ## Completion Checklist *(mandatory)*
 
 - [ ] All required design files are created under `ux/`, `ui/`, and `prototype/`.
-- [ ] `ui/ui-spec.md` contains requirement traceability (`FR-###` or scenario mapping).
-- [ ] Accessibility expectations are explicit in UX flow and UI spec.
-- [ ] Prototype supports desktop + mobile breakpoints.
+- [ ] `spec.md` SSOT is preserved (no new normative requirements introduced in design artifacts).
+- [ ] `ui/ui-spec.md` contains requirement traceability (`FR-###` or scenario mapping) and screen-to-prototype mapping.
+- [ ] Accessibility expectations are explicit in UX flow, UI spec, and prototype behavior.
+- [ ] Prototype supports desktop + mobile breakpoints with visible non-happy-path states.
 - [ ] No backend/runtime dependency is introduced in prototype assets.

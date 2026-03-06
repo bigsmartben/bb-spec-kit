@@ -23,6 +23,8 @@ Produce a complete design handoff for the current feature, including:
 
 This command is optimized for **communication + implementation readiness**, not for pixel-perfect brand design.
 
+SSOT rule: `spec.md` is the requirements SSOT. Design artifacts (`ux/`, `ui/`, `prototype/`) MUST NOT redefine normative requirements; they only translate in-scope requirements into implementation-ready UX/UI/prototype outputs.
+
 ## Setup
 
 1. Run `{SCRIPT}` from repo root and parse JSON for:
@@ -122,10 +124,30 @@ Create a self-contained static prototype (no build tooling required):
    - Use mock data that looks realistic for the domain (names, IDs, timestamps)
 5. **Keep outputs feature-scoped**: write only under `FEATURE_DIR/ux/`, `FEATURE_DIR/ui/`, `FEATURE_DIR/prototype/`.
 
+## Handoff-ready gates *(MANDATORY)*
+
+Before finalizing outputs, enforce these hard gates. If any gate fails, regenerate the affected artifacts.
+
+1. **SSOT alignment gate**
+   - `spec.md` remains the requirements SSOT.
+   - `ui/ui-spec.md` and `prototype/*` MUST NOT introduce normative behavior that is not traceable to in-scope requirements.
+2. **Traceability closure gate**
+   - Every in-scope requirement (`FR-###` or scenario) MUST map to screen(s), component(s), and at least one prototype page.
+   - Every primary screen (`SCR-xx`) MUST have a concrete `prototype/pages/*.html` mapping row in `ui/ui-spec.md`.
+3. **State coverage gate**
+   - For each primary screen, define applicable states (`loading`, `empty`, `error`, `permission`, `success`) in `ui/ui-spec.md`.
+   - Prototype MUST visibly demonstrate the primary happy path plus at least one non-happy state per primary screen.
+4. **Implementation-readiness gate**
+   - `ui/ui-spec.md` MUST include route-to-screen mapping, content model (`Entity.field` where available), interaction contract, and accessibility checklist.
+   - `prototype/README.md` MUST include demo flow order, assumptions, and implementation notes for frontend handoff.
+5. **No-placeholder gate**
+   - Final generated artifacts MUST NOT contain unresolved placeholders such as `TODO`, `TBD`, `[insert ...]`, or `<placeholder>`.
+
 ## Report
 
 After writing files, print a short completion summary:
 
 - `FEATURE_SPEC` path
 - Paths to created artifacts (UX, UI spec, prototype)
+- Handoff gate status (`passed` or `failed`) for: SSOT alignment, traceability closure, state coverage, implementation readiness, no-placeholder
 - Any `[NEEDS CLARIFICATION]` items (if present)
