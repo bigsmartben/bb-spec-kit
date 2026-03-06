@@ -53,7 +53,8 @@ Call-chain drilldown (operation-scoped). Each step marked `Existing` or `Planned
 ## 5. Sequence Diagram *(mandatory)*
 
 PlantUML. Must include ALL dependencies from Section 4 (Dependency Inventory).
-MUST be **class/module-level** for in-repo interactions (e.g., `OrderController`, `OrderService`, `OrderRepository`) instead of generic `API`.
+MUST be **class-level** for in-repo interactions (e.g., `OrderController`, `OrderService`, `OrderRepository`) instead of generic `API`.
+Must cover all internal class participants in the operation path and show key call/message directions between them.
 Each in-repo participant/call MUST be traceable to Section 3 Evidence (`[path:line] :: [symbol]`).
 If Section 4 defines timeout/retry/failure-degradation behavior, include at least one critical non-happy path using `alt`/`opt`.
 External dependencies are modeled as system participants (not internal classes).
@@ -87,14 +88,29 @@ deactivate [ControllerClass]
 
 ## 6. Relevant Code Class Diagram *(mandatory)*
 
-Operation-scoped PlantUML. MUST be consistent with Section 3 (Evidence) & Section 4 (Inventory).  
-Include only in-repo code structures involved in this operation.  
-External systems NOT modeled as classes; see Section 4 for ownership/protocol/timeout/retry.  
+Operation-scoped PlantUML. MUST be consistent with Section 3 (Evidence) & Section 4 (Inventory).
+Include only in-repo code structures involved in this operation, with concrete class-level details.
+At minimum include: class name, role/responsibility, key attributes or methods, and relevant class relationships (e.g., inheritance/composition/dependency where applicable).
+External systems NOT modeled as classes; see Section 4 for ownership/protocol/timeout/retry.
+Module-only placeholders are not allowed.
 See `/speckit.tasks` Execution Contract: Diagram Rules (SSOT).
 
 ```plantuml
 @startuml
-' Only classes/modules directly relevant to this operation
+' Concrete classes directly relevant to this operation (no module placeholders)
+class [ControllerClass] {
+  +[handleMethod]([RequestDTO]): [ResponseDTO]
+}
+class [ServiceClass] {
+  +[executeMethod]([Input]): [Output]
+}
+class [RepositoryClass] {
+  +[queryOrSave]([Model]): [Result]
+}
+
+[ControllerClass] --> [ServiceClass] : uses
+[ServiceClass] --> [RepositoryClass] : depends on
+' add inheritance/composition/dependency relations relevant to this operation
 @enduml
 ```
 
