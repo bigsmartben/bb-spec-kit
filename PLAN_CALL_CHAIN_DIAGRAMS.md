@@ -660,4 +660,4 @@ Recovery Pattern:
 
 ---
 
-*完整调用链可视化 - 基于 sourcegraph-mcp 深度分析*
+*完整调用链可视化 - 基于 iss-mcp 深度分析*

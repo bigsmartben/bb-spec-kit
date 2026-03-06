@@ -2,7 +2,7 @@
 
 ## 🔗 MANDATORY: Use Sourcegraph MCP for All Code Analysis
 
-**Critical Rule**: When working on spec-kit codebase, you **MUST** use the `sourcegraph-mcp` tool for any code understanding, analysis, or navigation task. Do NOT rely solely on context windows or memory.
+**Critical Rule**: When working on spec-kit codebase, you **MUST** use the `iss-mcp` tool for any code understanding, analysis, or navigation task. Do NOT rely solely on context windows or memory.
 
 ---
 

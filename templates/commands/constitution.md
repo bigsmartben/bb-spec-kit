@@ -22,12 +22,13 @@ You are updating the project constitution at `.specify/memory/constitution.md`. 
 
 Follow this execution flow:
 
-0. **Evidence source requirement (MANDATORY)**:
-   - For rigorous reasoning involving code fact retrieval, repository fact assertions, call-chain analysis, architecture-boundary verification, dependency mapping, or impact-scope tracing, you MUST use `ISS-MCP` (Index Search Service) as the primary evidence source.
-   - This requirement applies to any `Existing` claim and to all repo-derived entries in `DEPENDENCY_MATRIX` and `ARCHITECTURE_EVIDENCE_INDEX`.
-   - You MUST NOT rely only on memory, unstated assumptions, or local keyword search as the primary basis for repository facts.
-   - You MAY fall back to local tools (`codebase_search`, `search_files`, `read_file`) only when `ISS-MCP` is unavailable, returns no results, or cannot cover required fields; all such conclusions MUST be explicitly labeled as degraded evidence.
-   - If required evidence remains unavailable after fallback, use `TODO(<FIELD>): ISS-MCP/local evidence missing` and list it in the Sync Impact Report.
+0. **Evidence source policy authority (MANDATORY)**:
+   - Load constitution policy from:
+     - Preferred: `.specify/memory/constitution.md`
+     - Fallback: `memory/constitution.md`
+   - Treat `## Evidence Source Policy (ISS-MCP)` in the constitution as policy SSOT.
+   - For repository fact retrieval, call-chain analysis, architecture-boundary verification, dependency mapping, and impact-scope tracing, follow that policy exactly.
+   - If constitution files are missing, use `templates/constitution-template.md` as bootstrap policy and explicitly label conclusions as degraded governance context.
 
 1. Load the existing constitution at `.specify/memory/constitution.md`.
    - Identify every placeholder token of the form `[ALL_CAPS_IDENTIFIER]`.

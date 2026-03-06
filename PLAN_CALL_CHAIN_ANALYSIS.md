@@ -1,7 +1,7 @@
 # 📋 Spec-Kit `speckit.plan` 调用链深度分析
 
 **分析日期**: 2026-03-05  
-**使用工具**: sourcegraph-mcp (代码搜索与分析)  
+**使用工具**: iss-mcp (代码搜索与分析)  
 **目标仓库**: github.com/bigsmartben/bb-spec-kit
 
 ---
