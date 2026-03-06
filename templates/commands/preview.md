@@ -75,12 +75,14 @@ The preview must be:
 
 Convert compressed structured language into reviewer-friendly charts/tables/narrative. The preview MUST keep IDs unchanged while adding readable interpretation.
 
-- `UC + FR Index` → Product page: capability tree (`Capability -> FR-### -> Scenario/Edge`) + FR index table.
+- `UC + FR Index` → Product page: capability tree (`Capability -> FR-### -> Scenario/Edge`) + compact trace index.
 - `Given/When/Then` scenarios → Product/Testing pages: actor/system outcome table and scenario checklist rows.
-- `Entity.field` (UDD) → Product/Frontend pages: UI contract table with explicit "entity / field / meaning / display rule" columns.
+- `Entity.field` (UDD) → Product/Frontend pages: UI/UDD mapping tree + compact validation/display index.
 - `OpenAPI (operationId, x-fr-ids)` → Backend/Testing pages: interface inventory + FR coverage matrix.
 - `contracts/test-case-matrix.md` (`CaseID`) → Testing page: `FR <-> operationId <-> CaseID <-> transition` coverage table.
 - `tasks.md` DAG adjacency list → Overview/Testing pages: Mermaid DAG source + critical-path notes.
+- Within the same page/tab, do not duplicate the same semantics in multiple blocks. If a Mermaid diagram and a table convey the same meaning, keep the Mermaid diagram as primary and downgrade table content to a compact index only when necessary.
+- For mapping-heavy data (`UC->FR`, `operationId->VO/PO`, `Entity.field->UI`), use Mermaid tree-style structures (`mindmap` or tree-like `flowchart`) as the primary representation. Index-like fields should be rendered as de-emphasized compact notes.
 
 ## Compression-Decoding Rules *(MANDATORY)*
 
@@ -115,9 +117,10 @@ For Overview page, additionally include a **Readability Scorecard** with these d
 
 For each diagram-capable section:
 
-1. If valid Mermaid/PlantUML source exists: keep source + render output.
-2. If no diagram source but structured index exists: produce a pseudo-tree/table representation.
-3. If neither exists: mark `N/A (MODE=<mode>)` + explicit missing artifact path and command to generate it.
+1. If valid Mermaid source exists: keep source + render output.
+2. If only PlantUML-like content exists in source artifacts, transcode it into Mermaid (semantic-equivalent) and output Mermaid only.
+3. If no diagram source but structured index exists: produce Mermaid tree-style representation first; use compact index rows only for lookup metadata.
+4. If neither exists: mark `N/A (MODE=<mode>)` + explicit missing artifact path and command to generate it.
 
 Appendices must include a navigation index table before verbatim blocks (artifact, anchor, why reviewer should read).
 
@@ -173,9 +176,9 @@ When `MODE=spec`, do not degrade most pages to generic N/A. Derive reviewer cont
    - Compute quick metrics from `spec.md`: counts for `UC-###`, `FR-###`, `Entity.field`, scenario rows (`Given/When/Then` tables).
    - Fill artifact readiness matrix with explicit statuses for `spec/plan/tasks/data-model/contracts/interface-details/ux/ui/prototype/checklists/research/quickstart`.
 2. **Product**
-   - Render full UC index table (all `UC-###` found in spec).
-   - Render full FR index table (all `FR-###` found in spec).
    - Build capability tree `UC -> FR -> scenario/edge` from spec sections.
+   - Build UI/UDD mapping tree `UI -> Entity.field -> rule`.
+   - Render a compact trace index (`UC-###`, `FR-###`, `Entity.field`) as lookup metadata only (de-emphasized).
 3. **UX/UI**
    - Use spec scenarios/flows to generate a derived journey summary table (do not output only N/A if spec has scenarios).
    - If no design artifacts, mark design-file-specific fields as `N/A (MODE=spec)` but keep a spec-derived journey/state summary.
@@ -327,11 +330,12 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
           - 3-sentence narrative summary + 3 review questions.
           - JTBD summary: prefer `ux/jtbd.md` excerpt; fallback to `spec.md` excerpt.
           - Scope/goals/non-goals: verbatim excerpt from `spec.md`.
-          - Functional breakdown tree (capability -> FR -> scenario/edge).
-          - UC index table; FR index table.
+          - Bilingual design terminology glossary (EN term + zh-CN term + short definition + evidence path).
+          - Functional breakdown tree (capability -> FR -> scenario/edge) using Mermaid.
+          - Requirement trace index should be compact/de-emphasized and must not duplicate full tree semantics.
           - User flow Mermaid diagram source: prefer `ux/flow.md` or `spec.md`.
-          - State machine PlantUML source: prefer `data-model.md` if present.
-          - UI element contract table from `spec.md` (map UI -> `Entity.field`).
+          - State machine Mermaid source: prefer `data-model.md` if present.
+          - UI/UDD mapping as Mermaid tree (`UI -> Entity.field -> rule`) with a compact index for validation/display rules.
        - **UX/UI page**:
           - 3-sentence narrative summary + 3 review questions.
           - Links/status for `ux/journey.md`, `ux/flow.md`, `ui/ui-spec.md`, `prototype/index.html`.
@@ -339,10 +343,17 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
           - Screen inventory / IA / component inventory / state model / microcopy / a11y checklist.
        - **Backend page**:
           - 3-sentence narrative summary + 3 review questions.
-          - OpenAPI interface inventory table (method/path/operationId/summary/auth/x-fr-ids/status) when available.
-          - Data model entity summary table (from `data-model.md`).
-          - PlantUML class diagram source from `data-model.md` when available.
-          - Per-interface detail docs integration (MANDATORY when available): table + expandable highlights.
+          - Module 1 (Interface Inventory Mapping): one merged table with `interface(method+path+operationId) / functional capability / Request VO / Response VO / PO mapping / FR refs / status`.
+          - Module 2 (Data Model): Mermaid state machine + Mermaid UML class diagram (no PlantUML output).
+          - Module 3 (Per-Interface Detailed Design): each interface MUST include:
+            - `3.1` mandatory interface field spec:
+              - `3.1.1` protocol (`url`, `method`, auth, curl example)
+              - `3.1.2` request field specification
+              - `3.1.3` response field specification
+            - `3.2` Mermaid sequence diagram
+            - `3.3` Mermaid UML class diagram
+            - `3.4` core algorithm description
+            - `3.5` file change list
        - **Frontend page**:
           - 3-sentence narrative summary + 3 review questions.
           - Route/page map Mermaid source; component tree Mermaid source.
@@ -369,10 +380,12 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
           - If present, include key excerpts from `ux/*`, `ui/ui-spec.md`, and index/excerpts for `interface-details/*.md`.
     - **Tasks-stage interface details integration (MANDATORY when available)**:
        - Read `contracts/interface-details/*.md` and extract per-interface highlights into Backend Review section:
-          - call chain/evidence summary,
-          - sequence diagram availability,
-          - related dependencies,
-          - performance notes.
+          - protocol summary (`url`, `method`, auth, curl example),
+          - request/response field highlights,
+          - Mermaid sequence/class diagram availability,
+          - core algorithm summary,
+          - file change list summary,
+          - call chain/dependency/performance notes.
        - If files are missing, mark this section as `N/A (not generated by /speckit.tasks yet)`.
     - Verbatim appendices:
        - Appendix A MUST include full `spec.md` verbatim.

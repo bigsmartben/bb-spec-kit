@@ -91,6 +91,7 @@ Create these files under `FEATURE_DIR` (create directories if needed):
    - State model per screen: loading/empty/error/permission/success
    - Copy guidelines + example microcopy (labels, errors, empty states)
    - Accessibility checklist tailored to the feature
+   - **Flow continuity contract**: for each primary screen, define the primary forward action, destination screen, and carried continuity keys (`sessionId`, `entityId`, `mode`, `state`, etc. as applicable)
    - **Traceability**: map Spec requirements (FR-### and/or scenarios) → screens/components
 
 ### C) Static HTML prototype (`prototype/`)
@@ -100,27 +101,35 @@ Create a self-contained static prototype (no build tooling required):
 1. `prototype/index.html`
    - A hub page linking to the key screens
    - Includes shared navigation and a consistent layout
+   - Includes a runnable happy-path demo entry with explicit step order
 
 2. `prototype/pages/*.html`
    - One HTML file per key screen (minimum 3 screens unless the feature is smaller)
    - Each page includes representative content, forms, and error/empty states (can be in-page sections)
+   - Each non-terminal primary screen includes at least one **primary forward action** that performs deterministic navigation to the next mapped screen (real `href` or deterministic JS navigation)
+   - Each non-happy state includes an explicit recovery action (retry/back/fix) with a deterministic destination or state transition
+   - Primary actions MUST NOT be toast-only placeholders
 
 3. `prototype/assets/styles.css`
    - Design tokens via CSS variables (color, spacing, typography)
    - Components styled to appear “high-fidelity” (not wireframes)
    - Responsive layout rules (mobile + desktop)
    - Visible focus states and reduced-motion support
+   - Clear visual hierarchy zones (navigation, primary action area, feedback/status area)
 
 4. `prototype/assets/app.js`
+   - Centralized mock store object (e.g., `window.__SPECKIT_MOCK_STORE`) shared across pages
    - Mock data + minimal interactivity for:
      - Tabs/modals/toasts
      - Form validation feedback
      - Switching between “states” (loading/empty/error) via simple toggles
+     - Continuity key propagation helpers (query params and/or localStorage) for primary flow transitions
    - No external dependencies
 
 5. `prototype/README.md`
    - How to view (open files locally)
    - Optional local server command examples
+   - Flow continuity matrix (`step`, `from page`, `action`, `to page`, `continuity keys`)
 
 ## Execution rules
 
@@ -131,6 +140,9 @@ Create a self-contained static prototype (no build tooling required):
    - Use semantic HTML (`header`, `nav`, `main`, `form`, `button`, `label`, `table`, etc.)
    - Avoid heavy JavaScript; keep it understandable and modular
    - Use mock data that looks realistic for the domain (names, IDs, timestamps)
+   - For primary actions, use deterministic navigation (actual link or deterministic JS navigation). Toast-only primary actions are prohibited.
+   - Ensure cross-screen continuity with explicit continuity keys and visible binding on destination screens.
+   - Non-happy states must be interactive and recoverable; text-only notes are insufficient.
 5. **Keep outputs feature-scoped**: write only under `FEATURE_DIR/ux/`, `FEATURE_DIR/ui/`, `FEATURE_DIR/prototype/`.
 
 ## Handoff-ready gates *(MANDATORY)*
@@ -149,7 +161,14 @@ Before finalizing outputs, enforce these hard gates. If any gate fails, regenera
 4. **Implementation-readiness gate**
    - `ui/ui-spec.md` MUST include route-to-screen mapping, content model (`Entity.field` where available), interaction contract, and accessibility checklist.
    - `prototype/README.md` MUST include demo flow order, assumptions, and implementation notes for frontend handoff.
-5. **No-placeholder gate**
+5. **Context continuity gate**
+   - Every non-terminal primary screen MUST expose at least one primary forward action to its mapped next screen.
+   - Primary flow must be executable end-to-end without manual URL edits.
+   - Continuity keys must be carried across steps and rendered/bound on destination pages.
+6. **Interaction fidelity gate**
+   - Non-happy states MUST be demonstrably interactive (toggle/view path) and include explicit recovery actions.
+   - Each primary screen MUST include at least one non-toast interaction that changes page state or navigation.
+7. **No-placeholder gate**
    - Final generated artifacts MUST NOT contain unresolved placeholders such as `TODO`, `TBD`, `[insert ...]`, or `<placeholder>`.
 
 ## Report
@@ -158,5 +177,5 @@ After writing files, print a short completion summary:
 
 - `FEATURE_SPEC` path
 - Paths to created artifacts (UX, UI spec, prototype)
-- Handoff gate status (`passed` or `failed`) for: SSOT alignment, traceability closure, state coverage, implementation readiness, no-placeholder
+- Handoff gate status (`passed` or `failed`) for: SSOT alignment, traceability closure, state coverage, implementation readiness, context continuity, interaction fidelity, no-placeholder
 - Any `[NEEDS CLARIFICATION]` items (if present)
