@@ -27,12 +27,12 @@ scripts:
 
 **Diagram Rules (Canonical)**:
 - All diagrams are operation-scoped (no cross-interface duplication)
-- Sequence Diagram (PlantUML): MUST include ALL dependencies from Section 4 inventory
-- Sequence Diagram (PlantUML): MUST be class-level for in-repo interactions (no generic `API` participant)
-- Sequence Diagram (PlantUML): MUST cover all internal class participants in the operation path and show key call/message directions between them
-- Sequence Diagram (PlantUML): each in-repo participant/call MUST be traceable to Section 3 Evidence (`[path:line] :: [symbol]`)
-- Sequence Diagram (PlantUML): if Section 4 defines timeout/retry/failure-degradation behavior, include at least one critical non-happy path (`alt`/`opt`)
-- Class Diagram (PlantUML): MUST reflect Section 3 evidence chain with concrete class names and relationships; module-only placeholders are not allowed; external systems NOT modeled as internal classes
+- Sequence Diagram (Mermaid): MUST include ALL dependencies from Section 2 dependency inventory
+- Sequence Diagram (Mermaid): MUST be class-level for in-repo interactions (no generic `API` participant)
+- Sequence Diagram (Mermaid): MUST cover all internal class participants in the operation path and show key call/message directions between them
+- Sequence Diagram (Mermaid): each in-repo participant/call MUST be traceable to Section 2 evidence (`[path:line] :: [symbol]`)
+- Sequence Diagram (Mermaid): if dependency timeout/retry/failure-degradation behavior exists, include at least one critical non-happy path
+- UML Class Diagram (Mermaid): MUST reflect Section 2 evidence chain with concrete class names and relationships; module-only placeholders are not allowed; external systems are not modeled as internal classes
 - Both diagrams MUST be consistent with Evidence & Call Chain + Dependency Inventory
 
 **DAG Rules (Canonical)**:  
@@ -97,15 +97,15 @@ You **MUST** consider the user input before proceeding (if not empty).
        - Use the interface detail template as the structure baseline (preserve headings; fill/replace placeholders; keep it operation-scoped):
            - Preferred: `.specify/templates/interface-detail-template.md`
            - Fallback: `templates/interface-detail-template.md`
-       - Each interface detail doc MUST follow template: `Section 1: Reference | 2: UDD Coverage | 3: Evidence & Call Chain | 4: Dependency Inventory | 5: Sequence Diagram | 6: Class Diagram | 7: Pseudocode | 8: Change List | 9: Performance`
+       - Each interface detail doc MUST follow template: `Section 1: Reference | 2: Evidence Baseline & Dependencies | 3: Interface Detailed Design (3.1-3.5) | 4: Performance`
        - Section 1 MUST include concrete OpenAPI linkage fields for this operation (`operationId`, `method`, `path`, and `OpenAPI operation ref`)
        - Diagram rules (Canonical SSOT in Execution Contract):
-         - Sequence & Class diagrams MUST be consistent with Section 3 (Evidence) + Section 4 (Inventory)
+         - Sequence & UML class diagrams (`Section 3.2` and `Section 3.3`) MUST be Mermaid and MUST be consistent with Section 2 (Evidence + Inventory)
          - Sequence diagram MUST be class-level for in-repo interactions (no generic `API` participant)
          - Sequence diagram MUST cover all internal class participants in the operation path and show key call/message directions between them
-         - Sequence diagram MUST include at least one critical non-happy path (`alt`/`opt`) when Section 4 contains timeout/retry/failure-degradation behavior
-         - Class diagram MUST use concrete class names and explicit class relationships; module-only placeholders are not allowed
-         - External dependencies NOT modeled as internal classes; see Section 4 for ownership/protocol/timeout/retry
+         - Sequence diagram MUST include at least one critical non-happy path when dependency timeout/retry/failure-degradation behavior exists
+         - UML class diagram MUST use concrete class names and explicit class relationships; module-only placeholders are not allowed
+         - External dependencies NOT modeled as internal classes; see Section 2.3 for ownership/protocol/timeout/retry
        - Evidence requirement: Any `Existing` boundary step MUST cite `AEI-###` (per constitution SSOT); do NOT duplicate repo boundary index
        - Map each interface to the user stories it serves (from spec.md)
      - Else if contracts/ exists and contains one or more `*.md` contract docs:

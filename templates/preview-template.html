@@ -524,6 +524,34 @@
         font-size: 12px;
       }
 
+      .index-mini {
+        font-size: 11px;
+        color: var(--muted);
+      }
+
+      .index-mini table {
+        font-size: 11px;
+      }
+
+      .module-block {
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        padding: 10px 12px;
+        margin: 12px 0;
+        background: color-mix(in srgb, var(--card2) 84%, transparent);
+      }
+
+      .module-block > h3 {
+        margin-top: 0;
+      }
+
+      .module-sub {
+        margin-top: -2px;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
       .ul-tree {
         margin: 8px 0 0;
         padding-left: 18px;
@@ -912,7 +940,7 @@
           <div class="card">
             <div class="hd">
               <h2>Product Review / 产品评审</h2>
-              <div class="sub">JTBD, scope, functional breakdown, flows, state machine, UI contract</div>
+              <div class="sub">Spec-first capability maps, bilingual terminology, Mermaid-first traceability</div>
             </div>
             <div class="bd">
               <div class="summary-block">
@@ -948,6 +976,28 @@
               <h3>Scope, Goals, Non-Goals / 范围与目标</h3>
               <p><!-- FILL: verbatim excerpt --></p>
 
+              <h3>Design Terminology Glossary / 设计术语对照</h3>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Term (EN)</th>
+                    <th>术语 (ZH)</th>
+                    <th>Definition</th>
+                    <th>Evidence</th>
+                  </tr>
+                </thead>
+                <tbody><!-- FILL from spec.md terminology (bilingual) --></tbody>
+              </table>
+
+              <h3>Capability Tree / 能力树（主表达）</h3>
+              <div class="diagram" data-diagram="mermaid" data-diagram-id="prd-capability-tree">
+                <div class="bar">
+                  <div class="title">Mermaid: Capability -> FR -> Scenario/Edge</div>
+                </div>
+                <pre class="src" data-diagram-src><!-- FILL: mermaid mindmap/flowchart for UC->FR->scenario/edge --></pre>
+                <div class="render" data-diagram-render></div>
+              </div>
+
               <h3>User Interaction Flow / 用户交互流程</h3>
               <div class="diagram" data-diagram="mermaid" data-diagram-id="user-flow">
                 <div class="bar">
@@ -966,46 +1016,30 @@
                 <div class="render" data-diagram-render></div>
               </div>
 
-              <h3>UC Index</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>UC ID</th>
-                    <th>Description</th>
-                    <th>Priority</th>
-                    <th>Refs</th>
-                  </tr>
-                </thead>
-                <tbody><!-- FILL --></tbody>
-              </table>
+              <h3>UI/UDD Mapping Tree / UI 与 UDD 映射树（主表达）</h3>
+              <div class="diagram" data-diagram="mermaid" data-diagram-id="prd-udd-tree">
+                <div class="bar">
+                  <div class="title">Mermaid: UI -> Entity.field -> Rule</div>
+                </div>
+                <pre class="src" data-diagram-src><!-- FILL: mermaid mindmap/flowchart for UI->Entity.field->validation/display rule --></pre>
+                <div class="render" data-diagram-render></div>
+              </div>
 
-              <h3>FR Index</h3>
-              <p class="muted mini decode-hint">Decode rule: keep <code>FR-###</code> unchanged and add one human-readable capability summary per row.</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>UC ID</th>
-                    <th>FR ID</th>
-                    <th>Capability</th>
-                    <th>Scenario</th>
-                    <th>Readable Meaning</th>
-                  </tr>
-                </thead>
-                <tbody><!-- FILL --></tbody>
-              </table>
-
-              <h3>UI Element Contract / UI 元素契约 (UDD)</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>UI Element</th>
-                    <th>Meaning</th>
-                    <th>Source (`Entity.field`)</th>
-                    <th>Validation / Display Rules</th>
-                  </tr>
-                </thead>
-                <tbody><!-- FILL from spec.md UI element definitions --></tbody>
-              </table>
+              <h3>Requirement Trace Index / 追踪索引（弱化）</h3>
+              <p class="index-mini">Index metadata only. Do not repeat full semantics already represented by Mermaid diagrams above.</p>
+              <div class="index-mini">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>ID</th>
+                      <th>Type</th>
+                      <th>Source</th>
+                      <th>Lookup Note</th>
+                    </tr>
+                  </thead>
+                  <tbody><!-- FILL: compact UC/FR/Entity.field index only --></tbody>
+                </table>
+              </div>
 
               <h3>Product Checklist / 产品检查项</h3>
               <table>
@@ -1251,7 +1285,7 @@
           <div class="card">
             <div class="hd">
               <h2>Backend Review / 后端评审</h2>
-              <div class="sub">Interfaces, data model, per-operation details, readiness gates</div>
+              <div class="sub">Three modules: Interface mapping, data model diagrams, per-interface detailed design</div>
             </div>
             <div class="bd">
               <div class="summary-block">
@@ -1281,68 +1315,161 @@
                 </ul>
               </div>
 
-              <h3>Interface Inventory (OpenAPI) / 接口清单</h3>
-              <p class="muted mini">Source: <code>contracts/openapi.yaml</code> (if present). Keep <code>operationId</code> stable.</p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Method</th>
-                    <th>Path</th>
-                    <th>operationId</th>
-                    <th>Summary</th>
-                    <th>Auth</th>
-                    <th>x-fr-ids</th>
-                    <th>Status</th>
-                  </tr>
-                </thead>
-                <tbody><!-- FILL --></tbody>
-              </table>
-
-              <h3>Data Model / 数据模型</h3>
-              <table>
-                <thead>
-                  <tr>
-                    <th>Entity</th>
-                    <th>Key Fields</th>
-                    <th>Constraints</th>
-                    <th>UDD refs</th>
-                    <th>Notes</th>
-                  </tr>
-                </thead>
-                <tbody><!-- FILL from data-model.md --></tbody>
-              </table>
-
-              <div class="diagram" data-diagram="mermaid" data-diagram-id="class-diagram">
-                <div class="bar">
-                  <div class="title">Mermaid: Class Diagram</div>
-                </div>
-                <pre class="src" data-diagram-src><!-- FILL: mermaid classDiagram ... --></pre>
-                <div class="render" data-diagram-render></div>
+              <div class="module-block">
+                <h3>Module 1: Interface Inventory Mapping / 模块 1：接口清单映射</h3>
+                <p class="module-sub">Merged mapping table only: interface + function + VO/PO mapping.</p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Interface (Method + Path + operationId)</th>
+                      <th>Functional Capability</th>
+                      <th>Request VO</th>
+                      <th>Response VO</th>
+                      <th>PO Mapping</th>
+                      <th>FR Refs</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody><!-- FILL from openapi + data-model + interface-details --></tbody>
+                </table>
               </div>
 
-              <h3>Per-Interface Detail Docs / 单接口详细设计</h3>
-              <p class="muted mini">
-                Source: <code>contracts/interface-details/&lt;operationId&gt;.md</code> (generated by <code>/speckit.tasks</code> when available).
-              </p>
-              <table>
-                <thead>
-                  <tr>
-                    <th>operationId</th>
-                    <th>Detail Doc</th>
-                    <th>Call Chain / Evidence</th>
-                    <th>Dependencies</th>
-                    <th>Sequence Diagram</th>
-                    <th>Performance Notes</th>
-                  </tr>
-                </thead>
-                <tbody><!-- FILL; if missing, mark N/A (not generated yet) --></tbody>
-              </table>
+              <div class="module-block">
+                <h3>Module 2: Data Model Design / 模块 2：数据模型设计</h3>
+                <p class="module-sub">Mermaid-only: state machine + UML class diagram.</p>
+                <div class="diagram" data-diagram="mermaid" data-diagram-id="be-state-machine">
+                  <div class="bar">
+                    <div class="title">Mermaid: State Machine</div>
+                  </div>
+                  <pre class="src" data-diagram-src><!-- FILL: mermaid stateDiagram-v2 from data-model.md --></pre>
+                  <div class="render" data-diagram-render></div>
+                </div>
+                <div class="diagram" data-diagram="mermaid" data-diagram-id="be-class-diagram">
+                  <div class="bar">
+                    <div class="title">Mermaid: UML Class Diagram</div>
+                  </div>
+                  <pre class="src" data-diagram-src><!-- FILL: mermaid classDiagram from data-model.md --></pre>
+                  <div class="render" data-diagram-render></div>
+                </div>
+                <div class="index-mini">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Entity/Model Index</th>
+                        <th>Source</th>
+                        <th>Lookup Note</th>
+                      </tr>
+                    </thead>
+                    <tbody><!-- FILL: compact index only; avoid duplicating diagram semantics --></tbody>
+                  </table>
+                </div>
+              </div>
 
-              <details>
-                <summary>Per-operation highlights (expand)</summary>
-                <div class="note mini">Add one details block per operationId with concrete bullets and refs to code/AEI.</div>
-                <!-- FILL: per-operation details blocks -->
-              </details>
+              <div class="module-block">
+                <h3>Module 3: Per-Interface Detailed Design / 模块 3：单接口详细设计</h3>
+                <p class="module-sub">
+                  Source: <code>contracts/interface-details/&lt;operationId&gt;.md</code> (generated by <code>/speckit.tasks</code> when available).
+                  Every interface detail MUST contain 3.1~3.5.
+                </p>
+                <table>
+                  <thead>
+                    <tr>
+                      <th>operationId</th>
+                      <th>Detail Doc</th>
+                      <th>3.1 Protocol + In/Out Fields</th>
+                      <th>3.2 Sequence (Mermaid)</th>
+                      <th>3.3 UML Class (Mermaid)</th>
+                      <th>3.4 Core Algorithm</th>
+                      <th>3.5 File Change List</th>
+                    </tr>
+                  </thead>
+                  <tbody><!-- FILL; if missing, mark N/A (not generated yet) --></tbody>
+                </table>
+
+                <details>
+                  <summary>Per-interface detail block template (expand)</summary>
+                  <div class="note mini">
+                    Repeat one block per <code>operationId</code>. Keep numbering fixed as 3.1~3.5.
+                  </div>
+
+                  <h4>3.1 Mandatory Interface Field Specification / 必填接口字段说明</h4>
+                  <h5>3.1.1 Protocol Definition / 协议描述</h5>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>URL</th>
+                        <th>Method</th>
+                        <th>Auth</th>
+                        <th>Headers</th>
+                        <th>Curl Example</th>
+                      </tr>
+                    </thead>
+                    <tbody><!-- FILL per operationId --></tbody>
+                  </table>
+
+                  <h5>3.1.2 Request Field Specification / 入参字段说明</h5>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Field Path</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Validation Rule</th>
+                        <th>Source</th>
+                      </tr>
+                    </thead>
+                    <tbody><!-- FILL per operationId --></tbody>
+                  </table>
+
+                  <h5>3.1.3 Response Field Specification / 出参字段说明</h5>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Field Path</th>
+                        <th>Type</th>
+                        <th>Required</th>
+                        <th>Contract Rule</th>
+                        <th>Source</th>
+                      </tr>
+                    </thead>
+                    <tbody><!-- FILL per operationId --></tbody>
+                  </table>
+
+                  <h4>3.2 Sequence Diagram (Mermaid) / 时序图（Mermaid）</h4>
+                  <div class="diagram" data-diagram="mermaid" data-diagram-id="be-if-seq-template">
+                    <div class="bar">
+                      <div class="title">Mermaid: Sequence Diagram</div>
+                    </div>
+                    <pre class="src" data-diagram-src><!-- FILL: mermaid sequenceDiagram per operationId --></pre>
+                    <div class="render" data-diagram-render></div>
+                  </div>
+
+                  <h4>3.3 UML Class Diagram (Mermaid) / UML 类图（Mermaid）</h4>
+                  <div class="diagram" data-diagram="mermaid" data-diagram-id="be-if-class-template">
+                    <div class="bar">
+                      <div class="title">Mermaid: UML Class Diagram</div>
+                    </div>
+                    <pre class="src" data-diagram-src><!-- FILL: mermaid classDiagram per operationId --></pre>
+                    <div class="render" data-diagram-render></div>
+                  </div>
+
+                  <h4>3.4 Core Algorithm / 核心算法描述</h4>
+                  <pre><!-- FILL: concise pseudocode or algorithm notes --></pre>
+
+                  <h4>3.5 File Change List / 本次文件变更清单</h4>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>File/Module</th>
+                        <th>Change Type</th>
+                        <th>Reason</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody><!-- FILL per operationId --></tbody>
+                  </table>
+                </details>
+              </div>
 
               <h3>Backend Checklist / 后端检查项</h3>
               <table>
