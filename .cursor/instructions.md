@@ -2,7 +2,7 @@
 
 ## 🔗 MANDATORY: Use Sourcegraph MCP in All Code Tasks
 
-When working on spec-kit in Cursor IDE, you **MUST** use `sourcegraph-mcp` to understand, search, and navigate the codebase. This is non-negotiable.
+When working on spec-kit in Cursor IDE, you **MUST** use `iss-mcp` to understand, search, and navigate the codebase. This is non-negotiable.
 
 ---
 

@@ -61,7 +61,7 @@ This section prevents downstream overdesign by defining when a **Full FSM** is w
 ### Applicability (hard rule)
 
 - A **Full FSM** (transition table + transition pseudocode + PlantUML state diagram) is applicable iff:
-  - `N > 4 OR T ≥ 2N`
+  - `N > 3 OR T ≥ 2N`
 - If the gate is not satisfied, produce a **Lightweight State Model** instead:
   - state field definition (if any),
   - allowed transitions list (event/guard optional),
@@ -164,6 +164,15 @@ When an **Architecture Evidence Index** is present:
 - The index is the **single source of truth (SSOT)** for repository-level entry points and major boundaries.
 - Any downstream artifact (plan, data model, tasks, interface detail docs) that references an `Existing` entry point or boundary MUST cite the corresponding `AEI-###` IndexID instead of restating the boundary definition.
 - Do NOT create or maintain a second, duplicated "repo boundary index" outside the constitution.
+
+## Evidence Source Policy (ISS-MCP)
+<!-- Applies to all downstream speckit commands and artifacts that assert repository facts. -->
+
+- For repository fact retrieval, call-chain analysis, architecture-boundary verification, dependency mapping, and impact-scope tracing, `ISS-MCP` (Index Search Service) MUST be the primary evidence source.
+- This policy applies to all `Existing` claims and all repo-derived entries in `DEPENDENCY_MATRIX` and `ARCHITECTURE_EVIDENCE_INDEX`.
+- Downstream commands MUST NOT rely only on memory, unstated assumptions, or local keyword search as the primary basis for repository facts.
+- Local tools (`codebase_search`, `search_files`, `read_file`) MAY be used only when `ISS-MCP` is unavailable, returns no results, or cannot cover required fields; conclusions from fallback MUST be explicitly labeled as degraded evidence.
+- If required evidence remains unavailable after fallback, artifacts MUST record `TODO(<FIELD>): ISS-MCP/local evidence missing` and surface it in the command/report output.
 
 ## Dependency Change Risk
 <!-- Applies to downstream plan.research -->

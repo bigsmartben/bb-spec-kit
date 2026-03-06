@@ -13,6 +13,15 @@ $ARGUMENTS
 
 You **MUST** consider the user input before proceeding (if not empty).
 
+## Constitution Evidence Source Policy (MANDATORY)
+
+- Load constitution policy from:
+  - Preferred: `.specify/memory/constitution.md`
+  - Fallback: `memory/constitution.md`
+- Treat `## Evidence Source Policy (ISS-MCP)` as policy SSOT for repository-fact assertions in this command.
+- If both constitution files are missing, use the bootstrap policy in `templates/constitution-template.md` and explicitly label conclusions as degraded governance context.
+- For repository fact retrieval, call-chain analysis, architecture-boundary verification, dependency mapping, and impact-scope tracing, follow that policy exactly.
+
 ## Usage / Input File *(MANDATORY)*
 
 This command requires an explicit **input file** as the first token in `$ARGUMENTS`:

@@ -1,7 +1,7 @@
 # 🔍 Spec Kit 项目 MCP 深度分析报告
 
 **分析时间**: 2026-03-05  
-**MCP 工具**: sourcegraph-mcp (代码搜索与分析)  
+**MCP 工具**: iss-mcp (代码搜索与分析)  
 **项目版本**: 0.88.28
 
 ---
@@ -496,4 +496,4 @@ Specify CLI 展现了现代化的 Python CLI 设计实践：
 ---
 
 **分析完成** ✨  
-*使用 sourcegraph-mcp 进行深度代码分析*
+*使用 iss-mcp 进行深度代码分析*
