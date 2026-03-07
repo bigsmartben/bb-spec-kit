@@ -20,6 +20,8 @@ import yaml
 from packaging import version as pkg_version
 from packaging.specifiers import InvalidSpecifier, SpecifierSet
 
+from .agent_registry import build_extension_agent_configs
+
 
 class ExtensionError(Exception):
     """Base exception for extension-related errors."""
@@ -115,9 +117,9 @@ class ExtensionManifest:
                 raise ValidationError("Command missing 'name' or 'file'")
 
             # Validate command name format
-            if not re.match(r"^speckit\.[a-z0-9-]+\.[a-z0-9-]+$", cmd["name"]):
+            if not re.match(r"^sdd\.[a-z0-9-]+\.[a-z0-9-]+$", cmd["name"]):
                 raise ValidationError(
-                    f"Invalid command name '{cmd['name']}': must follow pattern 'speckit.{{extension}}.{{command}}'"
+                    f"Invalid command name '{cmd['name']}': must follow pattern 'sdd.{{extension}}.{{command}}'"
                 )
 
     @property
@@ -559,24 +561,7 @@ class CommandRegistrar:
     """Handles registration of extension commands with AI agents."""
 
     # Agent configurations with directory, format, and argument placeholder
-    AGENT_CONFIGS = {
-        "claude": {"dir": ".claude/commands", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "gemini": {"dir": ".gemini/commands", "format": "toml", "args": "{{args}}", "extension": ".toml"},
-        "copilot": {"dir": ".github/agents", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "cursor": {"dir": ".cursor/commands", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "qwen": {"dir": ".qwen/commands", "format": "toml", "args": "{{args}}", "extension": ".toml"},
-        "opencode": {"dir": ".opencode/command", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "windsurf": {"dir": ".windsurf/workflows", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "kilocode": {"dir": ".kilocode/rules", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "auggie": {"dir": ".augment/rules", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "roo": {"dir": ".roo/rules", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "codebuddy": {"dir": ".codebuddy/commands", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "qodercli": {"dir": ".qoder/commands", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "q": {"dir": ".amazonq/prompts", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "amp": {"dir": ".agents/commands", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "shai": {"dir": ".shai/commands", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-        "bob": {"dir": ".bob/commands", "format": "markdown", "args": "$ARGUMENTS", "extension": ".md"},
-    }
+    AGENT_CONFIGS = build_extension_agent_configs()
 
     @staticmethod
     def parse_frontmatter(content: str) -> tuple[dict, str]:

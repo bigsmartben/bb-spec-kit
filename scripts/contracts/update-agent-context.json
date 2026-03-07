@@ -1,0 +1,50 @@
+{
+  "name": "update-agent-context",
+  "purpose": "Update agent context files using plan metadata (prefer explicit input-file-derived feature context)",
+  "scripts": {
+    "sh": "scripts/bash/update-agent-context.sh",
+    "ps": "scripts/powershell/update-agent-context.ps1"
+  },
+  "inputs": {
+    "agent_type": {
+      "required": false,
+      "type": "string",
+      "description": "Single agent key to update; if omitted update all existing agent files"
+    },
+    "input_file": {
+      "required": false,
+      "type": "string",
+      "description": "Optional explicit plan.md path under specs/<feature>/ to resolve feature context without branch inference"
+    }
+  },
+  "allowed_agent_types": [
+    "claude",
+    "gemini",
+    "copilot",
+    "cursor-agent",
+    "qwen",
+    "opencode",
+    "codex",
+    "windsurf",
+    "kilocode",
+    "auggie",
+    "roo",
+    "codebuddy",
+    "amp",
+    "shai",
+    "q",
+    "agy",
+    "bob",
+    "qodercli",
+    "generic"
+  ],
+  "json_output": {
+    "required": false,
+    "notes": "This script is side-effect oriented and does not define a stable JSON output payload"
+  },
+  "side_effects": [
+    "creates-or-updates-agent-context-files",
+    "updates-last-updated-date",
+    "adds-new-technology-stack-entries"
+  ]
+}

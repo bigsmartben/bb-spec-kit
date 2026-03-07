@@ -2,7 +2,7 @@
 description: Create or update project governing principles and development guidelines. Use at project start to establish code quality, testing standards, and architectural constraints that guide all development.
 handoffs: 
   - label: Build Specification
-    agent: speckit.specify
+    agent: sdd.specify
     prompt: Implement the feature specification based on the updated constitution. I want to build...
 ---
 

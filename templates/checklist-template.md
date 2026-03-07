@@ -33,4 +33,4 @@
 
 ## Notes
 
-- Items marked incomplete require spec updates before `/speckit.clarify` or `/speckit.plan`
+- Items marked incomplete require spec updates before `/sdd.clarify` or `/sdd.plan`

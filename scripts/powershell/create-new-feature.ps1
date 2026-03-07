@@ -17,13 +17,13 @@ if ($Help) {
     Write-Host ""
     Write-Host "Options:"
     Write-Host "  -Json               Output in JSON format"
-    Write-Host "  -ShortName <name>   Provide a custom short name (2-4 words) for the branch"
-    Write-Host "  -Number N           Specify branch number manually (overrides auto-detection)"
+    Write-Host "  -ShortName <name>   Optional fallback short name for non-git repositories"
+    Write-Host "  -Number N           Optional fallback feature number for non-git repositories"
     Write-Host "  -Help               Show this help message"
     Write-Host ""
-    Write-Host "Examples:"
-    Write-Host "  ./create-new-feature.ps1 'Add user authentication system' -ShortName 'user-auth'"
-    Write-Host "  ./create-new-feature.ps1 'Implement OAuth2 integration for API'"
+    Write-Host "Notes:"
+    Write-Host "  - In git repositories, this script never creates/switches branches."
+    Write-Host "  - In git repositories, current branch name is used as BRANCH_NAME."
     exit 0
 }
 
@@ -72,56 +72,6 @@ function Get-HighestNumberFromSpecs {
         }
     }
     return $highest
-}
-
-function Get-HighestNumberFromBranches {
-    param()
-    
-    $highest = 0
-    try {
-        $branches = git branch -a 2>$null
-        if ($LASTEXITCODE -eq 0) {
-            foreach ($branch in $branches) {
-                # Clean branch name: remove leading markers and remote prefixes
-                $cleanBranch = $branch.Trim() -replace '^\*?\s+', '' -replace '^remotes/[^/]+/', ''
-                
-                # Extract feature number if branch matches pattern ###-*
-                if ($cleanBranch -match '^(\d+)-') {
-                    $num = [int]$matches[1]
-                    if ($num -gt $highest) { $highest = $num }
-                }
-            }
-        }
-    } catch {
-        # If git command fails, return 0
-        Write-Verbose "Could not check Git branches: $_"
-    }
-    return $highest
-}
-
-function Get-NextBranchNumber {
-    param(
-        [string]$SpecsDir
-    )
-
-    # Fetch all remotes to get latest branch info (suppress errors if no remotes)
-    try {
-        git fetch --all --prune 2>$null | Out-Null
-    } catch {
-        # Ignore fetch errors
-    }
-
-    # Get highest number from ALL branches (not just matching short name)
-    $highestBranch = Get-HighestNumberFromBranches
-
-    # Get highest number from ALL specs (not just matching short name)
-    $highestSpec = Get-HighestNumberFromSpecs -SpecsDir $SpecsDir
-
-    # Take the maximum of both
-    $maxNum = [Math]::Max($highestBranch, $highestSpec)
-
-    # Return next number
-    return $maxNum + 1
 }
 
 function ConvertTo-CleanBranchName {
@@ -206,49 +156,55 @@ if ($ShortName) {
     $branchSuffix = Get-BranchName -Description $featureDesc
 }
 
-# Determine branch number
-if ($Number -eq 0) {
-    if ($hasGit) {
-        # Check existing branches on remotes
-        $Number = Get-NextBranchNumber -SpecsDir $specsDir
-    } else {
-        # Fall back to local directory check
-        $Number = (Get-HighestNumberFromSpecs -SpecsDir $specsDir) + 1
-    }
-}
-
-$featureNum = ('{0:000}' -f $Number)
-$branchName = "$featureNum-$branchSuffix"
-
-# GitHub enforces a 244-byte limit on branch names
-# Validate and truncate if necessary
-$maxBranchLength = 244
-if ($branchName.Length -gt $maxBranchLength) {
-    # Calculate how much we need to trim from suffix
-    # Account for: feature number (3) + hyphen (1) = 4 chars
-    $maxSuffixLength = $maxBranchLength - 4
-    
-    # Truncate suffix
-    $truncatedSuffix = $branchSuffix.Substring(0, [Math]::Min($branchSuffix.Length, $maxSuffixLength))
-    # Remove trailing hyphen if truncation created one
-    $truncatedSuffix = $truncatedSuffix -replace '-$', ''
-    
-    $originalBranchName = $branchName
-    $branchName = "$featureNum-$truncatedSuffix"
-    
-    Write-Warning "[specify] Branch name exceeded GitHub's 244-byte limit"
-    Write-Warning "[specify] Original: $originalBranchName ($($originalBranchName.Length) bytes)"
-    Write-Warning "[specify] Truncated to: $branchName ($($branchName.Length) bytes)"
-}
-
 if ($hasGit) {
-    try {
-        git checkout -b $branchName | Out-Null
-    } catch {
-        Write-Warning "Failed to create git branch: $branchName"
+    $currentBranch = git rev-parse --abbrev-ref HEAD 2>$null
+
+    if ($currentBranch -eq 'HEAD') {
+        Write-Error "Error: Detached HEAD is not supported. Please checkout a feature branch first."
+        exit 1
+    }
+
+    if ($currentBranch -notmatch '^(\d{3})-') {
+        Write-Error "Error: Not on a feature branch. Current branch: $currentBranch"
+        Write-Output "Feature branches should be named like: 001-feature-name"
+        exit 1
+    }
+
+    $branchName = $currentBranch
+    $featureNum = $matches[1]
+
+    if ($ShortName -or $Number -ne 0) {
+        Write-Warning "[specify] --short-name/--number are ignored in git repositories; using current branch '$branchName'"
     }
 } else {
-    Write-Warning "[specify] Warning: Git repository not detected; skipped branch creation for $branchName"
+    # Determine branch number from local specs directory (original non-git behavior)
+    if ($Number -eq 0) {
+        $Number = (Get-HighestNumberFromSpecs -SpecsDir $specsDir) + 1
+    }
+
+    $featureNum = ('{0:000}' -f $Number)
+    $branchName = "$featureNum-$branchSuffix"
+
+    # GitHub enforces a 244-byte limit on branch names
+    # Validate and truncate if necessary
+    $maxBranchLength = 244
+    if ($branchName.Length -gt $maxBranchLength) {
+        # Calculate how much we need to trim from suffix
+        # Account for: feature number (3) + hyphen (1) = 4 chars
+        $maxSuffixLength = $maxBranchLength - 4
+
+        # Truncate suffix
+        $truncatedSuffix = $branchSuffix.Substring(0, [Math]::Min($branchSuffix.Length, $maxSuffixLength))
+        # Remove trailing hyphen if truncation created one
+        $truncatedSuffix = $truncatedSuffix -replace '-$', ''
+
+        $originalBranchName = $branchName
+        $branchName = "$featureNum-$truncatedSuffix"
+
+        Write-Warning "[specify] Branch name exceeded GitHub's 244-byte limit"
+        Write-Warning "[specify] Original: $originalBranchName ($($originalBranchName.Length) bytes)"
+        Write-Warning "[specify] Truncated to: $branchName ($($branchName.Length) bytes)"
+    }
 }
 
 $featureDir = Join-Path $specsDir $branchName

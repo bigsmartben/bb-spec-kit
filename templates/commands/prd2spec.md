@@ -1,15 +1,15 @@
 ---
 description: "Convert PRD documents into a structured Spec (spec.md) with element mapping, conflict detection, and source traceability."
 scripts:
-  sh: "echo 'Run /speckit.prd2spec inside your AI chat; this command is AI-driven'"
-  ps: "Write-Host 'Run /speckit.prd2spec inside your AI chat; this command is AI-driven'"
+  sh: "echo 'Run /sdd.prd2spec inside your AI chat; this command is AI-driven'"
+  ps: "Write-Host 'Run /sdd.prd2spec inside your AI chat; this command is AI-driven'"
 ---
 
-# /speckit.prd2spec — PRD → Spec conversion
+# /sdd.prd2spec — PRD → Spec conversion
 
 **Goal**: Convert one or more PRD documents into a Spec Kit `spec.md` that:
 
-- Is structured and ready for `/speckit.plan`
+- Is structured and ready for `/sdd.plan`
 - Preserves business intent (no premature implementation decisions)
 - Provides traceability from each Spec item back to the PRD source
 - Detects multi-file conflicts and forces explicit resolution
@@ -18,25 +18,25 @@ scripts:
 
 ```bash
 # Single file (path)
-/speckit.prd2spec docs/prd/feature.md
+/sdd.prd2spec docs/prd/feature.md
 
 # Single file (@ reference)
-/speckit.prd2spec @prd-document.md
+/sdd.prd2spec @prd-document.md
 
 # Multi-file merge (mixed formats)
-/speckit.prd2spec prd-product.md prd-tech.docx test-cases.txt
+/sdd.prd2spec prd-product.md prd-tech.docx test-cases.txt
 
 # Specify output filename
-/speckit.prd2spec prd.md --output spec.md
+/sdd.prd2spec prd.md --output spec.md
 
 # Incremental update (base Spec)
-/speckit.prd2spec --base spec-v1.0.md prd-v1.1.md --output spec-v1.1.md
+/sdd.prd2spec --base spec-v1.0.md prd-v1.1.md --output spec-v1.1.md
 
 # Strict mode (fail if coverage below threshold)
-/speckit.prd2spec prd.md --strict
+/sdd.prd2spec prd.md --strict
 
 # Output language (optional)
-/speckit.prd2spec prd.md --lang en
+/sdd.prd2spec prd.md --lang en
 ```
 
 ## Inputs
@@ -47,7 +47,7 @@ scripts:
   - Editor references (`@file.md`)
   - Or pasted PRD content (when no files are provided)
 - Optional:
-  - `--output <file>`: target spec filename (filename override only; directory resolution stays aligned with `/speckit.specify`)
+  - `--output <file>`: target spec filename (filename override only; directory resolution stays aligned with `/sdd.specify`)
   - `--base <spec.md>`: use existing Spec as baseline for incremental updates
   - `--strict`: enforce coverage threshold (see Coverage & Strict Mode)
   - `--lang <en|zh>`: output language preference
@@ -71,9 +71,9 @@ scripts:
 
 ## Core workflow
 
-### Step 0: Output path resolution (must align with `/speckit.specify`)
+### Step 0: Output path resolution (must align with `/sdd.specify`)
 
-Before content conversion, resolve the final output path using the same directory semantics and numbering rule as `/speckit.specify`:
+Before content conversion, resolve the final output path using the same directory semantics and numbering rule as `/sdd.specify`:
 
 1. Generate a concise `short-name` (2–4 words, kebab-case) from PRD title/theme.
 2. Fetch all remote branches first:

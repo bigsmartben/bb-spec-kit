@@ -1,0 +1,66 @@
+{
+  "name": "check-prerequisites",
+  "purpose": "Validate feature-phase prerequisites from explicit input-file-derived feature context and return available docs/paths",
+  "scripts": {
+    "sh": "scripts/bash/check-prerequisites.sh",
+    "ps": "scripts/powershell/check-prerequisites.ps1"
+  },
+  "inputs": {
+    "input_file": {
+      "required": false,
+      "type": "string",
+      "description": "Explicit input file path under specs/<feature>/ for pre-imp phases"
+    },
+    "mode": {
+      "required": false,
+      "type": "string",
+      "default": "generic",
+      "enum": [
+        "generic",
+        "design",
+        "tasks",
+        "preview",
+        "analyze",
+        "implement"
+      ]
+    },
+    "json_mode": {
+      "required": false,
+      "type": "boolean",
+      "default": true
+    },
+    "require_tasks": {
+      "required": false,
+      "type": "boolean",
+      "default": false
+    },
+    "include_tasks": {
+      "required": false,
+      "type": "boolean",
+      "default": false
+    },
+    "paths_only": {
+      "required": false,
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "json_output": {
+    "normal_mode_required_keys": [
+      "FEATURE_DIR",
+      "AVAILABLE_DOCS"
+    ],
+    "paths_only_required_keys": [
+      "REPO_ROOT",
+      "BRANCH",
+      "INPUT_FILE_ABS",
+      "FEATURE_DIR",
+      "FEATURE_SPEC",
+      "IMPL_PLAN",
+      "TASKS"
+    ]
+  },
+  "side_effects": [
+    "none"
+  ]
+}

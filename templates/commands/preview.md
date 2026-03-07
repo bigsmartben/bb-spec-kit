@@ -1,8 +1,8 @@
 ---
 description: Generate/overwrite specs/<feature>/preview.html as a reviewer-facing review view (Product/Technical/Test) with interactive navigation and verbatim appendices. This view is not the SSOT and is regenerated on demand.
 scripts:
-  sh: scripts/bash/check-prerequisites.sh --json --paths-only
-  ps: scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly
+  sh: scripts/bash/check-prerequisites.sh --json --paths-only --mode preview --input "{ARGS}"
+  ps: scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly -Mode preview -InputFile "{ARGS}"
 ---
 
 ## User Input
@@ -26,7 +26,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 This command requires an explicit **input file** as the first token in `$ARGUMENTS`:
 
-- `/speckit.preview <input-file> [reviewer-notes...]`
+- `/sdd.preview <input-file> [reviewer-notes...]`
 - `<input-file>` can be an absolute path or a repo-root relative path.
 - Allowed input basenames are strictly:
   - `spec.md` -> `MODE=spec`
@@ -35,14 +35,16 @@ This command requires an explicit **input file** as the first token in `$ARGUMEN
 
 Examples:
 
-- `/speckit.preview specs/001-foo/spec.md`
-- `/speckit.preview specs/001-foo/plan.md 请重点看接口一致性`
-- `/speckit.preview /abs/path/to/specs/001-foo/tasks.md`
+- `/sdd.preview specs/001-foo/spec.md`
+- `/sdd.preview specs/001-foo/plan.md 请重点看接口一致性`
+- `/sdd.preview /abs/path/to/specs/001-foo/tasks.md`
 
 If `$ARGUMENTS` is empty: **ERROR** and STOP.
-- Show usage: `/speckit.preview <spec.md|plan.md|tasks.md> [reviewer-notes...]`
+- Show usage: `/sdd.preview <spec.md|plan.md|tasks.md> [reviewer-notes...]`
 
 If `$ARGUMENTS` contains additional text after `<input-file>`, treat that remaining text as reviewer notes and incorporate it as a short note in the Overview page (without inventing requirements).
+
+Pre-implementation phases MUST NOT infer feature context from current git branch, `SPECIFY_FEATURE`, or latest `specs/*` directory. Context MUST be derived from the explicit input file.
 
 ## Goal
 
@@ -53,6 +55,7 @@ This preview is **not** the SSOT. `spec.md` remains the SSOT for requirements an
 The preview must be:
 
 - **Review-first**: explicitly organized by review pages: Overview / Product / UX-UI / Backend / Frontend / Testing / Audit / Appendices
+- **Role-first reading path**: support role lenses with this canonical set: `PJM` (项目经理), `PM` (产品经理), `XUM` (UX/UI/移动端体验实现), `BE`, `QA`
 - **Human-first**: Chinese narrative text with bilingual terms where useful
 - **Low drift**: prefer verbatim excerpts over paraphrase
 - **Interactive**: HTML sections, tables, and collapsible appendices for reviewers
@@ -63,6 +66,15 @@ The preview must be:
 - **Overwrite**: Always overwrite `preview.html`.
 - **Input required**: `<input-file>` is mandatory and must be one of `spec.md|plan.md|tasks.md`.
 - **Write scope**: Do not modify any other files besides `preview.html`.
+
+## Structure SSOT Boundary *(MANDATORY)*
+
+To keep responsibilities converged for reviewer read-only generation:
+
+- **Command owns semantics**: extraction rules, scoring rules, deterministic fill recipes, fallback policy, and completeness gates are defined in this command.
+- **Template owns structure**: `preview-template.html` is only the render skeleton (page layout, anchors, containers, interaction shell), not policy logic.
+- **No policy drift into template**: do not add governance/process rules, fallback decision trees, or generation instructions as normative logic inside template static text.
+- **No structure drift into command output**: generated `preview.html` MUST start from the template and preserve its page skeleton/anchors.
 
 ## Output Language & Stability Contract *(MANDATORY)*
 
@@ -113,6 +125,13 @@ For Overview page, additionally include a **Readability Scorecard** with these d
 - Testability
 - Reviewability
 
+## Role Lens Contract *(MANDATORY)*
+
+- Use exactly these role tokens in `data-lens`: `PJM`, `PM`, `XUM`, `BE`, `QA`.
+- `PJM` and `PM` are different roles and MUST NOT be merged.
+- `XUM` represents merged UX/UI/Mobile implementation perspective (H5/Android/iOS).
+- Keep Backend and Testing role slices aligned to `BE` and `QA`.
+
 ## Diagram Priority & Fallback Contract *(MANDATORY)*
 
 For each diagram-capable section:
@@ -141,7 +160,7 @@ To reduce variability, generate key blocks using these deterministic recipes:
 3. **N/A fallback row recipe**
     - `Status`: `N/A (MODE=<mode>)`
     - `Evidence`: missing artifact path
-    - `Next`: command to generate (e.g., `/speckit.plan`, `/speckit.tasks`, `/speckit.design`)
+    - `Next`: command to generate (e.g., `/sdd.plan`, `/sdd.tasks`, `/sdd.design`)
 
 4. **ID explanation recipe**
     - Keep original token in dedicated column (`FR-001`, `operationId`, `CaseID`).
@@ -180,6 +199,7 @@ When `MODE=spec`, do not degrade most pages to generic N/A. Derive reviewer cont
    - Build UI/UDD mapping tree `UI -> Entity.field -> rule`.
    - Render a compact trace index (`UC-###`, `FR-###`, `Entity.field`) as lookup metadata only (de-emphasized).
 3. **UX/UI**
+   - This page is owned by `XUM` role (merged UX/UI/Mobile).
    - Use spec scenarios/flows to generate a derived journey summary table (do not output only N/A if spec has scenarios).
    - If no design artifacts, mark design-file-specific fields as `N/A (MODE=spec)` but keep a spec-derived journey/state summary.
 4. **Backend**
@@ -187,6 +207,7 @@ When `MODE=spec`, do not degrade most pages to generic N/A. Derive reviewer cont
      - `FR ID`, `Readable Meaning`, `operationId` (`N/A (MODE=spec)` when absent), `Next`.
    - If OpenAPI is missing, this page is Partial (not empty).
 5. **Frontend**
+   - This page continues `XUM` perspective, focusing on cross-platform implementation (H5/Android/iOS) and delivery constraints.
    - Build UI contract table from all `Entity.field` rows in spec:
      - `Entity`, `Field`, `User-visible meaning`, `Validation/display rule`, `Source`.
    - Include spec-derived route/state map from UC flow/state machine when available.
@@ -231,7 +252,7 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
 1. **3-Sentence Summary (Overview) example**
    - 目标：本页用于确认需求、接口与测试链路是否形成可评审闭环。
    - 成熟度：当前为 Partial，`spec.md` 与 `plan.md` 已就绪，`contracts/test-case-matrix.md` 缺失。
-   - 风险：测试追踪链未闭环，Owner=QA，下一步执行 `/speckit.plan` 补齐测试矩阵输入。
+   - 风险：测试追踪链未闭环，Owner=QA，下一步执行 `/sdd.plan` 补齐测试矩阵输入。
 
 2. **Review Questions example (Product page)**
    - 范围边界是否已明确区分 in-scope / out-of-scope，并可追溯到 `spec.md`？
@@ -241,7 +262,7 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
 3. **N/A fallback row example**
    - Status: `N/A (MODE=spec)`
    - Evidence: `contracts/openapi.yaml` (missing for this mode)
-   - Next: run `/speckit.plan` when frontend-backend HTTP API is in scope
+   - Next: run `/sdd.plan` when frontend-backend HTTP API is in scope
 
 4. **ID explanation example**
    - `FR-003` | Readable Meaning: 用户提交后系统必须（MUST）在 2 秒内返回可见反馈。
@@ -270,22 +291,20 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
      - `FEATURE_SPEC`
      - `IMPL_PLAN`
      - `TASKS`
-   - Resolve `INPUT_FILE_ABS`:
-     - If `INPUT_FILE` is absolute, use as-is.
-     - If `INPUT_FILE` is relative and is a bare basename (`spec.md|plan.md|tasks.md`), resolve as `FEATURE_DIR/<basename>`.
-     - Otherwise (relative path with directories), resolve from `REPO_ROOT`.
+     - `INPUT_FILE_ABS` (canonical absolute path derived from explicit input file)
+   - Use script-provided `INPUT_FILE_ABS` as canonical input path.
 
 2. **Validate**:
    - Validate in this order:
      1. `INPUT_FILE_ABS` exists and is readable; otherwise **ERROR** and STOP.
      2. `basename(INPUT_FILE_ABS)` is one of `spec.md|plan.md|tasks.md`; otherwise **ERROR** and STOP.
      3. `INPUT_FILE_ABS` must be under `FEATURE_DIR`; otherwise **ERROR** and STOP.
-        - Explain that input file must belong to the active feature directory.
+        - Explain that input file must belong to the feature directory derived from the explicit input file.
      4. Required sibling artifacts by `MODE`:
-        - `MODE=spec`: `FEATURE_SPEC` MUST exist; if missing, instruct to run `/speckit.specify`.
-        - `MODE=plan`: `FEATURE_SPEC` and `IMPL_PLAN` MUST exist; if plan missing, instruct to run `/speckit.plan`.
-        - `MODE=tasks`: `FEATURE_SPEC`, `IMPL_PLAN`, and `TASKS` MUST exist; if plan missing, instruct to run `/speckit.plan`; if tasks missing, instruct to run `/speckit.tasks`.
-   - For non-git repos, keep existing guidance about setting `SPECIFY_FEATURE` when path resolution fails.
+        - `MODE=spec`: `FEATURE_SPEC` MUST exist; if missing, instruct to run `/sdd.specify`.
+        - `MODE=plan`: `FEATURE_SPEC` and `IMPL_PLAN` MUST exist; if plan missing, instruct to run `/sdd.plan`.
+        - `MODE=tasks`: `FEATURE_SPEC`, `IMPL_PLAN`, and `TASKS` MUST exist; if plan missing, instruct to run `/sdd.plan`; if tasks missing, instruct to run `/sdd.tasks`.
+   - For non-git repos, do not fall back to `SPECIFY_FEATURE` for this command; explicit input file remains mandatory.
 
 3. **Define output**:
     - `PREVIEW_FILE = FEATURE_DIR/preview.html`
@@ -338,6 +357,7 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
           - UI/UDD mapping as Mermaid tree (`UI -> Entity.field -> rule`) with a compact index for validation/display rules.
        - **UX/UI page**:
           - 3-sentence narrative summary + 3 review questions.
+          - Treat this page as the first half of `XUM` perspective (experience strategy and interaction design).
           - Links/status for `ux/journey.md`, `ux/flow.md`, `ui/ui-spec.md`, `prototype/index.html`.
           - Journey map summary table (verbatim/near-verbatim).
           - Screen inventory / IA / component inventory / state model / microcopy / a11y checklist.
@@ -356,13 +376,14 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
             - `3.5` file change list
        - **Frontend page**:
           - 3-sentence narrative summary + 3 review questions.
+          - Treat this page as the second half of `XUM` perspective (cross-platform implementation for H5/Android/iOS).
           - Route/page map Mermaid source; component tree Mermaid source.
           - UI element definitions and mapping to `ui/ui-spec.md` when present.
           - Client state/data fetching strategy table.
        - **Testing page**:
           - 3-sentence narrative summary + 3 review questions.
           - AC acceptance checklist (explicit items).
-          - Flow cross-reference table (reuse same flow IDs as Product/UX).
+          - Flow cross-reference table (reuse same flow IDs as Product/UX-UI).
           - Test-case matrix summary (from `contracts/test-case-matrix.md` when available).
           - Coverage table (FR <-> operationId <-> CaseID <-> transition).
           - Edge/negative cases table.
@@ -386,7 +407,7 @@ Use these mini examples as style references (do not copy blindly; adapt to real 
           - core algorithm summary,
           - file change list summary,
           - call chain/dependency/performance notes.
-       - If files are missing, mark this section as `N/A (not generated by /speckit.tasks yet)`.
+       - If files are missing, mark this section as `N/A (not generated by /sdd.tasks yet)`.
     - Verbatim appendices:
        - Appendix A MUST include full `spec.md` verbatim.
        - If present, include full `plan.md`, `tasks.md`, `data-model.md`.

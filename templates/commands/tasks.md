@@ -2,19 +2,19 @@
 description: Generate an actionable, dependency-ordered tasks.md for the feature based on available design artifacts.
 handoffs:
   - label: Analyze For Consistency
-    agent: speckit.analyze
+    agent: sdd.analyze
     prompt: Run a project analysis for consistency
     send: true
   - label: Implement Project
-    agent: speckit.implement
+    agent: sdd.implement
     prompt: Start the implementation in phases
     send: true
 scripts:
-  sh: scripts/bash/check-prerequisites.sh --json
-  ps: scripts/powershell/check-prerequisites.ps1 -Json
+  sh: scripts/bash/check-prerequisites.sh --json --mode tasks --input "{ARGS}"
+  ps: scripts/powershell/check-prerequisites.ps1 -Json -Mode tasks -InputFile "{ARGS}"
 ---
 
-## Execution Contract (SSOT)
+## Execution Contract (Orchestration Scope)
 
 **Inputs**: Feature spec, plan, data model, contracts  
 **Outputs**: tasks.md, interface detail docs, coverage checklist  
@@ -47,6 +47,14 @@ scripts:
 - UDD mismatch (spec vs interface detail): **HIGH** (design not ready)
 - Scope noise in diagrams (irrelevant classes/steps): **MEDIUM** (clarity issue)
 
+## Structure SSOT Boundary (MANDATORY)
+
+- `tasks.md` 的**结构与固定骨架**（例如章节框架、基础区块）以模板为准：
+  - Preferred: `.specify/templates/tasks-template.md`
+  - Fallback: `templates/tasks-template.md`
+- 本命令负责**编排与填充**（提取输入、组织任务、覆盖性校验），而不是重新发明模板结构。
+- 当命令文本与模板结构发生冲突时，优先遵循模板结构，并将冲突视为需要修复的漂移问题。
+
 ## User Input
 
 ```text
@@ -54,6 +62,27 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
+
+## Usage / Input File *(MANDATORY)*
+
+This command requires an explicit **input file** as the first token in `$ARGUMENTS`:
+
+- `/sdd.tasks <plan.md> [notes...]`
+- `<plan.md>` can be an absolute path or a repo-root relative path under `specs/<feature>/`.
+
+Examples:
+
+- `/sdd.tasks specs/001-foo/plan.md`
+- `/sdd.tasks /abs/path/to/specs/001-foo/plan.md 请优先输出 MVP 接口拆分`
+
+If `$ARGUMENTS` is empty: **ERROR** and STOP.
+
+Pre-implementation phases MUST NOT infer feature context from current git branch, `SPECIFY_FEATURE`, or latest `specs/*` directory. Context MUST be derived from the explicit input file.
+
+## Script Contract (SSOT)
+
+- Contract file: `scripts/contracts/check-prerequisites.json`
+- Treat this contract as the authoritative source for script options and JSON output modes.
 
 ## Constitution Evidence Source Policy (MANDATORY)
 
@@ -66,7 +95,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. **Setup**: Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Setup**: Run `{SCRIPT}` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list from explicit input-file-derived context. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 2. **Load design documents**: Read from FEATURE_DIR:
    - **Required**:
@@ -75,7 +104,7 @@ You **MUST** consider the user input before proceeding (if not empty).
      - data-model.md (incl. Key Path UDD→VO coverage table + VO→Persistence mapping)
      - contracts/ (interface contracts; MUST exist and be non-empty)
    - **Optional**: research.md (decisions), quickstart.md (test scenarios)
-   - If any required document is missing: **ERROR** and STOP. Instruct the user to run `/speckit.plan` first.
+   - If any required document is missing: **ERROR** and STOP. Instruct the user to run `/sdd.plan` first.
 
 3. **Execute task generation workflow**:
    - Load plan.md and extract tech stack, libraries, project structure
@@ -167,7 +196,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Matrix status:
      - If `contracts/test-case-matrix.md` exists: confirm `CaseID`-referenced test-task generation
      - If missing: explicitly flag fallback mode (quickstart/spec-derived verification tasks) and note that matrix-driven CaseID coverage is unavailable
-   - Recommend running `/speckit.preview` to generate/update reviewer-facing `preview.html` including interface detail docs context.
+   - Recommend running `/sdd.preview` to generate/update reviewer-facing `preview.html` including interface detail docs context.
 
 Context for task generation: {ARGS}
 

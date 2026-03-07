@@ -1,0 +1,14 @@
+schema: "template-structure/v1"
+template: "templates/spec-template.md"
+
+required_headings:
+  - "## Artifacts Overview & Navigation *(mandatory)*"
+  - "## § 1  Global Context *(mandatory)*"
+  - "## § 2  UC Overview *(mandatory)*"
+  - "## § N  Global Acceptance Criteria *(mandatory)*"
+
+required_patterns:
+  - '^### 1\.1\s+Actors$'
+  - '^### 1\.2\s+System Boundary$'
+  - '^### 1\.3\s+UI Data Dictionary \(UDD\)$'
+  - '^### 2\.1\s+Functional Requirements Index \(FR Index\)$'

@@ -1,5 +1,5 @@
 """
-Tests for all speckit command templates in templates/commands/.
+Tests for all sdd command templates in templates/commands/.
 
 Covers:
 - All expected command files exist
@@ -7,7 +7,7 @@ Covers:
 - Body content is non-empty
 - $ARGUMENTS placeholder present in templating commands
 - prd2spec: PRD→Spec conversion keywords, usage section, output targets
-- speckit phase commands: specify/plan/tasks/implement/constitution/analyze
+- sdd phase commands: specify/plan/tasks/implement/constitution/analyze
 - checklist, clarify, taskstoissues: basic structure
 - No duplicate command IDs
 - All commands have a unique, non-empty description
@@ -31,13 +31,14 @@ EXPECTED_COMMANDS = [
     "implement",
     "plan",
     "prd2spec",
+    "preview",
     "specify",
     "tasks",
     "taskstoissues",
 ]
 
 # Commands that must have $ARGUMENTS placeholder.
-# Note: prd2spec accepts file-path arguments (e.g. /speckit.prd2spec docs/prd.md)
+# Note: prd2spec accepts file-path arguments (e.g. /sdd.prd2spec docs/prd.md)
 # and uses $ARGUMENTS embedded in usage examples, NOT as a standalone template
 # variable in the body. It is intentionally excluded from this list.
 COMMANDS_WITH_ARGUMENTS = [
@@ -46,6 +47,7 @@ COMMANDS_WITH_ARGUMENTS = [
     "tasks",
     "implement",
     "constitution",
+    "preview",
     "clarify",
     "checklist",
     "analyze",
@@ -238,9 +240,9 @@ class TestPrd2Spec:
         assert "spec.md" in self.content, "prd2spec.md must reference 'spec.md' as the output of the conversion."
 
     def test_body_references_speckit_plan(self):
-        """prd2spec output must be ready for speckit.plan (downstream handoff)."""
-        assert "speckit.plan" in self.content or "/speckit.plan" in self.content or "plan" in self.body.lower(), (
-            "prd2spec.md should reference speckit.plan as the next step after conversion."
+        """prd2spec output must be ready for sdd.plan (downstream handoff)."""
+        assert "sdd.plan" in self.content or "/sdd.plan" in self.content or "plan" in self.body.lower(), (
+            "prd2spec.md should reference sdd.plan as the next step after conversion."
         )
 
     def test_body_has_workflow_steps(self):
@@ -289,17 +291,25 @@ class TestSpecifyCommand:
         assert "scripts" in self.fm, "specify.md must have scripts in frontmatter"
 
     def test_has_handoffs(self):
-        assert "handoffs" in self.fm, "specify.md must declare handoffs (downstream commands like speckit.plan)"
+        assert "handoffs" in self.fm, "specify.md must declare handoffs (downstream commands like sdd.plan)"
 
     def test_handoffs_includes_plan(self):
         handoffs = self.fm.get("handoffs", [])
         labels = [str(h.get("agent", "")).lower() for h in handoffs if isinstance(h, dict)]
         assert any("plan" in label for label in labels), (
-            "specify.md handoffs must include speckit.plan as a downstream step."
+            "specify.md handoffs must include sdd.plan as a downstream step."
         )
 
     def test_references_spec_template(self):
         assert "spec" in self.body.lower(), "specify.md body must mention spec creation."
+
+    def test_numbering_policy_is_script_owned_global_max(self):
+        assert "global highest feature number" in self.content.lower(), (
+            "specify.md must state that numbering follows script-owned global max policy."
+        )
+        assert "do not re-implement numbering logic" in self.content.lower(), (
+            "specify.md must instruct agent not to re-implement numbering logic in command text."
+        )
 
 
 class TestPlanCommand:
@@ -320,6 +330,20 @@ class TestPlanCommand:
 
     def test_body_references_spec(self):
         assert "spec" in self.body.lower(), "plan.md must reference the spec.md as its input."
+
+    def test_declares_template_structure_ssot_boundary(self):
+        assert "structure ssot boundary" in self.content.lower(), (
+            "plan.md command must explicitly declare template-owns-structure boundary."
+        )
+
+    def test_usage_requires_explicit_spec_input_file(self):
+        lowered = self.content.lower()
+        assert "requires an explicit" in lowered and "input file" in lowered, (
+            "plan.md must require an explicit input file argument."
+        )
+        assert "/sdd.plan <spec.md>" in self.content, (
+            "plan.md must define usage as /sdd.plan <spec.md> [notes...]."
+        )
 
 
 class TestDesignCommand:
@@ -342,13 +366,24 @@ class TestDesignCommand:
         assert "spec" in self.body.lower(), "design.md must reference spec.md as its input context."
 
     def test_body_references_design_templates(self):
-        assert "design-template.md" in self.content and "design-ui-template.md" in self.content and "design-prototype-template.md" in self.content, (
-            "design.md must reference design template pack files for deterministic output structure."
-        )
+        assert (
+            "design-template.md" in self.content
+            and "design-ui-template.md" in self.content
+            and "design-prototype-template.md" in self.content
+        ), "design.md must reference design template pack files for deterministic output structure."
 
     def test_body_references_prototype_outputs(self):
         assert "prototype/index.html" in self.content and "prototype/pages" in self.content, (
             "design.md must explicitly define prototype output files/paths."
+        )
+
+    def test_usage_requires_explicit_spec_input_file(self):
+        lowered = self.content.lower()
+        assert "requires an explicit" in lowered and "input file" in lowered, (
+            "design.md must require an explicit input file argument."
+        )
+        assert "/sdd.design <spec.md>" in self.content, (
+            "design.md must define usage as /sdd.design <spec.md> [notes...]."
         )
 
 
@@ -370,6 +405,36 @@ class TestTasksCommand:
 
     def test_body_references_plan(self):
         assert "plan" in self.body.lower(), "tasks.md must reference the plan as its input."
+
+    def test_declares_template_structure_ssot_boundary(self):
+        assert "structure ssot boundary" in self.content.lower(), (
+            "tasks.md command must explicitly declare template-owns-structure boundary."
+        )
+
+    def test_usage_requires_explicit_plan_input_file(self):
+        lowered = self.content.lower()
+        assert "requires an explicit" in lowered and "input file" in lowered, (
+            "tasks.md must require an explicit input file argument."
+        )
+        assert "/sdd.tasks <plan.md>" in self.content, (
+            "tasks.md must define usage as /sdd.tasks <plan.md> [notes...]."
+        )
+
+
+class TestBoundaryDocumentation:
+    """Boundary governance docs should exist and include key sections."""
+
+    def test_workflow_ssot_boundaries_doc_exists(self):
+        path = Path(__file__).parent.parent / "docs" / "architecture" / "workflow-ssot-boundaries.md"
+        assert path.exists(), "Expected docs/architecture/workflow-ssot-boundaries.md to exist"
+
+    def test_workflow_ssot_boundaries_doc_has_three_layers(self):
+        path = Path(__file__).parent.parent / "docs" / "architecture" / "workflow-ssot-boundaries.md"
+        content = path.read_text(encoding="utf-8")
+        lowered = content.lower()
+        assert "script 层" in lowered
+        assert "command 层" in lowered
+        assert "template / schema 层" in lowered or "template/schema" in lowered
 
 
 class TestImplementCommand:
@@ -427,6 +492,15 @@ class TestAnalyzeCommand:
             "analyze.md must describe the analysis it performs."
         )
 
+    def test_usage_requires_explicit_input_file(self):
+        lowered = self.content.lower()
+        assert "requires an explicit" in lowered and "input file" in lowered, (
+            "analyze.md must require an explicit input file argument."
+        )
+        assert "/sdd.analyze <plan.md|tasks.md>" in self.content, (
+            "analyze.md must define allowed input basenames as plan.md|tasks.md."
+        )
+
 
 class TestClarifyCommand:
     """clarify command: structured requirements clarification."""
@@ -458,6 +532,56 @@ class TestChecklistCommand:
     def test_body_mentions_checklist(self):
         assert "check" in self.body.lower() or "quality" in self.body.lower(), (
             "checklist.md body must mention checking or quality."
+        )
+
+
+class TestPreviewCommand:
+    """preview command: generate reviewer-facing preview.html from spec/plan/tasks input."""
+
+    @pytest.fixture(autouse=True)
+    def load(self):
+        path = COMMANDS_DIR / "preview.md"
+        if not path.exists():
+            pytest.skip("preview.md does not exist")
+        self.content, self.fm, self.body = _load_command("preview")
+
+    def test_description_mentions_preview_html(self):
+        desc = str(self.fm.get("description", "")).lower()
+        assert "preview" in desc and "html" in desc, (
+            "preview.md description should mention preview and html output."
+        )
+
+    def test_usage_requires_explicit_input_file(self):
+        lowered = self.content.lower()
+        assert "requires an explicit" in lowered and "input file" in lowered, (
+            "preview.md must require an explicit input file argument."
+        )
+
+    def test_allowed_input_basenames_are_constrained(self):
+        assert "spec.md" in self.content and "plan.md" in self.content and "tasks.md" in self.content, (
+            "preview.md must constrain allowed basenames to spec.md/plan.md/tasks.md."
+        )
+
+    def test_context_must_be_input_file_derived(self):
+        lowered = self.content.lower()
+        assert "context must be derived from the explicit input file" in lowered, (
+            "preview.md must require context derivation from explicit input file."
+        )
+
+    def test_output_path_targets_preview_html(self):
+        assert "preview.html" in self.content and "specs/<feature>/preview.html" in self.content, (
+            "preview.md must define output target specs/<feature>/preview.html."
+        )
+
+    def test_page_presence_gate_lists_all_required_pages(self):
+        lowered = self.content.lower()
+        for page in ["overview", "product", "uxui", "backend", "frontend", "testing", "audit", "appendices"]:
+            assert page in lowered, f"preview.md page presence gate must include '{page}'."
+
+    def test_appendix_a_requires_full_spec_verbatim(self):
+        lowered = self.content.lower()
+        assert "appendix a" in lowered and "full `spec.md` verbatim" in lowered, (
+            "preview.md must require Appendix A to include full spec.md verbatim."
         )
 
 

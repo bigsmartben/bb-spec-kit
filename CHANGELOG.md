@@ -7,6 +7,36 @@ Recent changes to the Specify CLI and templates are documented here.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.88.37] - 2026-03-07
+
+### Changed
+
+- **Command/skill prefix migration (breaking)**: Switched user-facing slash commands and generated command/skill filenames from `speckit` to `sdd` across templates, CLI generation, release package generation, extension command validation, tests, and docs.
+  - Generated command files now use `sdd.<command>.*` instead of `speckit.<command>.*`.
+  - Generated agent skills now use `sdd-<command>` instead of `speckit-<command>`.
+  - CLI post-init guidance and documentation examples now consistently use `/sdd.*` commands.
+
+## [0.88.36] - 2026-03-07
+
+### Added
+
+- **Preview template coverage tests**: Added `preview` to `tests/test_speckit_commands.py` expected command set and introduced `TestPreviewCommand` assertions for required input-file contract, allowed basenames, output target (`specs/<feature>/preview.html`), required page set, and Appendix A full `spec.md` verbatim requirement.
+
+### Changed
+
+- **Init agent validation scope**: Updated `tests/test_init_agents.py` required-agent suite to validate `roo`, `codex`, `copilot`, and `cline`, including directory/subdir mapping and CLI integration checks.
+- **Template retrieval fallback behavior**: `download_and_extract_template()` now prefers locally bundled templates (`_build_local_template_zip`) and falls back to GitHub release assets only when local bundled templates are unavailable. This fixes local-release installs where upstream assets for a supported agent (e.g., `cline`) are not yet published.
+
+## [0.88.35] - 2026-03-07
+
+### Added
+
+- **Cline agent support**: Added `cline` to `AGENT_CONFIG` with `.cline/workflows/` output and IDE-based tool behavior (`requires_cli: False`).
+- **Cline prompt file generation**: Command generation now supports `*.prompt.md` outputs for Cline workflows (`speckit.<command>.prompt.md`).
+- **Agent metadata SSOT**: Added `src/specify_cli/agent_registry.py` as the single source of truth for agent metadata, with derived projections for CLI config and extension registration.
+- **Release preflight consistency check**: Added `.github/workflows/scripts/check-agent-metadata-consistency.py` and integrated it into release package scripts for fast-fail validation.
+- **Cross-source consistency tests**: Added `tests/test_agent_consistency.py` to validate registry vs release scripts vs machine-readable docs.
+
 ## [0.88.26] - 2026-03-05
 
 ### Changed
@@ -61,16 +91,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Ruff configuration**: Corrected `target-version` from project version (`0.88.5`) to Python version (`py311`)
 
 ## [0.89] - 2026-03-04
-
-### Added
-
-- **`skills2speckit` skill and command**: New `/speckit.skills2speckit` command that converts any agent skill (local directory path or GitHub URL) into standard Spec-Kit format
-  - Ingests skills from local paths or GitHub tree/raw URLs; supports private repos via `GH_TOKEN`/`GITHUB_TOKEN` env var (no interactive prompts)
-  - Standardizes to `SKILL.md + references/ + sample_codes/` structure with required frontmatter (`name`, `description`, `compatibility`)
-  - Converts non-Python scripts (bash, PowerShell, Node.js, etc.) to Python `>=3.11` wrappers placed in `sample_codes/getting-started/wrapper.py`; originals preserved in `references/`
-  - Automatically appends new Python dependencies to `pyproject.toml [project.dependencies]`; `uv sync` handles installation silently with no user confirmation
-  - Registers the standardized skill as a distributable speckit command under `templates/commands/<name>.md`, auto-distributed to all agents via the existing packaging pipeline
-  - Output written to `.agents/skills/<name>/` in the user's current project
 
 ### Fixed
 

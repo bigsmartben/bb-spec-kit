@@ -14,7 +14,7 @@
 
 .PARAMETER Agents
     Comma or space separated subset of agents to build (default: all)
-    Valid agents: claude, gemini, copilot, cursor-agent, qwen, opencode, windsurf, codex, kilocode, auggie, roo, codebuddy, amp, q, bob, qodercli, shai, agy, generic
+    Valid agents: claude, gemini, copilot, cursor-agent, qwen, opencode, windsurf, codex, kilocode, auggie, roo, codebuddy, cline, amp, q, bob, qodercli, shai, agy, generic
 
 .PARAMETER Scripts
     Comma or space separated subset of script types to build (default: both)
@@ -50,6 +50,14 @@ if ($Version -notmatch '^v\d+\.\d+\.\d+$') {
 }
 
 Write-Host "Building release packages for $Version"
+
+# Validate agent metadata consistency before building artifacts
+$env:PYTHONPATH = "src"
+$pythonCmd = if (Get-Command python3 -ErrorAction SilentlyContinue) { "python3" } else { "python" }
+& $pythonCmd ".github/workflows/scripts/check-agent-metadata-consistency.py"
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
 
 # Create and use .genreleases directory for all build artifacts
 $GenReleasesDir = ".genreleases"
@@ -169,6 +177,9 @@ function Generate-Commands {
                 Set-Content -Path $outputFile -Value $output -NoNewline
             }
             'md' {
+                Set-Content -Path $outputFile -Value $body -NoNewline
+            }
+            'prompt.md' {
                 Set-Content -Path $outputFile -Value $body -NoNewline
             }
             'agent.md' {
@@ -331,6 +342,10 @@ function Build-Variant {
             $cmdDir = Join-Path $baseDir ".codebuddy/commands"
             Generate-Commands -Agent 'codebuddy' -Extension 'md' -ArgFormat '$ARGUMENTS' -OutputDir $cmdDir -ScriptVariant $Script
         }
+        'cline' {
+            $cmdDir = Join-Path $baseDir ".cline/workflows"
+            Generate-Commands -Agent 'cline' -Extension 'prompt.md' -ArgFormat '$ARGUMENTS' -OutputDir $cmdDir -ScriptVariant $Script
+        }
         'amp' {
             $cmdDir = Join-Path $baseDir ".agents/commands"
             Generate-Commands -Agent 'amp' -Extension 'md' -ArgFormat '$ARGUMENTS' -OutputDir $cmdDir -ScriptVariant $Script
@@ -347,6 +362,14 @@ function Build-Variant {
             $cmdDir = Join-Path $baseDir ".qoder/commands"
             Generate-Commands -Agent 'qodercli' -Extension 'md' -ArgFormat '$ARGUMENTS' -OutputDir $cmdDir -ScriptVariant $Script
         }
+        'shai' {
+            $cmdDir = Join-Path $baseDir ".shai/commands"
+            Generate-Commands -Agent 'shai' -Extension 'md' -ArgFormat '$ARGUMENTS' -OutputDir $cmdDir -ScriptVariant $Script
+        }
+        'agy' {
+            $cmdDir = Join-Path $baseDir ".agent/workflows"
+            Generate-Commands -Agent 'agy' -Extension 'md' -ArgFormat '$ARGUMENTS' -OutputDir $cmdDir -ScriptVariant $Script
+        }
         'generic' {
             $cmdDir = Join-Path $baseDir ".speckit/commands"
             Generate-Commands -Agent 'generic' -Extension 'md' -ArgFormat '$ARGUMENTS' -OutputDir $cmdDir -ScriptVariant $Script
@@ -360,7 +383,7 @@ function Build-Variant {
 }
 
 # Define all agents and scripts
-$AllAgents = @('claude', 'gemini', 'copilot', 'cursor-agent', 'qwen', 'opencode', 'windsurf', 'codex', 'kilocode', 'auggie', 'roo', 'codebuddy', 'amp', 'q', 'bob', 'qodercli', 'shai', 'agy', 'generic')
+$AllAgents = @('claude', 'gemini', 'copilot', 'cursor-agent', 'qwen', 'opencode', 'windsurf', 'codex', 'kilocode', 'auggie', 'roo', 'codebuddy', 'cline', 'amp', 'q', 'bob', 'qodercli', 'shai', 'agy', 'generic')
 $AllScripts = @('sh', 'ps')
 
 function Normalize-List {

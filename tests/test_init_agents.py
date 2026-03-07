@@ -2,10 +2,10 @@
 Tests for `specify init` with four required AI agents.
 
 These agents MUST pass:
-  - codex    (.codex/prompts/)  ← intermediate commands; auto-converted to skills
-  - claude   (.claude/commands/)
-  - opencode (.opencode/command/)    ← singular 'command', not 'commands'
-  - roo      (.roo/commands/)        ← maps to "Roo Code" in AGENTS.md
+  - roo      (.roo/commands/)        ← IDE-based
+  - codex    (.codex/prompts/)       ← intermediate commands; auto-converted to skills
+  - copilot  (.github/agents/)       ← GitHub Copilot command format
+  - cline    (.cline/workflows/)     ← workflow-style command directory
 
 Test layers:
   1. AGENT_CONFIG unit tests  — static config validation, no mocking
@@ -26,10 +26,10 @@ from specify_cli import AGENT_CONFIG, app
 
 # Required agents: (agent_key, expected_folder, expected_commands_subdir)
 REQUIRED_AGENTS = [
-    ("codex", ".codex", "prompts"),
-    ("claude", ".claude", "commands"),
-    ("opencode", ".opencode", "command"),  # singular
     ("roo", ".roo", "commands"),
+    ("codex", ".codex", "prompts"),
+    ("copilot", ".github", "agents"),
+    ("cline", ".cline", "workflows"),
 ]
 
 runner = CliRunner()
@@ -74,7 +74,7 @@ def _make_download_mock(project_path: Path, agent_key: str):
         # Create agent commands directory (simulates template extraction)
         commands_dir = base / folder / subdir
         commands_dir.mkdir(parents=True, exist_ok=True)
-        (commands_dir / "speckit.specify.md").write_text(
+        (commands_dir / "sdd.specify.md").write_text(
             "---\ndescription: Specify command\n---\n# Specify\n$ARGUMENTS\n"
         )
 
@@ -165,11 +165,16 @@ class TestAgentDirectoryMapping:
             "init auto-converts to .codex/skills/ via --ai-skills"
         )
 
-    def test_opencode_uses_singular_command(self):
-        """opencode specifically must use 'command' (singular), not 'commands'."""
-        assert AGENT_CONFIG["opencode"]["commands_subdir"] == "command", (
-            "opencode must use commands_subdir='command' (singular).\n"
-            "This is a deliberate exception to the 'commands' convention."
+    def test_copilot_uses_agents_subdir(self):
+        """copilot specifically uses 'agents' subdir under .github/."""
+        assert AGENT_CONFIG["copilot"]["commands_subdir"] == "agents", (
+            "copilot must use commands_subdir='agents'."
+        )
+
+    def test_cline_uses_workflows_subdir(self):
+        """cline specifically uses 'workflows' subdir under .cline/."""
+        assert AGENT_CONFIG["cline"]["commands_subdir"] == "workflows", (
+            "cline must use commands_subdir='workflows'."
         )
 
     def test_roo_requires_cli_false(self):
@@ -178,10 +183,10 @@ class TestAgentDirectoryMapping:
             "roo (Roo Code) is IDE-based and should have requires_cli=False."
         )
 
-    def test_claude_requires_cli_true(self):
-        """claude is a CLI tool and MUST require CLI check."""
-        assert AGENT_CONFIG["claude"]["requires_cli"] is True, (
-            "claude (Claude Code) is a CLI tool and should have requires_cli=True."
+    def test_copilot_requires_cli_false(self):
+        """copilot is IDE-based and must NOT require CLI tool check."""
+        assert AGENT_CONFIG["copilot"]["requires_cli"] is False, (
+            "copilot (GitHub Copilot) is IDE-based and should have requires_cli=False."
         )
 
     def test_codex_requires_cli_false(self):
@@ -190,10 +195,10 @@ class TestAgentDirectoryMapping:
             "codex (Codex CLI) should have requires_cli=False to avoid conflicts."
         )
 
-    def test_opencode_requires_cli_true(self):
-        """opencode is a CLI tool and MUST require CLI check."""
-        assert AGENT_CONFIG["opencode"]["requires_cli"] is True, (
-            "opencode is a CLI tool and should have requires_cli=True."
+    def test_cline_requires_cli_false(self):
+        """cline is IDE-based and must NOT require CLI tool check."""
+        assert AGENT_CONFIG["cline"]["requires_cli"] is False, (
+            "cline is IDE-based and should have requires_cli=False."
         )
 
     @pytest.mark.parametrize("agent_key,expected_folder,expected_subdir", REQUIRED_AGENTS)
@@ -243,11 +248,11 @@ class TestInitCliCodex:
         assert cfg["requires_cli"] is False
 
 
-class TestInitCliClaude:
-    """specify init --here --ai claude — must pass."""
+class TestInitCliCopilot:
+    """specify init --here --ai copilot — must pass."""
 
-    def test_claude_init_creates_commands_dir(self, tmp_project):
-        side_effect = _make_download_mock(tmp_project, "claude")
+    def test_copilot_init_creates_agents_dir(self, tmp_project):
+        side_effect = _make_download_mock(tmp_project, "copilot")
         with (
             patch("specify_cli.download_and_extract_template", side_effect=side_effect),
             patch("specify_cli.check_tool", return_value=True),
@@ -258,7 +263,7 @@ class TestInitCliClaude:
                 os.chdir(tmp_project)
                 result = runner.invoke(
                     app,
-                    ["init", "--here", "--ai", "claude", "--script", "sh", "--no-git", "--ignore-agent-tools"],
+                    ["init", "--here", "--ai", "copilot", "--script", "sh", "--no-git", "--ignore-agent-tools"],
                     catch_exceptions=False,
                     env={"HOME": str(tmp_project.parent)},
                 )
@@ -266,18 +271,18 @@ class TestInitCliClaude:
                 os.chdir(orig_cwd)
         assert result.exit_code == 0, f"CLI exited {result.exit_code}\nOutput:\n{result.output}"
 
-    def test_claude_config_folder_correct(self):
-        cfg = AGENT_CONFIG["claude"]
-        assert cfg["folder"].strip("/") == ".claude"
-        assert cfg["commands_subdir"] == "commands"
-        assert cfg["requires_cli"] is True
+    def test_copilot_config_folder_correct(self):
+        cfg = AGENT_CONFIG["copilot"]
+        assert cfg["folder"].strip("/") == ".github"
+        assert cfg["commands_subdir"] == "agents"
+        assert cfg["requires_cli"] is False
 
 
-class TestInitCliOpencode:
-    """specify init --here --ai opencode — must pass (singular 'command')."""
+class TestInitCliCline:
+    """specify init --here --ai cline — must pass."""
 
-    def test_opencode_init_creates_command_dir(self, tmp_project):
-        side_effect = _make_download_mock(tmp_project, "opencode")
+    def test_cline_init_creates_workflows_dir(self, tmp_project):
+        side_effect = _make_download_mock(tmp_project, "cline")
         with (
             patch("specify_cli.download_and_extract_template", side_effect=side_effect),
             patch("specify_cli.check_tool", return_value=True),
@@ -288,7 +293,7 @@ class TestInitCliOpencode:
                 os.chdir(tmp_project)
                 result = runner.invoke(
                     app,
-                    ["init", "--here", "--ai", "opencode", "--script", "sh", "--no-git", "--ignore-agent-tools"],
+                    ["init", "--here", "--ai", "cline", "--script", "sh", "--no-git", "--ignore-agent-tools"],
                     catch_exceptions=False,
                     env={"HOME": str(tmp_project.parent)},
                 )
@@ -296,10 +301,10 @@ class TestInitCliOpencode:
                 os.chdir(orig_cwd)
         assert result.exit_code == 0, f"CLI exited {result.exit_code}\nOutput:\n{result.output}"
 
-    def test_opencode_subdir_is_singular(self):
-        """opencode commands_subdir must be 'command' (singular) not 'commands'."""
-        assert AGENT_CONFIG["opencode"]["commands_subdir"] == "command", (
-            "opencode uses .opencode/command/ (singular). AGENT_CONFIG must reflect this exactly."
+    def test_cline_subdir_is_workflows(self):
+        """cline commands_subdir must be 'workflows'."""
+        assert AGENT_CONFIG["cline"]["commands_subdir"] == "workflows", (
+            "cline uses .cline/workflows/. AGENT_CONFIG must reflect this exactly."
         )
 
 

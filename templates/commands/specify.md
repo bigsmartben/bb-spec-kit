@@ -2,10 +2,10 @@
 description: Create or update the feature specification from a natural language feature description.
 handoffs: 
   - label: Build Technical Plan
-    agent: speckit.plan
+    agent: sdd.plan
     prompt: Create a plan for the spec. I am building with...
   - label: Clarify Spec Requirements
-    agent: speckit.clarify
+    agent: sdd.clarify
     prompt: Clarify specification requirements
     send: true
 scripts:
@@ -30,13 +30,18 @@ You **MUST** consider the user input before proceeding (if not empty).
 - If both constitution files are missing, use the bootstrap policy in `templates/constitution-template.md` and explicitly label conclusions as degraded governance context.
 - For repository fact retrieval, call-chain analysis, architecture-boundary verification, dependency mapping, and impact-scope tracing, follow that policy exactly.
 
+## Script Contract (SSOT)
+
+- Contract file: `scripts/contracts/create-new-feature.json`
+- Treat this contract as the authoritative source for script inputs, output keys, and side effects.
+
 ## Outline
 
-The text the user typed after `/speckit.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `{ARGS}` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
+The text the user typed after `/sdd.specify` in the triggering message **is** the feature description. Assume you always have it available in this conversation even if `{ARGS}` appears literally below. Do not ask the user to repeat it unless they provided an empty command.
 
 Given that feature description, do this:
 
-1. **Generate a concise short name** (2-4 words) for the branch:
+1. **Generate a concise short name** (2-4 words) for context (optional scaffold hint in non-git mode):
    - Analyze the feature description and extract the most meaningful keywords
    - Create a 2-4 word short name that captures the essence of the feature
    - Use action-noun format when possible (e.g., "add-user-auth", "fix-payment-bug")
@@ -48,37 +53,25 @@ Given that feature description, do this:
      - "Create a dashboard for analytics" → "analytics-dashboard"
      - "Fix payment processing timeout bug" → "fix-payment-timeout"
 
-2. **Check for existing branches before creating new one**:
+2. **Create spec scaffold via script contract (SSOT)**:
 
-   a. First, fetch all remote branches to ensure we have the latest information:
+   - Run `{SCRIPT}` exactly once, passing user feature description (and short-name if available).
+   - For git repositories, the script MUST use the **currently checked-out local branch name** as `BRANCH_NAME`.
+   - For git repositories, the script MUST NOT create branches and MUST NOT switch branches in this phase.
+   - For non-git repositories only, the script may use local directory-based fallback naming.
 
-      ```bash
-      git fetch --all --prune
-      ```
+   Examples:
 
-   b. Find the highest feature number across all sources for the short-name:
-      - Remote branches: `git ls-remote --heads origin | grep -E 'refs/heads/[0-9]+-<short-name>$'`
-      - Local branches: `git branch | grep -E '^[* ]*[0-9]+-<short-name>$'`
-      - Specs directories: Check for directories matching `specs/[0-9]+-<short-name>`
-
-   c. Determine the next available number:
-      - Extract all numbers from all three sources
-      - Find the highest number N
-      - Use N+1 for the new branch number
-
-   d. Run the script `{SCRIPT}` with the calculated number and short-name:
-      - Pass `--number N+1` and `--short-name "your-short-name"` along with the feature description
-      - Bash example: `{SCRIPT} --json --number 5 --short-name "user-auth" "Add user authentication"`
-      - PowerShell example: `{SCRIPT} -Json -Number 5 -ShortName "user-auth" "Add user authentication"`
+   - Bash: `{SCRIPT} --json --short-name "user-auth" "Add user authentication"`
+   - PowerShell: `{SCRIPT} -Json -ShortName "user-auth" "Add user authentication"`
 
    **IMPORTANT**:
-   - Check all three sources (remote branches, local branches, specs directories) to find the highest number
-   - Only match branches/directories with the exact short-name pattern
-   - If no existing branches/directories found with this short-name, start with number 1
-   - You must only ever run this script once per feature
-   - The JSON is provided in the terminal as output - always refer to it to get the actual content you're looking for
-   - The JSON output will contain BRANCH_NAME and SPEC_FILE paths
-   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot")
+   - In non-git repositories, numbering follows the script-owned **global highest feature number** policy across local `specs/` directories.
+   - Do not re-implement numbering logic in this command; trust script-owned numbering policy and script output.
+   - Do not re-implement branch/directory resolution logic in this command; trust script output.
+   - You must only ever run this script once per feature.
+   - The JSON output is authoritative and includes `BRANCH_NAME` and `SPEC_FILE`.
+   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
 
 3. Load the spec template to understand required sections:
    - Preferred: `.specify/templates/spec-template.md`
@@ -88,7 +81,7 @@ Given that feature description, do this:
    - Preferred: `.specify/memory/constitution.md`
    - Fallback: `memory/constitution.md`
    - If neither exists: WARN and proceed using the default terminology defined in `templates/spec-template.md`,
-     but recommend running `/speckit.constitution` first for consistent downstream behavior.
+     but recommend running `/sdd.constitution` first for consistent downstream behavior.
 
 ## Output Language & Stability Contract *(MANDATORY)*
 
@@ -215,10 +208,10 @@ Your job is to produce a Spec that is easy to read for Chinese stakeholders **wi
       - Preserve the original item order and IDs (do not duplicate or renumber items)
       - Add concise notes for unresolved failures
 
-8. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/speckit.clarify` or `/speckit.plan`).
-   - Also suggest reviewer workflow command: `/speckit.preview` (generates reviewer-facing `preview.html` after artifacts are available).
+8. Report completion with branch name, spec file path, checklist results, and readiness for the next phase (`/sdd.clarify` or `/sdd.plan`).
+   - Also suggest reviewer workflow command: `/sdd.preview` (generates reviewer-facing `preview.html` after artifacts are available).
 
-**NOTE:** The script creates and checks out the new branch and initializes the spec file before writing.
+**NOTE:** In git repositories, this script does **not** create/switch branches. It initializes the spec scaffold under `specs/<current-branch>/`.
 
 ## General Guidelines
 

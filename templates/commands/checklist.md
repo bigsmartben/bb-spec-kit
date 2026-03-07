@@ -2,7 +2,7 @@
 description: Generate custom quality checklists for validating requirements completeness and clarity. Use to create unit tests for English that ensure spec quality before implementation.
 handoffs:
   - label: Start Implementation
-    agent: speckit.implement
+    agent: sdd.implement
     prompt: Start the implementation in phases
     send: true
 scripts:
@@ -239,7 +239,7 @@ You **MUST** consider the user input before proceeding (if not empty).
    - Actor/timing
    - Any explicit user-specified must-have items incorporated
 
-**Important**: `/speckit.checklist` uses short, descriptive domain filenames and appends to existing same-domain files (without overwriting), while continuing `CHK###` numbering from the current maximum. This allows:
+**Important**: `/sdd.checklist` uses short, descriptive domain filenames and appends to existing same-domain files (without overwriting), while continuing `CHK###` numbering from the current maximum. This allows:
 
 - Multiple checklists of different types (e.g., `ux.md`, `test.md`, `security.md`)
 - Re-running the same domain checklist to accumulate additional requirement-quality checks in one file

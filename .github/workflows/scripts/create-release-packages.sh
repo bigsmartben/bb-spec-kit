@@ -6,7 +6,7 @@ set -euo pipefail
 # Usage: .github/workflows/scripts/create-release-packages.sh <version>
 #   Version argument should include leading 'v'.
 #   Optionally set AGENTS and/or SCRIPTS env vars to limit what gets built.
-#     AGENTS  : space or comma separated subset of: claude gemini copilot cursor-agent qwen opencode windsurf codex amp shai bob generic (default: all)
+#     AGENTS  : space or comma separated subset of: claude gemini copilot cursor-agent qwen opencode windsurf codex kilocode auggie roo codebuddy cline amp shai q agy bob qodercli generic (default: all)
 #     SCRIPTS : space or comma separated subset of: sh ps (default: both)
 #   Examples:
 #     AGENTS=claude SCRIPTS=sh $0 v0.2.0
@@ -24,6 +24,9 @@ if [[ ! $NEW_VERSION =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 fi
 
 echo "Building release packages for $NEW_VERSION"
+
+# Validate agent metadata consistency before building artifacts
+PYTHONPATH=src python3 .github/workflows/scripts/check-agent-metadata-consistency.py
 
 # Create and use .genreleases directory for all build artifacts
 GENRELEASES_DIR=".genreleases"
@@ -93,11 +96,13 @@ generate_commands() {
     case $ext in
       toml)
         body=$(printf '%s\n' "$body" | sed 's/\\/\\\\/g')
-        { echo "description = \"$description\""; echo; echo "prompt = \"\"\""; echo "$body"; echo "\"\"\""; } > "$output_dir/speckit.$name.$ext" ;;
+        { echo "description = \"$description\""; echo; echo "prompt = \"\"\""; echo "$body"; echo "\"\"\""; } > "$output_dir/sdd.$name.$ext" ;;
       md)
-        echo "$body" > "$output_dir/speckit.$name.$ext" ;;
+        echo "$body" > "$output_dir/sdd.$name.$ext" ;;
+      prompt.md)
+        echo "$body" > "$output_dir/sdd.$name.$ext" ;;
       agent.md)
-        echo "$body" > "$output_dir/speckit.$name.$ext" ;;
+        echo "$body" > "$output_dir/sdd.$name.$ext" ;;
     esac
   done
 }
@@ -107,7 +112,7 @@ generate_copilot_prompts() {
   mkdir -p "$prompts_dir"
   
   # Generate a .prompt.md file for each .agent.md file
-  for agent_file in "$agents_dir"/speckit.*.agent.md; do
+  for agent_file in "$agents_dir"/sdd.*.agent.md; do
     [[ -f "$agent_file" ]] || continue
     
     local basename=$(basename "$agent_file" .agent.md)
@@ -154,7 +159,7 @@ build_variant() {
   [[ -d templates ]] && { mkdir -p "$SPEC_DIR/templates"; find templates -type f -not -path "templates/commands/*" -not -name "vscode-settings.json" -exec cp --parents {} "$SPEC_DIR"/ \; ; echo "Copied templates -> .specify/templates"; }
   
   # NOTE: We substitute {ARGS} internally. Outward tokens differ intentionally:
-  #   * Markdown/prompt (claude, copilot, cursor-agent, opencode): $ARGUMENTS
+  #   * Markdown/prompt (claude, copilot, cursor-agent, opencode, cline): $ARGUMENTS
   #   * TOML (gemini, qwen): {{args}}
   # This keeps formats readable without extra abstraction.
 
@@ -203,6 +208,9 @@ build_variant() {
     codebuddy)
       mkdir -p "$base_dir/.codebuddy/commands"
       generate_commands codebuddy md "\$ARGUMENTS" "$base_dir/.codebuddy/commands" "$script" ;;
+    cline)
+      mkdir -p "$base_dir/.cline/workflows"
+      generate_commands cline prompt.md "\$ARGUMENTS" "$base_dir/.cline/workflows" "$script" ;;
     qodercli)
       mkdir -p "$base_dir/.qoder/commands"
       generate_commands qodercli md "\$ARGUMENTS" "$base_dir/.qoder/commands" "$script" ;;
@@ -230,7 +238,7 @@ build_variant() {
 }
 
 # Determine agent list
-ALL_AGENTS=(claude gemini copilot cursor-agent qwen opencode windsurf codex kilocode auggie roo codebuddy amp shai q agy bob qodercli generic)
+ALL_AGENTS=(claude gemini copilot cursor-agent qwen opencode windsurf codex kilocode auggie roo codebuddy cline amp shai q agy bob qodercli generic)
 ALL_SCRIPTS=(sh ps)
 
 norm_list() {
@@ -277,4 +285,3 @@ done
 
 echo "Archives in $GENRELEASES_DIR:"
 ls -1 "$GENRELEASES_DIR"/spec-kit-template-*-"${NEW_VERSION}".zip
-

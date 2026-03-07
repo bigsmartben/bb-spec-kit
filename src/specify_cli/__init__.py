@@ -55,6 +55,8 @@ from rich.text import Text
 from rich.tree import Tree
 from typer.core import TyperGroup
 
+from .agent_registry import AGENT_REGISTRY, build_cli_agent_config
+
 ssl_context = truststore.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 client = httpx.Client(verify=ssl_context)
 
@@ -129,142 +131,10 @@ def _format_rate_limit_error(status_code: int, headers: httpx.Headers, url: str)
     return "\n".join(lines)
 
 
-# Agent configuration with name, folder, install URL, CLI tool requirement, and commands subdirectory
-AGENT_CONFIG = {
-    "copilot": {
-        "name": "GitHub Copilot",
-        "folder": ".github/",
-        "commands_subdir": "agents",  # Special: uses agents/ not commands/
-        "install_url": None,  # IDE-based, no CLI check needed
-        "requires_cli": False,
-    },
-    "claude": {
-        "name": "Claude Code",
-        "folder": ".claude/",
-        "commands_subdir": "commands",
-        "install_url": "https://docs.anthropic.com/en/docs/claude-code/setup",
-        "requires_cli": True,
-    },
-    "gemini": {
-        "name": "Gemini CLI",
-        "folder": ".gemini/",
-        "commands_subdir": "commands",
-        "install_url": "https://github.com/google-gemini/gemini-cli",
-        "requires_cli": True,
-    },
-    "cursor-agent": {
-        "name": "Cursor",
-        "folder": ".cursor/",
-        "commands_subdir": "commands",
-        "install_url": None,  # IDE-based
-        "requires_cli": False,
-    },
-    "qwen": {
-        "name": "Qwen Code",
-        "folder": ".qwen/",
-        "commands_subdir": "commands",
-        "install_url": "https://github.com/QwenLM/qwen-code",
-        "requires_cli": True,
-    },
-    "opencode": {
-        "name": "opencode",
-        "folder": ".opencode/",
-        "commands_subdir": "command",  # Special: singular 'command' not 'commands'
-        "install_url": "https://opencode.ai",
-        "requires_cli": True,
-    },
-    "codex": {
-        "name": "Codex CLI",
-        "folder": ".codex/",
-        "commands_subdir": "prompts",  # Special: uses prompts/ not commands/
-        "install_url": "https://github.com/openai/codex",
-        "requires_cli": False,
-    },
-    "windsurf": {
-        "name": "Windsurf",
-        "folder": ".windsurf/",
-        "commands_subdir": "workflows",  # Special: uses workflows/ not commands/
-        "install_url": None,  # IDE-based
-        "requires_cli": False,
-    },
-    "kilocode": {
-        "name": "Kilo Code",
-        "folder": ".kilocode/",
-        "commands_subdir": "workflows",  # Special: uses workflows/ not commands/
-        "install_url": None,  # IDE-based
-        "requires_cli": False,
-    },
-    "auggie": {
-        "name": "Auggie CLI",
-        "folder": ".augment/",
-        "commands_subdir": "commands",
-        "install_url": "https://docs.augmentcode.com/cli/setup-auggie/install-auggie-cli",
-        "requires_cli": True,
-    },
-    "codebuddy": {
-        "name": "CodeBuddy",
-        "folder": ".codebuddy/",
-        "commands_subdir": "commands",
-        "install_url": "https://www.codebuddy.ai/cli",
-        "requires_cli": True,
-    },
-    "qodercli": {
-        "name": "Qoder CLI",
-        "folder": ".qoder/",
-        "commands_subdir": "commands",
-        "install_url": "https://qoder.com/cli",
-        "requires_cli": True,
-    },
-    "roo": {
-        "name": "Roo Code",
-        "folder": ".roo/",
-        "commands_subdir": "commands",
-        "install_url": None,  # IDE-based
-        "requires_cli": False,
-    },
-    "q": {
-        "name": "Amazon Q Developer CLI",
-        "folder": ".amazonq/",
-        "commands_subdir": "prompts",  # Special: uses prompts/ not commands/
-        "install_url": "https://aws.amazon.com/developer/learning/q-developer-cli/",
-        "requires_cli": True,
-    },
-    "amp": {
-        "name": "Amp",
-        "folder": ".agents/",
-        "commands_subdir": "commands",
-        "install_url": "https://ampcode.com/manual#install",
-        "requires_cli": True,
-    },
-    "shai": {
-        "name": "SHAI",
-        "folder": ".shai/",
-        "commands_subdir": "commands",
-        "install_url": "https://github.com/ovh/shai",
-        "requires_cli": True,
-    },
-    "agy": {
-        "name": "Antigravity",
-        "folder": ".agent/",
-        "commands_subdir": "workflows",  # Special: uses workflows/ not commands/
-        "install_url": None,  # IDE-based
-        "requires_cli": False,
-    },
-    "bob": {
-        "name": "IBM Bob",
-        "folder": ".bob/",
-        "commands_subdir": "commands",
-        "install_url": None,  # IDE-based
-        "requires_cli": False,
-    },
-    "generic": {
-        "name": "Generic (bring your own agent)",
-        "folder": None,  # Set dynamically via --ai-commands-dir
-        "commands_subdir": "commands",
-        "install_url": None,
-        "requires_cli": False,
-    },
-}
+# Agent configuration used by CLI behavior.
+# This remains exported for backward compatibility but is now derived from
+# agent_registry.py (the single source of truth).
+AGENT_CONFIG = build_cli_agent_config()
 
 SCRIPT_TYPE_CHOICES = {"sh": "POSIX Shell (bash/zsh)", "ps": "PowerShell"}
 
@@ -750,18 +620,21 @@ def _generate_commands_for_agent(
 
     Replicates generate_commands() + per-agent case logic in create-release-packages.sh.
     """
-    toml_agents = {"gemini", "qwen"}
     copilot_agent = "copilot"
 
-    # Look up agent directory / commands sub-directory from AGENT_CONFIG
-    agent_cfg = AGENT_CONFIG.get(agent, {})
-    agent_folder = agent_cfg.get("folder", f".{agent}/").rstrip("/")
-    commands_subdir = agent_cfg.get("commands_subdir", "commands")
-
-    if agent in toml_agents:
-        ext = "toml"
-        arg_format = "{{args}}"
+    # Look up generation metadata from the single source registry.
+    meta = AGENT_REGISTRY.get(agent)
+    if meta:
+        agent_folder = meta.template_folder.rstrip("/")
+        commands_subdir = meta.commands_subdir
+        ext = meta.output_extension.lstrip(".")
+        arg_format = meta.arg_placeholder
     else:
+        # Fallback for unknown/custom agents
+        agent_cfg = AGENT_CONFIG.get(agent, {})
+        agent_folder_raw = agent_cfg.get("folder", f".{agent}/")
+        agent_folder = str(agent_folder_raw).rstrip("/")
+        commands_subdir = agent_cfg.get("commands_subdir", "commands")
         ext = "md"
         arg_format = "$ARGUMENTS"
 
@@ -799,13 +672,16 @@ def _generate_commands_for_agent(
         if ext == "toml":
             body_esc = body.replace("\\", "\\\\")
             output = f'description = "{description}"\n\nprompt = """\n{body_esc}\n"""\n'
-            out_name = f"speckit.{name}.toml"
+            out_name = f"sdd.{name}.toml"
+        elif ext == "prompt.md":
+            output = body
+            out_name = f"sdd.{name}.prompt.md"
         elif agent == copilot_agent:
             output = body
-            out_name = f"speckit.{name}.agent.md"
+            out_name = f"sdd.{name}.agent.md"
         else:
             output = body
-            out_name = f"speckit.{name}.md"
+            out_name = f"sdd.{name}.md"
 
         (output_dir / out_name).write_text(output, encoding="utf-8")
 
@@ -813,7 +689,7 @@ def _generate_commands_for_agent(
     if agent == copilot_agent:
         prompts_dir = base_dir / ".github" / "prompts"
         prompts_dir.mkdir(parents=True, exist_ok=True)
-        for af in output_dir.glob("speckit.*.agent.md"):
+        for af in output_dir.glob("sdd.*.agent.md"):
             basename = af.name.replace(".agent.md", "")
             (prompts_dir / f"{basename}.prompt.md").write_text(f"---\nagent: {basename}\n---\n", encoding="utf-8")
         vscode_settings = commands_src_dir.parent / "vscode-settings.json"
@@ -1012,10 +888,13 @@ def download_and_extract_template(
     debug: bool = False,
     github_token: str = None,
 ) -> Path:
-    """Download template zip from official upstream and extract it.
+    """Resolve, obtain, and extract a template zip for the selected agent.
 
-    Always downloads from bigsmartben/bb-spec-kit release assets to ensure a
-    single trusted source for template artifacts.
+    Resolution strategy:
+    1) Prefer a locally bundled template archive (when templates/scripts are
+       shipped with the installed package).
+    2) Fall back to upstream GitHub release assets if local bundled templates
+       are unavailable.
 
     Returns project_path. Uses tracker if provided (with keys: fetch, download, extract, cleanup)
     """
@@ -1027,20 +906,36 @@ def download_and_extract_template(
     if tracker:
         tracker.start("fetch", "contacting GitHub API")
     try:
-        zip_path, meta = download_template_from_github(
-            ai_assistant,
-            current_dir,
-            script_type=script_type,
-            verbose=verbose and tracker is None,
-            show_progress=(tracker is None),
-            client=client,
-            debug=debug,
-            github_token=github_token,
-        )
-        if tracker:
-            tracker.complete("fetch", f"release {meta['release']} ({meta['size']:,} bytes)")
-            tracker.add("download", "Download template")
-            tracker.complete("download", meta["filename"])
+        # Prefer local bundled templates first (supports local release/dev flows,
+        # and avoids failures when an agent asset is not yet published upstream).
+        local_zip = _build_local_template_zip(ai_assistant, script_type)
+        if local_zip is not None and local_zip.exists():
+            zip_path = local_zip
+            meta = {
+                "filename": local_zip.name,
+                "size": local_zip.stat().st_size,
+                "release": "local-bundled",
+                "asset_url": "local://bundled-templates",
+            }
+            if tracker:
+                tracker.complete("fetch", f"local bundled templates ({meta['size']:,} bytes)")
+                tracker.add("download", "Download template")
+                tracker.complete("download", meta["filename"])
+        else:
+            zip_path, meta = download_template_from_github(
+                ai_assistant,
+                current_dir,
+                script_type=script_type,
+                verbose=verbose and tracker is None,
+                show_progress=(tracker is None),
+                client=client,
+                debug=debug,
+                github_token=github_token,
+            )
+            if tracker:
+                tracker.complete("fetch", f"release {meta['release']} ({meta['size']:,} bytes)")
+                tracker.add("download", "Download template")
+                tracker.complete("download", meta["filename"])
     except Exception as e:
         if tracker:
             tracker.error("fetch", str(e))
@@ -1379,12 +1274,12 @@ def install_ai_skills(project_path: Path, selected_ai: str, tracker: StepTracker
                 body = content
 
             command_name = command_file.stem
-            # Normalize: extracted commands may be named "speckit.<cmd>.md";
-            # strip the "speckit." prefix so skill names stay clean and
+            # Normalize: extracted commands may be named "sdd.<cmd>.md";
+            # strip the "sdd." prefix so skill names stay clean and
             # SKILL_DESCRIPTIONS lookups work.
-            if command_name.startswith("speckit."):
-                command_name = command_name[len("speckit.") :]
-            skill_name = f"speckit-{command_name}"
+            if command_name.startswith("sdd."):
+                command_name = command_name[len("sdd.") :]
+            skill_name = f"sdd-{command_name}"
 
             # Create skill directory (additive — never removes existing content)
             skill_dir = skills_dir / skill_name
@@ -1400,11 +1295,11 @@ def install_ai_skills(project_path: Path, selected_ai: str, tracker: StepTracker
             # Use yaml.safe_dump to safely serialise the frontmatter and
             # avoid YAML injection from descriptions containing colons,
             # quotes, or newlines.
-            # Normalize source filename for metadata — strip speckit. prefix
+            # Normalize source filename for metadata — strip sdd. prefix
             # so it matches the canonical templates/commands/<cmd>.md path.
             source_name = command_file.name
-            if source_name.startswith("speckit."):
-                source_name = source_name[len("speckit.") :]
+            if source_name.startswith("sdd."):
+                source_name = source_name[len("sdd.") :]
 
             frontmatter_data = {
                 "name": skill_name,
@@ -1416,7 +1311,7 @@ def install_ai_skills(project_path: Path, selected_ai: str, tracker: StepTracker
                 },
             }
             frontmatter_text = yaml.safe_dump(frontmatter_data, sort_keys=False).strip()
-            skill_content = f"---\n{frontmatter_text}\n---\n\n# Speckit {command_name.title()} Skill\n\n{body}\n"
+            skill_content = f"---\n{frontmatter_text}\n---\n\n# SDD {command_name.title()} Skill\n\n{body}\n"
 
             skill_file = skill_dir / "SKILL.md"
             if skill_file.exists():
@@ -1465,7 +1360,7 @@ def init(
     ai_assistant: str = typer.Option(
         None,
         "--ai",
-        help="AI assistant to use: claude, gemini, copilot, cursor-agent, qwen, opencode, codex, windsurf, kilocode, auggie, codebuddy, amp, shai, q, agy, bob, qodercli, or generic (requires --ai-commands-dir)",
+        help="AI assistant to use: claude, gemini, copilot, cursor-agent, qwen, opencode, codex, windsurf, kilocode, auggie, roo, codebuddy, cline, amp, shai, q, agy, bob, qodercli, or generic (requires --ai-commands-dir)",
     ),
     ai_commands_dir: str = typer.Option(
         None,
@@ -1853,11 +1748,11 @@ def init(
 
     steps_lines.append(f"{step_num}. Start using slash commands with your AI agent:")
 
-    steps_lines.append("   2.1 [cyan]/speckit.constitution[/] - Establish project principles")
-    steps_lines.append("   2.2 [cyan]/speckit.specify[/] - Create baseline specification")
-    steps_lines.append("   2.3 [cyan]/speckit.plan[/] - Create implementation plan")
-    steps_lines.append("   2.4 [cyan]/speckit.tasks[/] - Generate actionable tasks")
-    steps_lines.append("   2.5 [cyan]/speckit.implement[/] - Execute implementation")
+    steps_lines.append("   2.1 [cyan]/sdd.constitution[/] - Establish project principles")
+    steps_lines.append("   2.2 [cyan]/sdd.specify[/] - Create baseline specification")
+    steps_lines.append("   2.3 [cyan]/sdd.plan[/] - Create implementation plan")
+    steps_lines.append("   2.4 [cyan]/sdd.tasks[/] - Generate actionable tasks")
+    steps_lines.append("   2.5 [cyan]/sdd.implement[/] - Execute implementation")
 
     steps_panel = Panel("\n".join(steps_lines), title="Next Steps", border_style="cyan", padding=(1, 2))
     console.print()
@@ -1866,9 +1761,9 @@ def init(
     enhancement_lines = [
         "Optional commands that you can use for your specs [bright_black](improve quality & confidence)[/bright_black]",
         "",
-        "○ [cyan]/speckit.clarify[/] [bright_black](optional)[/bright_black] - Ask structured questions to de-risk ambiguous areas before planning (run before [cyan]/speckit.plan[/] if used)",
-        "○ [cyan]/speckit.analyze[/] [bright_black](optional)[/bright_black] - Cross-artifact consistency & alignment report (after [cyan]/speckit.tasks[/], before [cyan]/speckit.implement[/])",
-        "○ [cyan]/speckit.checklist[/] [bright_black](optional)[/bright_black] - Generate quality checklists to validate requirements completeness, clarity, and consistency (after [cyan]/speckit.plan[/])",
+        "○ [cyan]/sdd.clarify[/] [bright_black](optional)[/bright_black] - Ask structured questions to de-risk ambiguous areas before planning (run before [cyan]/sdd.plan[/] if used)",
+        "○ [cyan]/sdd.analyze[/] [bright_black](optional)[/bright_black] - Cross-artifact consistency & alignment report (after [cyan]/sdd.tasks[/], before [cyan]/sdd.implement[/])",
+        "○ [cyan]/sdd.checklist[/] [bright_black](optional)[/bright_black] - Generate quality checklists to validate requirements completeness, clarity, and consistency (after [cyan]/sdd.plan[/])",
     ]
     enhancements_panel = Panel(
         "\n".join(enhancement_lines), title="Enhancement Commands", border_style="cyan", padding=(1, 2)

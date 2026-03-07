@@ -55,12 +55,12 @@ def valid_manifest_data():
         },
         "requires": {
             "speckit_version": ">=0.1.0",
-            "commands": ["speckit.tasks"],
+            "commands": ["sdd.tasks"],
         },
         "provides": {
             "commands": [
                 {
-                    "name": "speckit.test.hello",
+                    "name": "sdd.test.hello",
                     "file": "commands/hello.md",
                     "description": "Test command",
                 }
@@ -68,7 +68,7 @@ def valid_manifest_data():
         },
         "hooks": {
             "after_tasks": {
-                "command": "speckit.test.hello",
+                "command": "sdd.test.hello",
                 "optional": True,
                 "prompt": "Run test?",
             }
@@ -137,7 +137,7 @@ class TestExtensionManifest:
         assert manifest.version == "1.0.0"
         assert manifest.description == "A test extension"
         assert len(manifest.commands) == 1
-        assert manifest.commands[0]["name"] == "speckit.test.hello"
+        assert manifest.commands[0]["name"] == "sdd.test.hello"
 
     def test_missing_required_field(self, temp_dir):
         """Test manifest missing required field."""
@@ -459,10 +459,10 @@ $ARGUMENTS
         registered = registrar.register_commands_for_claude(manifest, extension_dir, project_dir)
 
         assert len(registered) == 1
-        assert "speckit.test.hello" in registered
+        assert "sdd.test.hello" in registered
 
         # Check command file was created
-        cmd_file = claude_dir / "speckit.test.hello.md"
+        cmd_file = claude_dir / "sdd.test.hello.md"
         assert cmd_file.exists()
 
         content = cmd_file.read_text()
@@ -492,9 +492,9 @@ $ARGUMENTS
             "provides": {
                 "commands": [
                     {
-                        "name": "speckit.alias.cmd",
+                        "name": "sdd.alias.cmd",
                         "file": "commands/cmd.md",
-                        "aliases": ["speckit.shortcut"],
+                        "aliases": ["sdd.shortcut"],
                     }
                 ]
             },
@@ -514,10 +514,10 @@ $ARGUMENTS
         registered = registrar.register_commands_for_claude(manifest, ext_dir, project_dir)
 
         assert len(registered) == 2
-        assert "speckit.alias.cmd" in registered
-        assert "speckit.shortcut" in registered
-        assert (claude_dir / "speckit.alias.cmd.md").exists()
-        assert (claude_dir / "speckit.shortcut.md").exists()
+        assert "sdd.alias.cmd" in registered
+        assert "sdd.shortcut" in registered
+        assert (claude_dir / "sdd.alias.cmd.md").exists()
+        assert (claude_dir / "sdd.shortcut.md").exists()
 
 
 # ===== Utility Function Tests =====
@@ -572,14 +572,14 @@ class TestIntegration:
         assert installed[0]["id"] == "test-ext"
 
         # Verify command registered
-        cmd_file = project_dir / ".claude" / "commands" / "speckit.test.hello.md"
+        cmd_file = project_dir / ".claude" / "commands" / "sdd.test.hello.md"
         assert cmd_file.exists()
 
         # Verify registry has registered commands (now a dict keyed by agent)
         metadata = manager.registry.get("test-ext")
         registered_commands = metadata["registered_commands"]
         # Check that the command is registered for at least one agent
-        assert any("speckit.test.hello" in cmds for cmds in registered_commands.values())
+        assert any("sdd.test.hello" in cmds for cmds in registered_commands.values())
 
         # Remove
         result = manager.remove("test-ext")
@@ -611,7 +611,7 @@ class TestIntegration:
                 "provides": {
                     "commands": [
                         {
-                            "name": f"speckit.ext{i}.cmd",
+                            "name": f"sdd.ext{i}.cmd",
                             "file": "commands/cmd.md",
                         }
                     ]

@@ -1,5 +1,5 @@
 ---
-description: "Design handoff template pack for speckit.design outputs (UX artifacts, UI spec, and static prototype)."
+description: "Design handoff template pack for sdd.design outputs (UX artifacts, UI spec, and static prototype)."
 ---
 
 # Design Handoff Template: [FEATURE NAME]
@@ -8,7 +8,7 @@ description: "Design handoff template pack for speckit.design outputs (UX artifa
 **Created**: [DATE]  
 **Input**: `spec.md` (required), `plan.md` (optional constraints)
 
-**Purpose**: Single navigation entry point for design outputs produced by `/speckit.design`.
+**Purpose**: Single navigation entry point for design outputs produced by `/sdd.design`.
 
 Use this template as the structure baseline for the design handoff index. Detailed content templates live in:
 

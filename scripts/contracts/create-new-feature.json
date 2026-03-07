@@ -1,0 +1,48 @@
+{
+  "name": "create-new-feature",
+  "purpose": "Create feature directory scaffold and initialize spec.md using current branch identity in git repos (or numbered fallback in non-git repos)",
+  "scripts": {
+    "sh": "scripts/bash/create-new-feature.sh",
+    "ps": "scripts/powershell/create-new-feature.ps1"
+  },
+  "inputs": {
+    "feature_description": {
+      "required": true,
+      "type": "string"
+    },
+    "short_name": {
+      "required": false,
+      "type": "string"
+    },
+    "number": {
+      "required": false,
+      "type": "integer"
+    },
+    "json_mode": {
+      "required": false,
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "numbering_policy": {
+    "owner": "script",
+    "strategy": "git-repo: use-current-local-feature-branch-name; non-git-repo: global-highest-spec-directory-number-plus-one",
+    "scope": "git current branch OR local specs directories"
+  },
+  "json_output": {
+    "required_keys": [
+      "BRANCH_NAME",
+      "SPEC_FILE",
+      "FEATURE_NUM"
+    ],
+    "optional_keys": [
+      "HAS_GIT"
+    ]
+  },
+  "side_effects": [
+    "must-not-create-or-switch-git-branch",
+    "creates-specs-feature-directory",
+    "creates-or-copies-spec.md",
+    "sets-SPECIFY_FEATURE-for-current-process"
+  ]
+}

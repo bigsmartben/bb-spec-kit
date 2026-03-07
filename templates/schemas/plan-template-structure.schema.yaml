@@ -1,0 +1,20 @@
+schema: "template-structure/v1"
+template: "templates/plan-template.md"
+
+required_headings:
+  - "## Structure SSOT Notes"
+  - "## Summary"
+  - "## Artifacts Overview & Navigation *(mandatory)*"
+  - "## Technical Context"
+  - "## Constitution Check"
+  - "## Design Artifacts & Dependency Order *(mandatory)*"
+  - "## Audit References *(mandatory)*"
+  - "## Project Structure"
+  - "## Complexity Tracking"
+
+required_patterns:
+  - '^### Artifact Inventory \(Navigation \+ Status\)$'
+  - '\*\*Language/Version\*\*:'
+  - '\*\*Primary Dependencies\*\*:'
+  - '\*\*Storage\*\*:'
+  - '\*\*Project Type\*\*:'

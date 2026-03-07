@@ -1,8 +1,8 @@
 ---
 description: Generate UX artifacts (JTBD, journey, flows) plus a high-fidelity static HTML prototype from the current feature spec.
 scripts:
-  sh: scripts/bash/check-prerequisites.sh --json --paths-only
-  ps: scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly
+  sh: scripts/bash/check-prerequisites.sh --json --paths-only --mode design --input "{ARGS}"
+  ps: scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly -Mode design -InputFile "{ARGS}"
 ---
 
 ## User Input
@@ -12,6 +12,22 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
+
+## Usage / Input File *(MANDATORY)*
+
+This command requires an explicit **input file** as the first token in `$ARGUMENTS`:
+
+- `/sdd.design <spec.md> [notes...]`
+- `<spec.md>` can be an absolute path or a repo-root relative path under `specs/<feature>/`.
+
+Examples:
+
+- `/sdd.design specs/001-foo/spec.md`
+- `/sdd.design /abs/path/to/specs/001-foo/spec.md 请偏重移动端体验`
+
+If `$ARGUMENTS` is empty: **ERROR** and STOP.
+
+Pre-implementation phases MUST NOT infer feature context from current git branch, `SPECIFY_FEATURE`, or latest `specs/*` directory. Context MUST be derived from the explicit input file.
 
 ## Constitution Evidence Source Policy (MANDATORY)
 
@@ -40,10 +56,11 @@ SSOT rule: `spec.md` is the requirements SSOT. Design artifacts (`ux/`, `ui/`, `
    - `FEATURE_DIR` (absolute path)
    - `FEATURE_SPEC` (absolute path to `spec.md`)
    - `IMPL_PLAN` (absolute path to `plan.md`, may not exist)
+   - `INPUT_FILE_ABS` (absolute path to explicit input file; MUST be `spec.md`)
 
 2. Validate prerequisites:
-   - If `FEATURE_DIR` does not exist: **ERROR** and instruct to run `/speckit.specify` first.
-   - If `FEATURE_SPEC` does not exist: **ERROR** and instruct to run `/speckit.specify` first.
+   - If `FEATURE_DIR` does not exist: **ERROR** and instruct to run `/sdd.specify` first.
+   - If `FEATURE_SPEC` does not exist: **ERROR** and instruct to run `/sdd.specify` first.
 
 3. Load context:
    - Read `FEATURE_SPEC`

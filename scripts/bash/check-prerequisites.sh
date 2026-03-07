@@ -26,20 +26,36 @@ JSON_MODE=false
 REQUIRE_TASKS=false
 INCLUDE_TASKS=false
 PATHS_ONLY=false
+INPUT_FILE=""
+MODE="generic"
 
-for arg in "$@"; do
-    case "$arg" in
+while [[ $# -gt 0 ]]; do
+    case "$1" in
         --json)
             JSON_MODE=true
+            shift
             ;;
         --require-tasks)
             REQUIRE_TASKS=true
+            shift
             ;;
         --include-tasks)
             INCLUDE_TASKS=true
+            shift
             ;;
         --paths-only)
             PATHS_ONLY=true
+            shift
+            ;;
+        --input)
+            [[ $# -ge 2 ]] || { echo "ERROR: --input requires a file path" >&2; exit 1; }
+            INPUT_FILE="$2"
+            shift 2
+            ;;
+        --mode)
+            [[ $# -ge 2 ]] || { echo "ERROR: --mode requires a value" >&2; exit 1; }
+            MODE="$2"
+            shift 2
             ;;
         --help|-h)
             cat << 'EOF'
@@ -52,45 +68,70 @@ OPTIONS:
   --require-tasks     Require tasks.md to exist (for implementation phase)
   --include-tasks     Include tasks.md in AVAILABLE_DOCS list
   --paths-only        Only output path variables (no prerequisite validation)
+  --input <file>      Explicit input file under specs/<feature>/
+  --mode <mode>       Validation mode: generic|design|tasks|preview|analyze|implement
   --help, -h          Show this help message
 
 EXAMPLES:
   # Check task prerequisites (plan.md required)
-  ./check-prerequisites.sh --json
+  ./check-prerequisites.sh --json --mode design --input specs/001-foo/spec.md
   
   # Check implementation prerequisites (plan.md + tasks.md required)
-  ./check-prerequisites.sh --json --require-tasks --include-tasks
+  ./check-prerequisites.sh --json --mode implement --input specs/001-foo/tasks.md --require-tasks --include-tasks
   
   # Get feature paths only (no validation)
-  ./check-prerequisites.sh --paths-only
+  ./check-prerequisites.sh --paths-only --mode preview --input specs/001-foo/plan.md
   
 EOF
             exit 0
             ;;
         *)
-            echo "ERROR: Unknown option '$arg'. Use --help for usage information." >&2
-            exit 1
+            if [[ -z "$INPUT_FILE" ]]; then
+                INPUT_FILE="$1"
+                shift
+            else
+                echo "ERROR: Unknown option '$1'. Use --help for usage information." >&2
+                exit 1
+            fi
             ;;
     esac
 done
+
+if [[ -n "$INPUT_FILE" ]]; then
+    # Keep only first token so callers may pass "<input-file> [notes...]" through {ARGS}
+    INPUT_FILE="${INPUT_FILE%% *}"
+fi
 
 # Source common functions
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
-# Get feature paths and validate branch
-eval $(get_feature_paths)
-check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
+# Resolve context
+if [[ -n "$INPUT_FILE" ]]; then
+    eval $(get_feature_paths_from_input_file "$INPUT_FILE" "$MODE")
+else
+    case "$MODE" in
+        design|tasks|preview|analyze)
+            echo "ERROR: --input is required for mode '$MODE'." >&2
+            exit 1
+            ;;
+        *)
+            eval $(get_feature_paths)
+            check_feature_branch "$CURRENT_BRANCH" "$HAS_GIT" || exit 1
+            ;;
+    esac
+fi
 
 # If paths-only mode, output paths and exit (support JSON + paths-only combined)
 if $PATHS_ONLY; then
     if $JSON_MODE; then
         # Minimal JSON paths payload (no validation performed)
-        printf '{"REPO_ROOT":"%s","BRANCH":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASKS":"%s"}\n' \
-            "$REPO_ROOT" "$CURRENT_BRANCH" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASKS"
+        printf '{"REPO_ROOT":"%s","BRANCH":"%s","INPUT_FILE_ABS":"%s","FEATURE_DIR":"%s","FEATURE_SPEC":"%s","IMPL_PLAN":"%s","TASKS":"%s"}\n' \
+            "$REPO_ROOT" "${BRANCH:-$CURRENT_BRANCH}" "${INPUT_FILE_ABS:-}" "$FEATURE_DIR" "$FEATURE_SPEC" "$IMPL_PLAN" "$TASKS"
     else
         echo "REPO_ROOT: $REPO_ROOT"
-        echo "BRANCH: $CURRENT_BRANCH"
+        echo "BRANCH: ${BRANCH:-$CURRENT_BRANCH}"
+        echo "INPUT_FILE_ABS: ${INPUT_FILE_ABS:-}"
         echo "FEATURE_DIR: $FEATURE_DIR"
         echo "FEATURE_SPEC: $FEATURE_SPEC"
         echo "IMPL_PLAN: $IMPL_PLAN"

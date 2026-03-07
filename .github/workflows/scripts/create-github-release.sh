@@ -40,6 +40,8 @@ gh release create "$VERSION" \
   .genreleases/spec-kit-template-roo-ps-"$VERSION".zip \
   .genreleases/spec-kit-template-codebuddy-sh-"$VERSION".zip \
   .genreleases/spec-kit-template-codebuddy-ps-"$VERSION".zip \
+  .genreleases/spec-kit-template-cline-sh-"$VERSION".zip \
+  .genreleases/spec-kit-template-cline-ps-"$VERSION".zip \
   .genreleases/spec-kit-template-qodercli-sh-"$VERSION".zip \
   .genreleases/spec-kit-template-qodercli-ps-"$VERSION".zip \
   .genreleases/spec-kit-template-amp-sh-"$VERSION".zip \

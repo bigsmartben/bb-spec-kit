@@ -1,0 +1,35 @@
+{
+  "name": "setup-plan",
+  "purpose": "Prepare plan.md for the feature derived from an explicit input spec file and return key feature paths",
+  "scripts": {
+    "sh": "scripts/bash/setup-plan.sh",
+    "ps": "scripts/powershell/setup-plan.ps1"
+  },
+  "inputs": {
+    "input_file": {
+      "required": true,
+      "type": "string",
+      "description": "Explicit spec.md path under specs/<feature>/ used to derive feature context"
+    },
+    "json_mode": {
+      "required": false,
+      "type": "boolean",
+      "default": true
+    }
+  },
+  "json_output": {
+    "required_keys": [
+      "FEATURE_SPEC",
+      "IMPL_PLAN",
+      "SPECS_DIR",
+      "FEATURE_DIR",
+      "INPUT_FILE_ABS",
+      "BRANCH",
+      "HAS_GIT"
+    ]
+  },
+  "side_effects": [
+    "ensures-feature-directory-exists",
+    "copies-plan-template-or-creates-empty-plan-file"
+  ]
+}

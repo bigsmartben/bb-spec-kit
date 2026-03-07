@@ -20,6 +20,9 @@ param(
     [switch]$RequireTasks,
     [switch]$IncludeTasks,
     [switch]$PathsOnly,
+    [string]$InputFile,
+    [ValidateSet('generic','design','tasks','preview','analyze','implement')]
+    [string]$Mode = 'generic',
     [switch]$Help
 )
 
@@ -37,17 +40,19 @@ OPTIONS:
   -RequireTasks       Require tasks.md to exist (for implementation phase)
   -IncludeTasks       Include tasks.md in AVAILABLE_DOCS list
   -PathsOnly          Only output path variables (no prerequisite validation)
+  -InputFile <file>   Explicit input file under specs/<feature>/
+  -Mode <mode>        Validation mode: generic|design|tasks|preview|analyze|implement
   -Help, -h           Show this help message
 
 EXAMPLES:
   # Check task prerequisites (plan.md required)
-  .\check-prerequisites.ps1 -Json
+  .\check-prerequisites.ps1 -Json -Mode design -InputFile specs/001-foo/spec.md
   
   # Check implementation prerequisites (plan.md + tasks.md required)
-  .\check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks
+  .\check-prerequisites.ps1 -Json -Mode implement -InputFile specs/001-foo/tasks.md -RequireTasks -IncludeTasks
   
   # Get feature paths only (no validation)
-  .\check-prerequisites.ps1 -PathsOnly
+  .\check-prerequisites.ps1 -PathsOnly -Mode preview -InputFile specs/001-foo/plan.md
 
 "@
     exit 0
@@ -56,11 +61,19 @@ EXAMPLES:
 # Source common functions
 . "$PSScriptRoot/common.ps1"
 
-# Get feature paths and validate branch
-$paths = Get-FeaturePathsEnv
-
-if (-not (Test-FeatureBranch -Branch $paths.CURRENT_BRANCH -HasGit:$paths.HAS_GIT)) { 
-    exit 1 
+# Resolve context
+if ($InputFile) {
+    $InputFile = ($InputFile -split '\s+')[0]
+    $paths = Get-FeaturePathsFromInputFile -InputFile $InputFile -Mode $Mode
+} else {
+    if ($Mode -in @('design','tasks','preview','analyze')) {
+        Write-Output "ERROR: -InputFile is required for mode '$Mode'."
+        exit 1
+    }
+    $paths = Get-FeaturePathsEnv
+    if (-not (Test-FeatureBranch -Branch $paths.CURRENT_BRANCH -HasGit:$paths.HAS_GIT)) { 
+        exit 1 
+    }
 }
 
 # If paths-only mode, output paths and exit (support combined -Json -PathsOnly)
@@ -68,7 +81,8 @@ if ($PathsOnly) {
     if ($Json) {
         [PSCustomObject]@{
             REPO_ROOT    = $paths.REPO_ROOT
-            BRANCH       = $paths.CURRENT_BRANCH
+            BRANCH       = $(if ($paths.BRANCH) { $paths.BRANCH } else { $paths.CURRENT_BRANCH })
+            INPUT_FILE_ABS = $(if ($paths.PSObject.Properties.Name -contains 'INPUT_FILE_ABS') { $paths.INPUT_FILE_ABS } else { '' })
             FEATURE_DIR  = $paths.FEATURE_DIR
             FEATURE_SPEC = $paths.FEATURE_SPEC
             IMPL_PLAN    = $paths.IMPL_PLAN
@@ -76,7 +90,8 @@ if ($PathsOnly) {
         } | ConvertTo-Json -Compress
     } else {
         Write-Output "REPO_ROOT: $($paths.REPO_ROOT)"
-        Write-Output "BRANCH: $($paths.CURRENT_BRANCH)"
+        Write-Output "BRANCH: $(if ($paths.BRANCH) { $paths.BRANCH } else { $paths.CURRENT_BRANCH })"
+        Write-Output "INPUT_FILE_ABS: $(if ($paths.PSObject.Properties.Name -contains 'INPUT_FILE_ABS') { $paths.INPUT_FILE_ABS } else { '' })"
         Write-Output "FEATURE_DIR: $($paths.FEATURE_DIR)"
         Write-Output "FEATURE_SPEC: $($paths.FEATURE_SPEC)"
         Write-Output "IMPL_PLAN: $($paths.IMPL_PLAN)"

@@ -1,0 +1,47 @@
+schema: "command-frontmatter/v1"
+
+# Phase 1 scope: constrain command template frontmatter shape only.
+allowed_keys:
+  - description
+  - scripts
+  - handoffs
+  - agent_scripts
+  - tools
+
+required_keys:
+  - description
+
+fields:
+  description:
+    type: string
+    min_length: 1
+
+  scripts:
+    type: script_map
+    min_entries: 1
+    allowed_map_keys: [sh, ps]
+
+  agent_scripts:
+    type: script_map
+    min_entries: 1
+    allowed_map_keys: [sh, ps]
+
+  tools:
+    type: string_list
+    min_items: 1
+
+  handoffs:
+    type: handoff_list
+    min_items: 1
+    item_required_keys: [label, agent, prompt]
+    item_allowed_keys: [label, agent, prompt, send]
+    item_fields:
+      label: string
+      agent: string
+      prompt: string
+      send: boolean
+
+cross_rules:
+  - name: agent-scripts-requires-scripts
+    when_present: agent_scripts
+    requires: scripts

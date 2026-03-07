@@ -34,7 +34,7 @@
 #    - Can update single agents or all existing agent files
 #    - Creates default Claude file if no agent files exist
 #
-# Usage: ./update-agent-context.sh [agent_type]
+# Usage: ./update-agent-context.sh [agent_type] [--input <plan.md>|<plan.md>]
 # Agent types: claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|roo|codebuddy|amp|shai|q|agy|bob|qodercli
 # Leave empty to update all existing agent files
 
@@ -52,11 +52,46 @@ set -o pipefail
 SCRIPT_DIR="$(CDPATH="" cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/common.sh"
 
-# Get all paths and variables from common functions
-eval $(get_feature_paths)
+AGENT_TYPE=""
+INPUT_FILE=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --input)
+            [[ $# -ge 2 ]] || { echo "ERROR: --input requires a file path" >&2; exit 1; }
+            INPUT_FILE="$2"
+            shift 2
+            ;;
+        --help|-h)
+            echo "Usage: $0 [agent_type] [--input <plan.md>|<plan.md>]"
+            echo "  agent_type (optional): claude|gemini|copilot|cursor-agent|qwen|opencode|codex|windsurf|kilocode|auggie|roo|codebuddy|amp|shai|q|agy|bob|qodercli|generic"
+            echo "  --input <file>       Explicit plan.md input under specs/<feature>/"
+            exit 0
+            ;;
+        *)
+            if [[ -z "$AGENT_TYPE" ]]; then
+                AGENT_TYPE="$1"
+            elif [[ -z "$INPUT_FILE" ]]; then
+                INPUT_FILE="$1"
+            else
+                echo "ERROR: Unexpected argument '$1'" >&2
+                exit 1
+            fi
+            shift
+            ;;
+    esac
+done
+
+if [[ -n "$INPUT_FILE" ]]; then
+    # Keep only first token so callers may pass "<input-file> [notes...]"
+    INPUT_FILE="${INPUT_FILE%% *}"
+    eval $(get_feature_paths_from_input_file "$INPUT_FILE" "generic")
+else
+    # Backward-compatible fallback
+    eval $(get_feature_paths)
+fi
 
 NEW_PLAN="$IMPL_PLAN"  # Alias for compatibility with existing code
-AGENT_TYPE="${1:-}"
 
 # Agent-specific file paths  
 CLAUDE_FILE="$REPO_ROOT/CLAUDE.md"

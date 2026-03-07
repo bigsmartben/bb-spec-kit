@@ -1,8 +1,8 @@
 ---
 description: Perform cross-artifact consistency analysis across spec.md, plan.md, and tasks.md. Use after task generation to identify gaps, duplications, and inconsistencies before implementation.
 scripts:
-  sh: scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks
-  ps: scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks
+  sh: scripts/bash/check-prerequisites.sh --json --mode analyze --input "{ARGS}" --require-tasks --include-tasks
+  ps: scripts/powershell/check-prerequisites.ps1 -Json -Mode analyze -InputFile "{ARGS}" -RequireTasks -IncludeTasks
 ---
 
 ## User Input
@@ -12,6 +12,22 @@ $ARGUMENTS
 ```
 
 You **MUST** consider the user input before proceeding (if not empty).
+
+## Usage / Input File *(MANDATORY)*
+
+This command requires an explicit **input file** as the first token in `$ARGUMENTS`:
+
+- `/sdd.analyze <plan.md|tasks.md> [notes...]`
+- `<plan.md|tasks.md>` can be an absolute path or a repo-root relative path under `specs/<feature>/`.
+
+Examples:
+
+- `/sdd.analyze specs/001-foo/tasks.md`
+- `/sdd.analyze /abs/path/to/specs/001-foo/plan.md 请重点检查术语一致性`
+
+If `$ARGUMENTS` is empty: **ERROR** and STOP.
+
+Pre-implementation phases MUST NOT infer feature context from current git branch, `SPECIFY_FEATURE`, or latest `specs/*` directory. Context MUST be derived from the explicit input file.
 
 ## Constitution Evidence Source Policy (MANDATORY)
 
@@ -28,13 +44,13 @@ Identify inconsistencies, duplications, ambiguities, and underspecified items ac
 
 This command is the **single post-hoc audit / verification entry point** for cross-artifact reasoning quality and constraint compliance.
 
-Important: This audit does **not** replace the minimal generation-time hard gates in `/speckit.plan`, `/speckit.tasks`, or `/speckit.implement`. Those gates exist to fail fast; this command exists to catch drift, gaps, and mismatches before code is written.
+Important: This audit does **not** replace the minimal generation-time hard gates in `/sdd.plan`, `/sdd.tasks`, or `/sdd.implement`. Those gates exist to fail fast; this command exists to catch drift, gaps, and mismatches before code is written.
 
 ## Operating Constraints
 
 **STRICTLY READ-ONLY**: Do **not** modify any files. Output a structured analysis report. Offer an optional remediation plan (user must explicitly approve before any follow-up editing commands would be invoked manually).
 
-**Constitution Authority**: The project constitution is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `/speckit.analyze`.
+**Constitution Authority**: The project constitution is **non-negotiable** within this analysis scope. Constitution conflicts are automatically CRITICAL and require adjustment of the spec, plan, or tasks—not dilution, reinterpretation, or silent ignoring of the principle. If a principle itself needs to change, that must occur in a separate, explicit constitution update outside `/sdd.analyze`.
 
 Constitution path (terminology authority):
 - Preferred: `.specify/memory/constitution.md`
@@ -44,7 +60,7 @@ Constitution path (terminology authority):
 
 ### 1. Initialize Analysis Context
 
-Run `{SCRIPT}` once from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS. Derive absolute paths:
+Run `{SCRIPT}` once from repo root and parse JSON for FEATURE_DIR and AVAILABLE_DOCS from explicit input-file-derived context. Derive absolute paths:
 
 - SPEC = FEATURE_DIR/spec.md
 - PLAN = FEATURE_DIR/plan.md
@@ -206,7 +222,7 @@ Perform these checks and emit findings with precise locations:
      - Ensure cases cover at least 1 representative 2xx and key 4xx/5xx that are meaningful for the feature
    - If unable to infer, report as **LOW** with "needs clearer matrix/OpenAPI structure" note (do not hallucinate)
 
-6. **Tasks ↔ Matrix consistency (post-/speckit.tasks validation)**
+6. **Tasks ↔ Matrix consistency (post-/sdd.tasks validation)**
    - Extract all `CaseID` tokens mentioned in `tasks.md` `Type:Test` tasks
    - Every referenced `CaseID` MUST exist in `contracts/test-case-matrix.md`
    - For interface-tagged tasks `[IFxx]`:
@@ -313,9 +329,9 @@ Output a Markdown report (no file writes) with the following structure:
 
 At end of report, output a concise Next Actions block:
 
-- If CRITICAL issues exist: Recommend resolving before `/speckit.implement`
+- If CRITICAL issues exist: Recommend resolving before `/sdd.implement`
 - If only LOW/MEDIUM: User may proceed, but provide improvement suggestions
-- Provide explicit command suggestions: e.g., "Run /speckit.specify with refinement", "Run /speckit.plan to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
+- Provide explicit command suggestions: e.g., "Run /sdd.specify with refinement", "Run /sdd.plan to adjust architecture", "Manually edit tasks.md to add coverage for 'performance-metrics'"
 
 ### 8. Offer Remediation
 

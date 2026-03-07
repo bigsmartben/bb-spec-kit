@@ -37,18 +37,44 @@ Specify supports multiple AI agents by generating agent-specific command files a
 | **Cursor**                 | `.cursor/commands/`    | Markdown | `cursor-agent`  | Cursor CLI                  |
 | **Qwen Code**              | `.qwen/commands/`      | TOML     | `qwen`          | Alibaba's Qwen Code CLI     |
 | **opencode**               | `.opencode/command/`   | Markdown | `opencode`      | opencode CLI                |
-| **Codex CLI**              | `.codex/commands/`     | Markdown | `codex`         | Codex CLI                   |
+| **Codex CLI**              | `.codex/prompts/`      | Markdown | `codex`         | Codex CLI                   |
 | **Windsurf**               | `.windsurf/workflows/` | Markdown | N/A (IDE-based) | Windsurf IDE workflows      |
-| **Kilo Code**              | `.kilocode/rules/`     | Markdown | N/A (IDE-based) | Kilo Code IDE               |
-| **Auggie CLI**             | `.augment/rules/`      | Markdown | `auggie`        | Auggie CLI                  |
-| **Roo Code**               | `.roo/rules/`          | Markdown | N/A (IDE-based) | Roo Code IDE                |
+| **Kilo Code**              | `.kilocode/workflows/` | Markdown | N/A (IDE-based) | Kilo Code IDE               |
+| **Auggie CLI**             | `.augment/commands/`   | Markdown | `auggie`        | Auggie CLI                  |
+| **Roo Code**               | `.roo/commands/`       | Markdown | N/A (IDE-based) | Roo Code IDE                |
 | **CodeBuddy CLI**          | `.codebuddy/commands/` | Markdown | `codebuddy`     | CodeBuddy CLI               |
+| **Cline**                  | `.cline/workflows/`    | Markdown | N/A (IDE-based) | Cline IDE plugin            |
 | **Qoder CLI**              | `.qoder/commands/`     | Markdown | `qodercli`      | Qoder CLI                   |
 | **Amazon Q Developer CLI** | `.amazonq/prompts/`    | Markdown | `q`             | Amazon Q Developer CLI      |
 | **Amp**                    | `.agents/commands/`    | Markdown | `amp`           | Amp CLI                     |
 | **SHAI**                   | `.shai/commands/`      | Markdown | `shai`          | SHAI CLI                    |
 | **IBM Bob**                | `.bob/commands/`       | Markdown | N/A (IDE-based) | IBM Bob IDE                 |
 | **Generic**                | User-specified via `--ai-commands-dir` | Markdown | N/A | Bring your own agent        |
+
+<!-- supported-agent-keys:start -->
+```text
+copilot
+claude
+gemini
+cursor-agent
+qwen
+opencode
+codex
+windsurf
+kilocode
+auggie
+codebuddy
+cline
+qodercli
+roo
+q
+amp
+shai
+agy
+bob
+generic
+```
+<!-- supported-agent-keys:end -->
 
 ### Step-by-Step Integration Guide
 
@@ -86,7 +112,7 @@ This eliminates the need for special-case mappings throughout the codebase.
 - `folder`: Directory where agent-specific files are stored (relative to project root)
 - `commands_subdir`: Subdirectory name within the agent folder where command/prompt files are stored (default: `"commands"`)
   - Most agents use `"commands"` (e.g., `.claude/commands/`)
-  - Some agents use alternative names: `"agents"` (copilot), `"workflows"` (windsurf, kilocode, agy), `"prompts"` (codex, q), `"command"` (opencode - singular)
+  - Some agents use alternative names: `"agents"` (copilot), `"workflows"` (windsurf, kilocode, agy, cline), `"prompts"` (codex, q), `"command"` (opencode - singular)
   - This field enables `--ai-skills` to locate command templates correctly for skill generation
 - `install_url`: Installation documentation URL (set to `None` for IDE-based agents)
 - `requires_cli`: Whether the agent requires a CLI tool check during initialization
@@ -335,7 +361,7 @@ Work within integrated development environments:
 
 ### Markdown Format
 
-Used by: Claude, Cursor, opencode, Windsurf, Amazon Q Developer, Amp, SHAI, IBM Bob
+Used by: Claude, Cursor, opencode, Windsurf, Cline, Amazon Q Developer, Amp, SHAI, IBM Bob
 
 **Standard format:**
 
